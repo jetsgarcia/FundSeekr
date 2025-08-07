@@ -62,6 +62,26 @@ export default function SignUpPage() {
               </div>
             </div>
             
+            <div className="group hover:bg-white/10 dark:hover:bg-slate-800/50 p-4 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-xl border border-white/10 dark:border-slate-700/50 dark:hover:border-slate-600">
+              <div className="flex items-start space-x-4">
+                <div className="bg-gradient-to-br from-purple-400 to-pink-500 dark:from-violet-500 dark:to-purple-600 p-3 rounded-lg shadow group-hover:shadow-lg transition-shadow">
+                  <TrendingUp className="h-6 w-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-lg mb-2 group-hover:text-purple-200 transition-colors">
+                    Analytics Dashboard
+                  </h3>
+                  <p className="text-blue-100 text-base leading-relaxed">
+                    Track match rates, engagement levels, and optimize your fundraising strategy
+                  </p>
+                  <div className="mt-2 flex items-center text-purple-200 text-xs font-medium">
+                    <span className="w-2 h-2 bg-purple-400 rounded-full mr-2"></span>
+                    Real-time insights & metrics
+                  </div>
+                </div>
+              </div>
+            </div>
+            
 
           </div>
         </div>
