@@ -31,7 +31,7 @@ export default function SignUpPage() {
                 </div>
                 <div className="flex-1">
                   <h3 className="font-bold text-lg mb-2 group-hover:text-yellow-200 transition-colors">
-                    AI Recommendation Engine
+                    Recommendation Engine
                   </h3>
                   <p className="text-blue-100 text-base leading-relaxed">
                     Smart matchmaking that analyzes profiles to generate highly
@@ -39,7 +39,7 @@ export default function SignUpPage() {
                   </p>
                   <div className="mt-2 flex items-center text-yellow-200 text-xs font-medium">
                     <span className="w-2 h-2 bg-yellow-400 rounded-full mr-2"></span>
-                    Artificial Intelligence
+                    Save 20+ hours per week
                   </div>
                 </div>
               </div>
@@ -52,7 +52,7 @@ export default function SignUpPage() {
                 </div>
                 <div className="flex-1">
                   <h3 className="font-bold text-lg mb-2 group-hover:text-green-200 transition-colors">
-                    Automated Pitch Generation
+                    AI-powered Pitch Generation
                   </h3>
                   <p className="text-blue-100 text-base leading-relaxed">
                     Generate personalized pitch emails tailored to each
@@ -102,7 +102,7 @@ export default function SignUpPage() {
                   </p>
                   <div className="mt-2 flex items-center text-red-200 text-xs font-medium">
                     <span className="w-2 h-2 bg-red-400 rounded-full mr-2"></span>
-                    Bank-grade security standards
+                    Your Data, Fully Protected
                   </div>
                 </div>
               </div>
@@ -111,11 +111,10 @@ export default function SignUpPage() {
         </div>
       </div>
 
-      {/* Right Side - Login Form */}
+      {/* Right Side - Sign Up Form */}
       <div className="w-full lg:w-2/5 flex items-center justify-center p-8 bg-white dark:bg-slate-900 overflow-hidden">
         <div className="max-w-md w-full">
           <SignUp
-            fullPage={true}
             automaticRedirect={true}
             firstTab="password"
             extraInfo={
