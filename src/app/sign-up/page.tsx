@@ -20,8 +20,32 @@ export default function SignUpPage() {
             <p className="text-blue-100 dark:text-slate-300 text-xl font-medium whitespace-nowrap">Connect with the right investors or discover promising startups</p>
           </div>
           
-      </div>
-    </div>
+          {/* Enhanced Features */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="group hover:bg-white/10 dark:hover:bg-slate-800/50 p-4 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-xl border border-white/10 dark:border-slate-700/50 dark:hover:border-slate-600">
+              <div className="flex items-start space-x-4">
+                <div className="bg-gradient-to-br from-yellow-400 to-orange-500 dark:from-yellow-500 dark:to-orange-600 p-3 rounded-lg shadow group-hover:shadow-lg transition-shadow">
+                  <Zap className="h-6 w-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-lg mb-2 group-hover:text-yellow-200 transition-colors">
+                    AI Recommendation Engine
+                  </h3>
+                  <p className="text-blue-100 text-base leading-relaxed">
+                    Smart matchmaking that analyzes profiles to generate highly relevant investor-startup connections
+                  </p>
+                  <div className="mt-2 flex items-center text-yellow-200 text-xs font-medium">
+                    <span className="w-2 h-2 bg-yellow-400 rounded-full mr-2"></span>
+                    Artificial Intelligence
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+
+          </div>
+        </div>
+      </div> 
           
       {/* Right Side - Login Form */}
       <div className="w-full lg:w-2/5 flex items-center justify-center p-8 bg-white dark:bg-slate-900 overflow-hidden">
