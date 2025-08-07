@@ -19,18 +19,6 @@ export const metadata: Metadata = {
   description: "",
 };
 
-const theme = {
-  light: {
-    primary: "#2b7fff",
-    background: "#ffffff",
-    text: "#000000"
-  },
-  dark: {
-    primary: "#155dfc",
-    text: "#ffffff",
-  }
-}
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -39,10 +27,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      ><StackProvider app={stackServerApp}><StackTheme theme={theme}>
-        {children}
-      </StackTheme></StackProvider></body>
+        className={`${geistSans.variable} ${geistMono.variable} antialiased dark`}
+      >
+        <StackProvider app={stackServerApp}>
+          <StackTheme>{children}</StackTheme>
+        </StackProvider>
+      </body>
     </html>
   );
 }
