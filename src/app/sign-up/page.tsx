@@ -42,6 +42,26 @@ export default function SignUpPage() {
               </div>
             </div>
             
+            <div className="group hover:bg-white/10 dark:hover:bg-slate-800/50 p-4 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-xl border border-white/10 dark:border-slate-700/50 dark:hover:border-slate-600">
+              <div className="flex items-start space-x-4">
+                <div className="bg-gradient-to-br from-green-400 to-emerald-500 dark:from-emerald-500 dark:to-green-600 p-3 rounded-lg shadow group-hover:shadow-lg transition-shadow">
+                  <Mail className="h-6 w-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-lg mb-2 group-hover:text-green-200 transition-colors">
+                    Automated Pitch Generation
+                  </h3>
+                  <p className="text-blue-100 text-base leading-relaxed">
+                    Generate personalized pitch emails tailored to each investor's profile and preferences
+                  </p>
+                  <div className="mt-2 flex items-center text-green-200 text-xs font-medium">
+                    <span className="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
+                    Save 10+ hours per week
+                  </div>
+                </div>
+              </div>
+            </div>
+            
 
           </div>
         </div>
