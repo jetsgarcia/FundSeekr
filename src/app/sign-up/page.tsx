@@ -82,7 +82,25 @@ export default function SignUpPage() {
               </div>
             </div>
             
-
+            <div className="group hover:bg-white/10 dark:hover:bg-slate-800/50 p-4 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-xl border border-white/10 dark:border-slate-700/50 dark:hover:border-slate-600">
+              <div className="flex items-start space-x-4">
+                <div className="bg-gradient-to-br from-red-400 to-rose-500 dark:from-rose-500 dark:to-red-600 p-3 rounded-lg shadow group-hover:shadow-lg transition-shadow">
+                  <Shield className="h-6 w-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-lg mb-2 group-hover:text-red-200 transition-colors">
+                    Enterprise Security
+                  </h3>
+                  <p className="text-blue-100 text-base leading-relaxed">
+                    End-to-end encryption and compliance with Philippine Data Privacy Act
+                  </p>
+                  <div className="mt-2 flex items-center text-red-200 text-xs font-medium">
+                    <span className="w-2 h-2 bg-red-400 rounded-full mr-2"></span>
+                    Bank-grade security standards
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div> 
