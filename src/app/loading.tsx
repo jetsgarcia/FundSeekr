@@ -1,3 +1,5 @@
+"use client";
+
 import { Ring } from "ldrs/react";
 
 export default function Loading() {
