@@ -76,7 +76,7 @@ export default function HomePage() {
       endLat: -22.9068,
       endLng: -43.1729,
       arcAlt: 0.1,
-      color: colors[Math.floor(Math.random() * (colors.length - 1))],
+      color: colors[Math.floor(Math.random() * colors.length)],
     },
     {
       order: 1,
