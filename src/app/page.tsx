@@ -463,7 +463,11 @@ export default function HomePage() {
               <UserButton />
             ) : (
               <div>
-                <Button variant="ghost" size={isMobile ? "default" : "lg"}>
+                <Button
+                  asChild
+                  variant="ghost"
+                  size={isMobile ? "default" : "lg"}
+                >
                   <Link href="/sign-in">Log in</Link>
                 </Button>
                 <Button asChild size={isMobile ? "default" : "lg"}>
