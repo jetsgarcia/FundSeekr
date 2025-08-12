@@ -2,7 +2,10 @@
 
 import { InvestorProfile } from "@/components/investor-profile";
 
+type UserType = "investor" | "startup";
+
 export default function ProfilePage() {
+  const usertype = "investor" as UserType;
   const user = {
     id: 1,
     name: "Horizon Ventures Capital",
@@ -51,5 +54,5 @@ export default function ProfilePage() {
     desired_level_involvement: "Board Seat",
   };
 
-  return <InvestorProfile user={user} />;
+  return <>{usertype === "investor" && <InvestorProfile user={user} />}</>;
 }
