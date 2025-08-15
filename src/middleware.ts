@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { isExcludedRoute, checkOnboardingStatus } from "@/lib/middleware-utils";
+import {
+  isExcludedRoute,
+  checkOnboardingStatus,
+  checkAuthStatus,
+} from "@/lib/middleware-utils";
 
 // Main middleware function
 export async function middleware(request: NextRequest) {
@@ -11,10 +15,18 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Check onboarding status
-  const { redirect } = await checkOnboardingStatus(request);
-  if (redirect) {
-    return redirect;
+  // Check authentication status first
+  const { redirect: authRedirect, user } = await checkAuthStatus(request);
+  if (authRedirect) {
+    return authRedirect;
+  }
+
+  // Check onboarding status (only if user is authenticated)
+  if (user) {
+    const { redirect } = await checkOnboardingStatus(request);
+    if (redirect) {
+      return redirect;
+    }
   }
 
   return NextResponse.next();

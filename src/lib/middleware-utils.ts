@@ -7,6 +7,7 @@ export const EXCLUDED_ROUTES = {
   onboarding: ["/onboarding"],
   auth: ["/sign-in", "/sign-up", "/login"],
   public: ["/api", "/_next", "/favicon.ico"],
+  publicAccess: ["/handler", "/sign-up", "/sign-in", "/terms"],
 } as const;
 
 export type ExcludeType = keyof typeof EXCLUDED_ROUTES;
@@ -54,19 +55,29 @@ export async function checkOnboardingStatus(request: NextRequest) {
 }
 
 /**
- * Example function for future auth checks
+ * Check authentication status and redirect to sign-in if not authenticated
  * @param request - The Next.js request object
  * @returns Object with redirect response if needed
  */
 export async function checkAuthStatus(request: NextRequest) {
-  // Placeholder for future auth checks
-  // const user = await stackServerApp.getUser();
-  // Add your auth logic here
+  const { pathname } = request.nextUrl;
 
-  // Prevent unused parameter warning
-  void request;
+  // Skip auth check for public routes
+  if (isExcludedRoute(pathname, "publicAccess")) {
+    return { redirect: null, user: null };
+  }
 
-  return { redirect: null };
+  const user = await stackServerApp.getUser();
+
+  // If user is not authenticated and trying to access protected routes
+  if (!user) {
+    return {
+      redirect: NextResponse.redirect(new URL("/sign-in", request.url)),
+      user: null,
+    };
+  }
+
+  return { redirect: null, user };
 }
 
 /**
