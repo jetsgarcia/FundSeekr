@@ -55,6 +55,17 @@ export default function OnboardingPage() {
     investorLinkedin: "",
   });
 
+  const [investorProfileData, setInvestorProfileData] =
+    useState<InvestorProfileData>({
+      investorType: "",
+      city: "",
+      keyContactPersonName: "",
+      keyContactNumber: "+63",
+      keyContactLinkedin: "",
+      decisionPeriodInWeeks: "",
+      typicalCheckSizeInPhp: "",
+    });
+
   const [startupData, setStartupData] = useState<StartupFormData>({
     firstName: "",
     lastName: "",
@@ -72,17 +83,6 @@ export default function OnboardingPage() {
       dateFounded: "",
       keywords: "",
       industry: "",
-    });
-
-  const [investorProfileData, setInvestorProfileData] =
-    useState<InvestorProfileData>({
-      investorType: "",
-      city: "",
-      keyContactPersonName: "",
-      keyContactNumber: "+63",
-      keyContactLinkedin: "",
-      decisionPeriodInWeeks: "",
-      typicalCheckSizeInPhp: "",
     });
 
   const handleInvestorChange = (
