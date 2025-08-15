@@ -292,18 +292,21 @@ export function Step2({
                         value={startupData.contactNumber}
                         onChange={(e) => {
                           const value = e.target.value;
-                          if (
-                            value.startsWith("+63") ||
-                            value === "+6" ||
-                            value === "+"
-                          ) {
-                            handleStartupChange("contactNumber", value);
-                          } else if (value === "") {
+                          // Accept empty input (reset to +63) or valid Philippine phone pattern
+                          if (value === "") {
                             handleStartupChange("contactNumber", "+63");
+                          } else if (
+                            value.startsWith("+63") &&
+                            /^\+63[0-9]{0,10}$/.test(value)
+                          ) {
+                            // Only allow +63 followed by up to 10 digits
+                            handleStartupChange("contactNumber", value);
                           }
+                          // Ignore all other inputs (incomplete prefixes like "+" or "+6")
                         }}
                         className="pl-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
                         placeholder="+639123456789"
+                        maxLength={13}
                       />
                     </div>
                   </div>
