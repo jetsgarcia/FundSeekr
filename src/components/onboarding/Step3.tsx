@@ -29,7 +29,7 @@ import {
   Calendar,
   Tag,
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, parse, startOfDay } from "date-fns";
 
 interface InvestorProfileData {
   investorType: string;
@@ -81,7 +81,7 @@ export function Step3({
   // State for calendar date
   const [calendarDate, setCalendarDate] = React.useState<Date | undefined>(
     startupProfileData.dateFounded
-      ? new Date(startupProfileData.dateFounded)
+      ? parse(startupProfileData.dateFounded, "yyyy-MM-dd", new Date())
       : undefined
   );
 
@@ -89,8 +89,9 @@ export function Step3({
   const handleDateSelect = (date: Date | undefined) => {
     setCalendarDate(date);
     if (date) {
-      // Format date as YYYY-MM-DD for form submission
-      const formattedDate = date.toISOString().split("T")[0];
+      // Format date as YYYY-MM-DD for form submission using local date
+      const normalizedDate = startOfDay(date);
+      const formattedDate = format(normalizedDate, "yyyy-MM-dd");
       handleStartupProfileChange("dateFounded", formattedDate);
     } else {
       handleStartupProfileChange("dateFounded", "");
