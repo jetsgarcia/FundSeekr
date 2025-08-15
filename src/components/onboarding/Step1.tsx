@@ -18,7 +18,7 @@ export function Step1({ userType, setUserType, setStep }: Step1Props) {
             <h1 className="text-3xl font-bold text-slate-900">
               Please select your role
             </h1>
-            <p className="text-slate-600 leading leading-tight">
+            <p className="text-slate-600 leading-tight">
               Choose whether you&apos;re looking to invest in startups or
               seeking investment for your business.
             </p>
