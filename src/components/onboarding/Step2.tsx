@@ -362,7 +362,7 @@ export function Step2({
                 disabled={!isFormValid()}
                 className="px-6 bg-blue-600 hover:bg-blue-700 transition-colors shadow-lg"
               >
-                Continue
+                Next
               </Button>
             </div>
           </CardContent>
