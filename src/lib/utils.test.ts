@@ -1,4 +1,25 @@
-import { formatCurrency } from './utils';
+import { formatCurrency, cn } from './utils';
+
+describe('cn', () => {
+  test('merges class names correctly', () => {
+    expect(cn('px-2 py-1', 'text-red-500')).toBe('px-2 py-1 text-red-500');
+  });
+
+  test('handles conditional classes', () => {
+    expect(cn('base-class', true && 'conditional-class')).toBe('base-class conditional-class');
+    expect(cn('base-class', false && 'conditional-class')).toBe('base-class');
+  });
+
+  test('handles conflicting tailwind classes', () => {
+    expect(cn('px-2', 'px-4')).toBe('px-4');
+    expect(cn('text-red-500', 'text-blue-500')).toBe('text-blue-500');
+  });
+
+  test('handles empty inputs', () => {
+    expect(cn()).toBe('');
+    expect(cn('')).toBe('');
+  });
+});
 
 describe('formatCurrency', () => {
   test('formats small numbers with PHP currency', () => {
