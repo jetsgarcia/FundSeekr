@@ -14,7 +14,6 @@ import {
   SaveIcon,
   XIcon,
   PlusIcon,
-  MinusIcon,
   ClockIcon,
   MapPinIcon,
   BuildingIcon,
@@ -111,15 +110,12 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
     value_php: "",
   });
 
-  // Helper function to format enum values for display
   const formatEnumValue = (value: string | null) => {
     if (!value) return null;
-    // Enum values in schema already have proper spacing and formatting
     return value;
   };
 
   const handleSave = () => {
-    // Here you would typically call an API to save the changes
     console.log("Saving changes:", editedUser);
     setIsEditing(false);
   };
@@ -306,7 +302,7 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
 
   const addNotableExit = () => {
     if (!validateNotableExit()) {
-      return; // Don't add if validation fails
+      return;
     }
 
     const exitToAdd = {
@@ -330,7 +326,6 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
       value_php: "",
     });
 
-    // Clear errors after successful addition
     setNotableExitErrors({
       company: "",
       year: "",
@@ -348,7 +343,7 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
 
   const addKeyContact = () => {
     if (!validateKeyContact()) {
-      return; // Don't add if validation fails
+      return;
     }
 
     const contactToAdd: KeyContact = {
@@ -364,7 +359,6 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
       phone: "+63 ",
     });
 
-    // Clear errors after successful addition
     setKeyContactErrors({
       name: "",
       linkedin: "",
@@ -393,26 +387,20 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
     setKeyContacts(updatedContacts);
   };
 
-  // Phone number formatting helper
   const formatPhoneNumber = (value: string) => {
-    // Remove all non-numeric characters except +
     const numbers = value.replace(/[^\d+]/g, "").replace(/\+(?!\d)/g, "");
 
-    // Extract only the digits
     const digits = numbers.replace(/\D/g, "");
 
-    // If it starts with 63, format with +
     if (digits.startsWith("63")) {
       const withoutCountryCode = digits.substring(2);
       if (withoutCountryCode.length >= 10) {
-        // Format: +63 XXX XXX XXXX
         const formatted = withoutCountryCode.replace(
           /(\d{3})(\d{3})(\d{4})/,
           "$1 $2 $3"
         );
         return `+63 ${formatted}`;
       } else if (withoutCountryCode.length > 0) {
-        // Progressive formatting
         if (withoutCountryCode.length <= 3) {
           return `+63 ${withoutCountryCode}`;
         } else if (withoutCountryCode.length <= 6) {
@@ -433,16 +421,13 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
       return "+63 ";
     }
 
-    // If it doesn't start with 63, prepend +63
     if (digits.length > 0) {
       if (digits.length >= 10) {
-        // Format: +63 XXX XXX XXXX
         const formatted = digits
           .substring(0, 10)
           .replace(/(\d{3})(\d{3})(\d{4})/, "$1 $2 $3");
         return `+63 ${formatted}`;
       } else {
-        // Progressive formatting
         if (digits.length <= 3) {
           return `+63 ${digits}`;
         } else if (digits.length <= 6) {
@@ -456,7 +441,6 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
       }
     }
 
-    // If empty, return +63
     return "+63 ";
   };
 

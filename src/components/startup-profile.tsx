@@ -3,13 +3,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -77,7 +70,7 @@ export function StartupProfile({ startup }: StartupProfileProps) {
   const [newTargetMarket, setNewTargetMarket] = useState("");
   const [newMilestone, setNewMilestone] = useState("");
 
-  // Mock funding request data (you would get this from your database)
+  // Mock funding request data
   const [fundingRequest, setFundingRequest] = useState<FundingRequest>({
     amount: 500000,
     purpose:
@@ -133,7 +126,6 @@ export function StartupProfile({ startup }: StartupProfileProps) {
   };
 
   const handleSave = () => {
-    // Here you would typically call an API to save the changes
     console.log("Saving changes:", editedStartup);
     setIsEditing(false);
   };
