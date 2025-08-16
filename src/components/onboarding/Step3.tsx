@@ -105,15 +105,15 @@ export function Step3({
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
       <div className="w-full max-w-5xl mx-auto space-y-8">
-        <Card className="w-full shadow-xl border-0 bg-white/80 backdrop-blur-sm">
+        <Card className="w-full shadow-xl border-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
           <CardHeader className="space-y-6 pt-8 pb-8">
             <div className="text-center space-y-2">
-              <h1 className="text-3xl font-bold text-slate-900">
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">
                 {userType === "investor"
                   ? "Investor Profile"
                   : "Startup Profile"}
               </h1>
-              <p className="text-slate-600 text-lg">
+              <p className="text-slate-600 dark:text-slate-300 text-lg">
                 {userType === "investor"
                   ? "Tell us more about your investment profile"
                   : "Tell us more about your startup"}
@@ -129,12 +129,12 @@ export function Step3({
                   <div className="flex flex-col gap-2">
                     <Label
                       htmlFor="investorType"
-                      className="text-sm font-medium text-slate-700"
+                      className="text-sm font-medium text-slate-700 dark:text-slate-300"
                     >
                       Investor Type <span className="text-red-500">*</span>
                     </Label>
                     <div className="relative">
-                      <User className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 z-10" />
+                      <User className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500 z-10" />
                       <Select
                         value={investorData.investorType}
                         onValueChange={(value) =>
@@ -172,13 +172,13 @@ export function Step3({
                   <div className="flex flex-col gap-2">
                     <Label
                       htmlFor="checkSize"
-                      className="text-sm font-medium text-slate-700"
+                      className="text-sm font-medium text-slate-700 dark:text-slate-300"
                     >
                       Typical Check Size (PHP){" "}
                       <span className="text-red-500">*</span>
                     </Label>
                     <div className="relative">
-                      <span className="absolute left-3 top-2.5 text-xs font-medium text-slate-400">
+                      <span className="absolute left-3 top-2.5 text-xs font-medium text-slate-400 dark:text-slate-500">
                         PHP
                       </span>
                       <Input
@@ -191,7 +191,7 @@ export function Step3({
                             e.target.value
                           )
                         }
-                        className="pl-12 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                        className="pl-12 border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:ring-blue-500"
                         placeholder="1000000"
                       />
                     </div>
@@ -202,19 +202,19 @@ export function Step3({
                 <div className="flex flex-col gap-2">
                   <Label
                     htmlFor="location"
-                    className="text-sm font-medium text-slate-700"
+                    className="text-sm font-medium text-slate-700 dark:text-slate-300"
                   >
                     Location (City) <span className="text-red-500">*</span>
                   </Label>
                   <div className="relative">
-                    <MapPin className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                    <MapPin className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
                     <Input
                       id="location"
                       value={investorData.city}
                       onChange={(e) =>
                         handleInvestorChange("city", e.target.value)
                       }
-                      className="pl-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                      className="pl-10 border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:ring-blue-500"
                       placeholder="Manila"
                     />
                   </div>
@@ -224,12 +224,12 @@ export function Step3({
                 <div className="flex flex-col gap-2">
                   <Label
                     htmlFor="keyContact"
-                    className="text-sm font-medium text-slate-700"
+                    className="text-sm font-medium text-slate-700 dark:text-slate-300"
                   >
                     Key Contact Person <span className="text-red-500">*</span>
                   </Label>
                   <div className="relative">
-                    <User className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                    <User className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
                     <Input
                       id="keyContact"
                       value={investorData.keyContactPersonName}
@@ -239,7 +239,7 @@ export function Step3({
                           e.target.value
                         )
                       }
-                      className="pl-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                      className="pl-10 border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:ring-blue-500"
                       placeholder="John Smith"
                     />
                   </div>
@@ -250,12 +250,12 @@ export function Step3({
                   <div className="flex flex-col gap-2">
                     <Label
                       htmlFor="contactNumber"
-                      className="text-sm font-medium text-slate-700"
+                      className="text-sm font-medium text-slate-700 dark:text-slate-300"
                     >
                       Contact Number <span className="text-red-500">*</span>
                     </Label>
                     <div className="relative">
-                      <Phone className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                      <Phone className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
                       <Input
                         id="contactNumber"
                         type="tel"
@@ -274,7 +274,7 @@ export function Step3({
                           }
                           // Ignore all other inputs (incomplete prefixes like "+" or "+6")
                         }}
-                        className="pl-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                        className="pl-10 border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:ring-blue-500"
                         placeholder="+639123456789"
                         maxLength={13}
                       />
@@ -285,12 +285,12 @@ export function Step3({
                   <div className="flex flex-col gap-2">
                     <Label
                       htmlFor="linkedinProfile"
-                      className="text-sm font-medium text-slate-700"
+                      className="text-sm font-medium text-slate-700 dark:text-slate-300"
                     >
                       LinkedIn Profile
                     </Label>
                     <div className="relative">
-                      <Linkedin className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                      <Linkedin className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
                       <Input
                         id="linkedinProfile"
                         value={investorData.keyContactLinkedin}
@@ -300,7 +300,7 @@ export function Step3({
                             e.target.value
                           )
                         }
-                        className="pl-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                        className="pl-10 border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:ring-blue-500"
                         placeholder="https://linkedin.com/in/johnsmith"
                       />
                     </div>
@@ -311,13 +311,13 @@ export function Step3({
                 <div className="flex flex-col gap-2">
                   <Label
                     htmlFor="decisionTimeline"
-                    className="text-sm font-medium text-slate-700"
+                    className="text-sm font-medium text-slate-700 dark:text-slate-300"
                   >
                     Typical Decision-Making Timeline (in weeks){" "}
                     <span className="text-red-500">*</span>
                   </Label>
                   <div className="relative">
-                    <Clock className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                    <Clock className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
                     <Input
                       id="decisionTimeline"
                       type="number"
@@ -328,7 +328,7 @@ export function Step3({
                           e.target.value
                         )
                       }
-                      className="pl-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                      className="pl-10 border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:ring-blue-500"
                       placeholder="2"
                     />
                   </div>
@@ -341,19 +341,19 @@ export function Step3({
                   <div className="flex flex-col gap-2">
                     <Label
                       htmlFor="startupName"
-                      className="text-sm font-medium text-slate-700"
+                      className="text-sm font-medium text-slate-700 dark:text-slate-300"
                     >
                       Startup Name <span className="text-red-500">*</span>
                     </Label>
                     <div className="relative">
-                      <Building className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                      <Building className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
                       <Input
                         id="startupName"
                         value={startupData.name}
                         onChange={(e) =>
                           handleStartupChange("name", e.target.value)
                         }
-                        className="pl-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                        className="pl-10 border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:ring-blue-500"
                         placeholder="FundSeekr"
                       />
                     </div>
@@ -363,19 +363,19 @@ export function Step3({
                   <div className="flex flex-col gap-2">
                     <Label
                       htmlFor="website"
-                      className="text-sm font-medium text-slate-700"
+                      className="text-sm font-medium text-slate-700 dark:text-slate-300"
                     >
                       Website URL
                     </Label>
                     <div className="relative">
-                      <Globe className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                      <Globe className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
                       <Input
                         id="website"
                         value={startupData.website}
                         onChange={(e) =>
                           handleStartupChange("website", e.target.value)
                         }
-                        className="pl-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                        className="pl-10 border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:ring-blue-500"
                         placeholder="https://fundseekr.com"
                       />
                     </div>
@@ -386,19 +386,19 @@ export function Step3({
                 <div className="flex flex-col gap-2">
                   <Label
                     htmlFor="industry"
-                    className="text-sm font-medium text-slate-700"
+                    className="text-sm font-medium text-slate-700 dark:text-slate-300"
                   >
                     Industry <span className="text-red-500">*</span>
                   </Label>
                   <div className="relative">
-                    <Tag className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                    <Tag className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
                     <Input
                       id="industry"
                       value={startupData.industry}
                       onChange={(e) =>
                         handleStartupChange("industry", e.target.value)
                       }
-                      className="pl-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                      className="pl-10 border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:ring-blue-500"
                       placeholder="Fintech"
                     />
                   </div>
@@ -408,7 +408,7 @@ export function Step3({
                 <div className="flex flex-col gap-2">
                   <Label
                     htmlFor="description"
-                    className="text-sm font-medium text-slate-700"
+                    className="text-sm font-medium text-slate-700 dark:text-slate-300"
                   >
                     Detailed Company Description{" "}
                     <span className="text-red-500">*</span>
@@ -421,7 +421,7 @@ export function Step3({
                       onChange={(e) =>
                         handleStartupChange("description", e.target.value)
                       }
-                      className="w-full min-h-[100px] px-3 py-3 border border-slate-200 rounded-md text-sm resize-y focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full min-h-[100px] px-3 py-3 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-md text-sm resize-y focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
                 </div>
@@ -431,19 +431,19 @@ export function Step3({
                   <div className="flex flex-col gap-2">
                     <Label
                       htmlFor="startupLocation"
-                      className="text-sm font-medium text-slate-700"
+                      className="text-sm font-medium text-slate-700 dark:text-slate-300"
                     >
                       Location (City) <span className="text-red-500">*</span>
                     </Label>
                     <div className="relative">
-                      <MapPin className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                      <MapPin className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
                       <Input
                         id="startupLocation"
                         value={startupData.city}
                         onChange={(e) =>
                           handleStartupChange("city", e.target.value)
                         }
-                        className="pl-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                        className="pl-10 border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:ring-blue-500"
                         placeholder="Manila"
                       />
                     </div>
@@ -453,22 +453,22 @@ export function Step3({
                   <div className="flex flex-col gap-2">
                     <Label
                       htmlFor="dateFounded"
-                      className="text-sm font-medium text-slate-700"
+                      className="text-sm font-medium text-slate-700 dark:text-slate-300"
                     >
                       Date Founded <span className="text-red-500">*</span>
                     </Label>
                     <div className="relative">
-                      <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 z-10" />
+                      <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500 z-10" />
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
                             variant="outline"
-                            className="w-full justify-start text-left font-normal border-slate-200 focus:border-blue-500 focus:ring-blue-500 h-9 pl-10"
+                            className="w-full justify-start text-left font-normal border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:ring-blue-500 h-9 pl-10"
                           >
                             {calendarDate ? (
                               format(calendarDate, "PPP")
                             ) : (
-                              <span className="text-slate-400">
+                              <span className="text-slate-400 dark:text-slate-500">
                                 Pick a date
                               </span>
                             )}
@@ -505,19 +505,19 @@ export function Step3({
                 <div className="flex flex-col gap-2">
                   <Label
                     htmlFor="keywords"
-                    className="text-sm font-medium text-slate-700"
+                    className="text-sm font-medium text-slate-700 dark:text-slate-300"
                   >
                     Keywords/Tags
                   </Label>
                   <div className="relative">
-                    <Tag className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                    <Tag className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
                     <Input
                       id="keywords"
                       value={startupData.keywords}
                       onChange={(e) =>
                         handleStartupChange("keywords", e.target.value)
                       }
-                      className="pl-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                      className="pl-10 border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:ring-blue-500"
                       placeholder="AI, SaaS, Healthcare, Fintech"
                     />
                   </div>
@@ -529,7 +529,7 @@ export function Step3({
               <Button
                 variant="outline"
                 onClick={() => setStep(2)}
-                className="px-6 border-slate-300 hover:bg-slate-50 transition-colors bg-transparent"
+                className="px-6 border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors bg-transparent"
               >
                 Back
               </Button>
