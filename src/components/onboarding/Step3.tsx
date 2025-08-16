@@ -31,38 +31,43 @@ import {
 } from "lucide-react";
 import { format, parse, startOfDay } from "date-fns";
 
-interface InvestorProfileData {
+interface InvestorData {
+  firstName: string;
+  lastName: string;
+  organization: string;
+  position: string;
+  organizationWebsite: string;
+  investorLinkedin: string;
   investorType: string;
-  typicalCheckSizeInPhp: string;
   city: string;
   keyContactPersonName: string;
   keyContactNumber: string;
   keyContactLinkedin: string;
   decisionPeriodInWeeks: string;
+  typicalCheckSizeInPhp: string;
 }
 
-interface StartupProfileData {
+interface StartupData {
+  firstName: string;
+  lastName: string;
+  position: string;
+  contactNumber: string;
+  linkedinLink: string;
   name: string;
   website: string;
-  industry: string;
   description: string;
   city: string;
   dateFounded: string;
   keywords: string;
+  industry: string;
 }
 
 interface Step3Props {
   userType: "investor" | "startup";
-  investorProfileData: InvestorProfileData;
-  startupProfileData: StartupProfileData;
-  handleInvestorProfileChange: (
-    field: keyof InvestorProfileData,
-    value: string
-  ) => void;
-  handleStartupProfileChange: (
-    field: keyof StartupProfileData,
-    value: string
-  ) => void;
+  investorData: InvestorData;
+  startupData: StartupData;
+  handleInvestorChange: (field: keyof InvestorData, value: string) => void;
+  handleStartupChange: (field: keyof StartupData, value: string) => void;
   setStep: (step: number) => void;
   isFormValid: () => boolean;
   handleSubmit: () => void;
@@ -70,18 +75,18 @@ interface Step3Props {
 
 export function Step3({
   userType,
-  investorProfileData,
-  startupProfileData,
-  handleInvestorProfileChange,
-  handleStartupProfileChange,
+  investorData,
+  startupData,
+  handleInvestorChange,
+  handleStartupChange,
   setStep,
   isFormValid,
   handleSubmit,
 }: Step3Props) {
   // State for calendar date
   const [calendarDate, setCalendarDate] = React.useState<Date | undefined>(
-    startupProfileData.dateFounded
-      ? parse(startupProfileData.dateFounded, "yyyy-MM-dd", new Date())
+    startupData.dateFounded
+      ? parse(startupData.dateFounded, "yyyy-MM-dd", new Date())
       : undefined
   );
 
@@ -92,9 +97,9 @@ export function Step3({
       // Format date as YYYY-MM-DD for form submission using local date
       const normalizedDate = startOfDay(date);
       const formattedDate = format(normalizedDate, "yyyy-MM-dd");
-      handleStartupProfileChange("dateFounded", formattedDate);
+      handleStartupChange("dateFounded", formattedDate);
     } else {
-      handleStartupProfileChange("dateFounded", "");
+      handleStartupChange("dateFounded", "");
     }
   };
   return (
@@ -131,9 +136,9 @@ export function Step3({
                     <div className="relative">
                       <User className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 z-10" />
                       <Select
-                        value={investorProfileData.investorType}
+                        value={investorData.investorType}
                         onValueChange={(value) =>
-                          handleInvestorProfileChange("investorType", value)
+                          handleInvestorChange("investorType", value)
                         }
                       >
                         <SelectTrigger className="pl-10">
@@ -169,7 +174,8 @@ export function Step3({
                       htmlFor="checkSize"
                       className="text-sm font-medium text-slate-700"
                     >
-                      Typical Check Size (PHP)
+                      Typical Check Size (PHP){" "}
+                      <span className="text-red-500">*</span>
                     </Label>
                     <div className="relative">
                       <span className="absolute left-3 top-2.5 text-xs font-medium text-slate-400">
@@ -178,9 +184,9 @@ export function Step3({
                       <Input
                         id="checkSize"
                         type="number"
-                        value={investorProfileData.typicalCheckSizeInPhp}
+                        value={investorData.typicalCheckSizeInPhp}
                         onChange={(e) =>
-                          handleInvestorProfileChange(
+                          handleInvestorChange(
                             "typicalCheckSizeInPhp",
                             e.target.value
                           )
@@ -204,9 +210,9 @@ export function Step3({
                     <MapPin className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                     <Input
                       id="location"
-                      value={investorProfileData.city}
+                      value={investorData.city}
                       onChange={(e) =>
-                        handleInvestorProfileChange("city", e.target.value)
+                        handleInvestorChange("city", e.target.value)
                       }
                       className="pl-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
                       placeholder="Manila"
@@ -226,9 +232,9 @@ export function Step3({
                     <User className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                     <Input
                       id="keyContact"
-                      value={investorProfileData.keyContactPersonName}
+                      value={investorData.keyContactPersonName}
                       onChange={(e) =>
-                        handleInvestorProfileChange(
+                        handleInvestorChange(
                           "keyContactPersonName",
                           e.target.value
                         )
@@ -253,24 +259,18 @@ export function Step3({
                       <Input
                         id="contactNumber"
                         type="tel"
-                        value={investorProfileData.keyContactNumber}
+                        value={investorData.keyContactNumber}
                         onChange={(e) => {
                           const value = e.target.value;
                           // Accept empty input (reset to +63) or valid Philippine phone pattern
                           if (value === "") {
-                            handleInvestorProfileChange(
-                              "keyContactNumber",
-                              "+63"
-                            );
+                            handleInvestorChange("keyContactNumber", "+63");
                           } else if (
                             value.startsWith("+63") &&
                             /^\+63[0-9]{0,10}$/.test(value)
                           ) {
                             // Only allow +63 followed by up to 10 digits
-                            handleInvestorProfileChange(
-                              "keyContactNumber",
-                              value
-                            );
+                            handleInvestorChange("keyContactNumber", value);
                           }
                           // Ignore all other inputs (incomplete prefixes like "+" or "+6")
                         }}
@@ -293,9 +293,9 @@ export function Step3({
                       <Linkedin className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                       <Input
                         id="linkedinProfile"
-                        value={investorProfileData.keyContactLinkedin}
+                        value={investorData.keyContactLinkedin}
                         onChange={(e) =>
-                          handleInvestorProfileChange(
+                          handleInvestorChange(
                             "keyContactLinkedin",
                             e.target.value
                           )
@@ -321,9 +321,9 @@ export function Step3({
                     <Input
                       id="decisionTimeline"
                       type="number"
-                      value={investorProfileData.decisionPeriodInWeeks}
+                      value={investorData.decisionPeriodInWeeks}
                       onChange={(e) =>
-                        handleInvestorProfileChange(
+                        handleInvestorChange(
                           "decisionPeriodInWeeks",
                           e.target.value
                         )
@@ -349,9 +349,9 @@ export function Step3({
                       <Building className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                       <Input
                         id="startupName"
-                        value={startupProfileData.name}
+                        value={startupData.name}
                         onChange={(e) =>
-                          handleStartupProfileChange("name", e.target.value)
+                          handleStartupChange("name", e.target.value)
                         }
                         className="pl-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
                         placeholder="FundSeekr"
@@ -371,9 +371,9 @@ export function Step3({
                       <Globe className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                       <Input
                         id="website"
-                        value={startupProfileData.website}
+                        value={startupData.website}
                         onChange={(e) =>
-                          handleStartupProfileChange("website", e.target.value)
+                          handleStartupChange("website", e.target.value)
                         }
                         className="pl-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
                         placeholder="https://fundseekr.com"
@@ -394,9 +394,9 @@ export function Step3({
                     <Tag className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                     <Input
                       id="industry"
-                      value={startupProfileData.industry}
+                      value={startupData.industry}
                       onChange={(e) =>
-                        handleStartupProfileChange("industry", e.target.value)
+                        handleStartupChange("industry", e.target.value)
                       }
                       className="pl-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
                       placeholder="Fintech"
@@ -417,12 +417,9 @@ export function Step3({
                     <textarea
                       id="description"
                       placeholder="Accelerate fundraising with AI-powered pitch generation and smart matchmaking that connects the right startups with the right investors."
-                      value={startupProfileData.description}
+                      value={startupData.description}
                       onChange={(e) =>
-                        handleStartupProfileChange(
-                          "description",
-                          e.target.value
-                        )
+                        handleStartupChange("description", e.target.value)
                       }
                       className="w-full min-h-[100px] px-3 py-3 border border-slate-200 rounded-md text-sm resize-y focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
@@ -442,9 +439,9 @@ export function Step3({
                       <MapPin className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                       <Input
                         id="startupLocation"
-                        value={startupProfileData.city}
+                        value={startupData.city}
                         onChange={(e) =>
-                          handleStartupProfileChange("city", e.target.value)
+                          handleStartupChange("city", e.target.value)
                         }
                         className="pl-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
                         placeholder="Manila"
@@ -516,9 +513,9 @@ export function Step3({
                     <Tag className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                     <Input
                       id="keywords"
-                      value={startupProfileData.keywords}
+                      value={startupData.keywords}
                       onChange={(e) =>
-                        handleStartupProfileChange("keywords", e.target.value)
+                        handleStartupChange("keywords", e.target.value)
                       }
                       className="pl-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
                       placeholder="AI, SaaS, Healthcare, Fintech"

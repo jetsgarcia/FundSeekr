@@ -6,29 +6,43 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { User, Building2, Globe, Phone, Linkedin } from "lucide-react";
 
-interface InvestorFormData {
+interface InvestorData {
   firstName: string;
   lastName: string;
   organization: string;
   position: string;
   organizationWebsite: string;
   investorLinkedin: string;
+  investorType: string;
+  city: string;
+  keyContactPersonName: string;
+  keyContactNumber: string;
+  keyContactLinkedin: string;
+  decisionPeriodInWeeks: string;
+  typicalCheckSizeInPhp: string;
 }
 
-interface StartupFormData {
+interface StartupData {
   firstName: string;
   lastName: string;
   position: string;
   contactNumber: string;
   linkedinLink: string;
+  name: string;
+  website: string;
+  description: string;
+  city: string;
+  dateFounded: string;
+  keywords: string;
+  industry: string;
 }
 
 interface Step2Props {
   userType: "investor" | "startup";
-  investorData: InvestorFormData;
-  startupData: StartupFormData;
-  handleInvestorChange: (field: keyof InvestorFormData, value: string) => void;
-  handleStartupChange: (field: keyof StartupFormData, value: string) => void;
+  investorData: InvestorData;
+  startupData: StartupData;
+  handleInvestorChange: (field: keyof InvestorData, value: string) => void;
+  handleStartupChange: (field: keyof StartupData, value: string) => void;
   setStep: (step: number) => void;
   isFormValid: () => boolean;
   handleSubmit: () => void;

@@ -5,34 +5,13 @@ import { Step1 } from "@/components/onboarding/Step1";
 import { Step2 } from "@/components/onboarding/Step2";
 import { Step3 } from "@/components/onboarding/Step3";
 
-interface InvestorFormData {
+interface InvestorData {
   firstName: string;
   lastName: string;
   organization: string;
   position: string;
   organizationWebsite: string;
   investorLinkedin: string;
-}
-
-interface StartupFormData {
-  firstName: string;
-  lastName: string;
-  position: string;
-  contactNumber: string;
-  linkedinLink: string;
-}
-
-interface StartupProfileData {
-  name: string;
-  website: string;
-  description: string;
-  city: string;
-  dateFounded: string;
-  keywords: string;
-  industry: string;
-}
-
-interface InvestorProfileData {
   investorType: string;
   city: string;
   keyContactPersonName: string;
@@ -42,85 +21,143 @@ interface InvestorProfileData {
   typicalCheckSizeInPhp: string;
 }
 
+interface StartupData {
+  firstName: string;
+  lastName: string;
+  position: string;
+  contactNumber: string;
+  linkedinLink: string;
+  name: string;
+  website: string;
+  description: string;
+  city: string;
+  dateFounded: string;
+  keywords: string;
+  industry: string;
+}
+
 export default function OnboardingPage() {
   const [userType, setUserType] = useState<null | "investor" | "startup">(null);
   const [step, setStep] = useState(1);
 
-  const [investorData, setInvestorData] = useState<InvestorFormData>({
+  const [investorData, setInvestorData] = useState<InvestorData>({
     firstName: "",
     lastName: "",
     organization: "",
     position: "",
     organizationWebsite: "",
     investorLinkedin: "",
+    investorType: "",
+    city: "",
+    keyContactPersonName: "",
+    keyContactNumber: "+63",
+    keyContactLinkedin: "",
+    decisionPeriodInWeeks: "",
+    typicalCheckSizeInPhp: "",
   });
 
-  const [investorProfileData, setInvestorProfileData] =
-    useState<InvestorProfileData>({
-      investorType: "",
-      city: "",
-      keyContactPersonName: "",
-      keyContactNumber: "+63",
-      keyContactLinkedin: "",
-      decisionPeriodInWeeks: "",
-      typicalCheckSizeInPhp: "",
-    });
-
-  const [startupData, setStartupData] = useState<StartupFormData>({
+  const [startupData, setStartupData] = useState<StartupData>({
     firstName: "",
     lastName: "",
     position: "",
     contactNumber: "+63",
     linkedinLink: "",
+    name: "",
+    website: "",
+    description: "",
+    city: "",
+    dateFounded: "",
+    keywords: "",
+    industry: "",
   });
 
-  const [startupProfileData, setStartupProfileData] =
-    useState<StartupProfileData>({
-      name: "",
-      website: "",
-      description: "",
-      city: "",
-      dateFounded: "",
-      keywords: "",
-      industry: "",
-    });
-
-  const handleInvestorChange = (
-    field: keyof InvestorFormData,
-    value: string
-  ) => {
+  const handleInvestorChange = (field: keyof InvestorData, value: string) => {
     setInvestorData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleStartupChange = (field: keyof StartupFormData, value: string) => {
+  const handleStartupChange = (field: keyof StartupData, value: string) => {
     setStartupData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleStartupProfileChange = (
-    field: keyof StartupProfileData,
-    value: string
-  ) => {
-    setStartupProfileData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleInvestorProfileChange = (
-    field: keyof InvestorProfileData,
-    value: string
-  ) => {
-    setInvestorProfileData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = () => {
     if (step === 2) {
+      console.log("Step 2 completed - Moving to Step 3");
+      console.log("Current user type:", userType);
+      if (userType === "investor") {
+        console.log("Investor data so far:", {
+          basicInfo: {
+            firstName: investorData.firstName,
+            lastName: investorData.lastName,
+            organization: investorData.organization,
+            position: investorData.position,
+            organizationWebsite: investorData.organizationWebsite,
+            investorLinkedin: investorData.investorLinkedin,
+          },
+        });
+      } else {
+        console.log("Startup data so far:", {
+          basicInfo: {
+            firstName: startupData.firstName,
+            lastName: startupData.lastName,
+            position: startupData.position,
+            contactNumber: startupData.contactNumber,
+            linkedinLink: startupData.linkedinLink,
+          },
+        });
+      }
       setStep(3);
       return;
     }
 
-    const basicData = userType === "investor" ? investorData : startupData;
-    const profileData =
-      userType === "investor" ? investorProfileData : startupProfileData;
-    console.log("Final form submitted:", { userType, basicData, profileData });
+    // Final submission (Step 3)
+    console.log("🎉 FINAL FORM SUBMISSION 🎉");
+    console.log("User Type:", userType);
+
+    if (userType === "investor") {
+      console.log("Complete Investor Data:", {
+        personalInfo: {
+          firstName: investorData.firstName,
+          lastName: investorData.lastName,
+          organization: investorData.organization,
+          position: investorData.position,
+          organizationWebsite: investorData.organizationWebsite,
+          investorLinkedin: investorData.investorLinkedin,
+        },
+        profileInfo: {
+          investorType: investorData.investorType,
+          city: investorData.city,
+          keyContactPersonName: investorData.keyContactPersonName,
+          keyContactNumber: investorData.keyContactNumber,
+          keyContactLinkedin: investorData.keyContactLinkedin,
+          decisionPeriodInWeeks: investorData.decisionPeriodInWeeks,
+          typicalCheckSizeInPhp: investorData.typicalCheckSizeInPhp,
+        },
+        fullData: investorData,
+      });
+    } else {
+      console.log("Complete Startup Data:", {
+        personalInfo: {
+          firstName: startupData.firstName,
+          lastName: startupData.lastName,
+          position: startupData.position,
+          contactNumber: startupData.contactNumber,
+          linkedinLink: startupData.linkedinLink,
+        },
+        companyInfo: {
+          name: startupData.name,
+          website: startupData.website,
+          description: startupData.description,
+          city: startupData.city,
+          dateFounded: startupData.dateFounded,
+          keywords: startupData.keywords,
+          industry: startupData.industry,
+        },
+        fullData: startupData,
+      });
+    }
+
     // Add your final submission logic here
+    console.log("Form submission completed!");
   };
 
   const isFormValid = (): boolean => {
@@ -138,19 +175,20 @@ export default function OnboardingPage() {
     } else if (step === 3) {
       if (userType === "investor") {
         return !!(
-          investorProfileData.investorType &&
-          investorProfileData.city &&
-          investorProfileData.keyContactPersonName &&
-          investorProfileData.keyContactNumber.length > 3 &&
-          investorProfileData.decisionPeriodInWeeks
+          investorData.investorType &&
+          investorData.city &&
+          investorData.keyContactPersonName &&
+          investorData.keyContactNumber.length > 3 &&
+          investorData.decisionPeriodInWeeks &&
+          investorData.typicalCheckSizeInPhp
         );
       } else {
         return !!(
-          startupProfileData.name &&
-          startupProfileData.description &&
-          startupProfileData.city &&
-          startupProfileData.dateFounded &&
-          startupProfileData.industry
+          startupData.name &&
+          startupData.description &&
+          startupData.city &&
+          startupData.dateFounded &&
+          startupData.industry
         );
       }
     }
@@ -181,10 +219,10 @@ export default function OnboardingPage() {
       {step === 3 && userType && (
         <Step3
           userType={userType}
-          investorProfileData={investorProfileData}
-          startupProfileData={startupProfileData}
-          handleInvestorProfileChange={handleInvestorProfileChange}
-          handleStartupProfileChange={handleStartupProfileChange}
+          investorData={investorData}
+          startupData={startupData}
+          handleInvestorChange={handleInvestorChange}
+          handleStartupChange={handleStartupChange}
           handleSubmit={handleSubmit}
           isFormValid={isFormValid}
           setStep={setStep}
