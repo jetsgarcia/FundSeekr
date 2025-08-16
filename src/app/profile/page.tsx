@@ -8,24 +8,32 @@ export default function ProfilePage() {
   const usertype = "investor" as UserType;
   const user = {
     id: 1,
-    name: "Horizon Ventures Capital",
-    type: "Venture Capital Fund",
-    website_url: "https://www.horizonventures.vc",
-    linkedin_url: "https://linkedin.com/company/horizonventures",
-    location: "Singapore",
-    decision_making_timeline: 42,
+    organization: "Horizon Ventures Capital",
+    position: "Managing Partner",
+    city: "Makati City",
+    organization_website: "https://www.horizonventures.vc",
+    investor_linkedin: "https://linkedin.com/company/horizonventures",
+    decision_period_in_weeks: 6,
+    typical_check_size_in_php: 5000000,
+    investor_type: "Venture capital",
     preferred_industries: [
       "SaaS",
       "AI & Machine Learning",
       "Fintech",
       "HealthTech",
     ],
-    industries_to_avoid: ["Gambling", "Crypto Tokens", "Tobacco"],
-    preferred_business_models: "SaaS",
-    preferred_funding_stages: "Series A",
-    typical_check_size: 5000,
-    geographic_focus: "Southeast Asia",
-    current_portfolio_companies: [
+    excluded_industries: ["Gambling", "Crypto Tokens", "Tobacco"],
+    preferred_business_models: ["SaaS", "B2B"],
+    preferred_funding_stages: ["Series A", "Series B"],
+    geographic_focus: ["Southeast Asia", "Philippines"],
+    value_proposition: [
+      "Enterprise client introductions",
+      "Leadership hiring",
+      "Go-to-market strategy",
+      "Regulatory compliance guidance",
+    ],
+    involvement_level: "Active",
+    portfolio_companies: [
       "PayLink Asia",
       "Mediscan Diagnostics",
       "AgriChain",
@@ -45,14 +53,16 @@ export default function ProfilePage() {
         year: 2021,
       },
     ],
-    areas_of_value_add: [
-      "Enterprise client introductions",
-      "Leadership hiring",
-      "Go-to-market strategy",
-      "Regulatory compliance guidance",
-    ],
-    desired_level_involvement: "Board Seat",
+    key_contact_person_name: "Maria Santos",
+    key_contact_linkedin: "https://linkedin.com/in/mariasantos",
+    key_contact_number: "+63 917 123 4567",
+    user_id: "user_123",
   };
 
-  return <>{usertype === "investor" && <InvestorProfile user={user} />}</>;
+  return (
+    <>
+      {usertype === "investor" && <InvestorProfile user={user} />}
+      {usertype === "startup" && <div>Startup</div>}
+    </>
+  );
 }
