@@ -126,7 +126,7 @@ export function Step3({
               <>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   {/* Investor Type */}
-                  <div className="space-y-1">
+                  <div className="flex flex-col gap-2">
                     <Label
                       htmlFor="investorType"
                       className="text-sm font-medium text-slate-700"
@@ -169,7 +169,7 @@ export function Step3({
                   </div>
 
                   {/* Typical Check Size */}
-                  <div className="space-y-1">
+                  <div className="flex flex-col gap-2">
                     <Label
                       htmlFor="checkSize"
                       className="text-sm font-medium text-slate-700"
@@ -199,7 +199,7 @@ export function Step3({
                 </div>
 
                 {/* Location */}
-                <div className="space-y-1">
+                <div className="flex flex-col gap-2">
                   <Label
                     htmlFor="location"
                     className="text-sm font-medium text-slate-700"
@@ -221,7 +221,7 @@ export function Step3({
                 </div>
 
                 {/* Key Contact Person */}
-                <div className="space-y-1">
+                <div className="flex flex-col gap-2">
                   <Label
                     htmlFor="keyContact"
                     className="text-sm font-medium text-slate-700"
@@ -247,7 +247,7 @@ export function Step3({
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   {/* Contact Number */}
-                  <div className="space-y-1">
+                  <div className="flex flex-col gap-2">
                     <Label
                       htmlFor="contactNumber"
                       className="text-sm font-medium text-slate-700"
@@ -282,7 +282,7 @@ export function Step3({
                   </div>
 
                   {/* LinkedIn Profile */}
-                  <div className="space-y-1">
+                  <div className="flex flex-col gap-2">
                     <Label
                       htmlFor="linkedinProfile"
                       className="text-sm font-medium text-slate-700"
@@ -308,7 +308,7 @@ export function Step3({
                 </div>
 
                 {/* Decision Timeline */}
-                <div className="space-y-1">
+                <div className="flex flex-col gap-2">
                   <Label
                     htmlFor="decisionTimeline"
                     className="text-sm font-medium text-slate-700"
@@ -338,7 +338,7 @@ export function Step3({
               <>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   {/* Startup Name */}
-                  <div className="space-y-1">
+                  <div className="flex flex-col gap-2">
                     <Label
                       htmlFor="startupName"
                       className="text-sm font-medium text-slate-700"
@@ -360,7 +360,7 @@ export function Step3({
                   </div>
 
                   {/* Website URL */}
-                  <div className="space-y-1">
+                  <div className="flex flex-col gap-2">
                     <Label
                       htmlFor="website"
                       className="text-sm font-medium text-slate-700"
@@ -383,7 +383,7 @@ export function Step3({
                 </div>
 
                 {/* Industry */}
-                <div className="space-y-1">
+                <div className="flex flex-col gap-2">
                   <Label
                     htmlFor="industry"
                     className="text-sm font-medium text-slate-700"
@@ -405,7 +405,7 @@ export function Step3({
                 </div>
 
                 {/* Company Description */}
-                <div className="space-y-1">
+                <div className="flex flex-col gap-2">
                   <Label
                     htmlFor="description"
                     className="text-sm font-medium text-slate-700"
@@ -428,7 +428,7 @@ export function Step3({
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   {/* Location */}
-                  <div className="space-y-1">
+                  <div className="flex flex-col gap-2">
                     <Label
                       htmlFor="startupLocation"
                       className="text-sm font-medium text-slate-700"
@@ -450,7 +450,7 @@ export function Step3({
                   </div>
 
                   {/* Date Founded */}
-                  <div className="space-y-1">
+                  <div className="flex flex-col gap-2">
                     <Label
                       htmlFor="dateFounded"
                       className="text-sm font-medium text-slate-700"
@@ -502,7 +502,7 @@ export function Step3({
                 </div>
 
                 {/* Keywords/Tags */}
-                <div className="space-y-1">
+                <div className="flex flex-col gap-2">
                   <Label
                     htmlFor="keywords"
                     className="text-sm font-medium text-slate-700"
