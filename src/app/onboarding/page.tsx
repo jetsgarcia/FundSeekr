@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Step1 } from "@/components/onboarding/Step1";
 import { Step2 } from "@/components/onboarding/Step2";
 import { Step3 } from "@/components/onboarding/Step3";
@@ -39,6 +39,7 @@ interface StartupData {
 export default function OnboardingPage() {
   const [userType, setUserType] = useState<null | "investor" | "startup">(null);
   const [step, setStep] = useState(1);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const [investorData, setInvestorData] = useState<InvestorData>({
     firstName: "",
@@ -71,6 +72,32 @@ export default function OnboardingPage() {
     industry: "",
   });
 
+  // Add beforeunload warning
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // Check if user has started filling the form
+      const hasData =
+        userType !== null ||
+        Object.values(investorData).some(
+          (value) => value !== "" && value !== "+63"
+        ) ||
+        Object.values(startupData).some(
+          (value) => value !== "" && value !== "+63"
+        );
+
+      if (hasData && !isSubmitted) {
+        e.preventDefault();
+        return "You have unsaved changes. Are you sure you want to leave?";
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [userType, investorData, startupData, isSubmitted]);
+
   const handleInvestorChange = (field: keyof InvestorData, value: string) => {
     setInvestorData((prev) => ({ ...prev, [field]: value }));
   };
@@ -80,21 +107,22 @@ export default function OnboardingPage() {
   };
 
   const handleSubmit = () => {
-    console.log("🎉 FINAL FORM SUBMISSION 🎉");
-    console.log("User Type:", userType);
-
-    if (userType === "investor") {
-      console.log("Complete Investor Data:", {
-        fullData: investorData,
-      });
-    } else {
-      console.log("Complete Startup Data:", {
-        fullData: startupData,
-      });
+    if (step === 2) {
+      setStep(3);
+      return;
     }
 
-    // Add your final submission logic here
-    console.log("Form submission completed!");
+    setIsSubmitted(true); // Prevent warning from unload
+
+    // if (userType === "investor") {
+    //   console.log("Complete Investor Data:", {
+    //     fullData: investorData,
+    //   });
+    // } else {
+    //   console.log("Complete Startup Data:", {
+    //     fullData: startupData,
+    //   });
+    // }
   };
 
   const isFormValid = (): boolean => {
