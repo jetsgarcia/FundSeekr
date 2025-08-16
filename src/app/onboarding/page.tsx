@@ -80,78 +80,15 @@ export default function OnboardingPage() {
   };
 
   const handleSubmit = () => {
-    if (step === 2) {
-      console.log("Step 2 completed - Moving to Step 3");
-      console.log("Current user type:", userType);
-      if (userType === "investor") {
-        console.log("Investor data so far:", {
-          basicInfo: {
-            firstName: investorData.firstName,
-            lastName: investorData.lastName,
-            organization: investorData.organization,
-            position: investorData.position,
-            organizationWebsite: investorData.organizationWebsite,
-            investorLinkedin: investorData.investorLinkedin,
-          },
-        });
-      } else {
-        console.log("Startup data so far:", {
-          basicInfo: {
-            firstName: startupData.firstName,
-            lastName: startupData.lastName,
-            position: startupData.position,
-            contactNumber: startupData.contactNumber,
-            linkedinLink: startupData.linkedinLink,
-          },
-        });
-      }
-      setStep(3);
-      return;
-    }
-
-    // Final submission (Step 3)
     console.log("🎉 FINAL FORM SUBMISSION 🎉");
     console.log("User Type:", userType);
 
     if (userType === "investor") {
       console.log("Complete Investor Data:", {
-        personalInfo: {
-          firstName: investorData.firstName,
-          lastName: investorData.lastName,
-          organization: investorData.organization,
-          position: investorData.position,
-          organizationWebsite: investorData.organizationWebsite,
-          investorLinkedin: investorData.investorLinkedin,
-        },
-        profileInfo: {
-          investorType: investorData.investorType,
-          city: investorData.city,
-          keyContactPersonName: investorData.keyContactPersonName,
-          keyContactNumber: investorData.keyContactNumber,
-          keyContactLinkedin: investorData.keyContactLinkedin,
-          decisionPeriodInWeeks: investorData.decisionPeriodInWeeks,
-          typicalCheckSizeInPhp: investorData.typicalCheckSizeInPhp,
-        },
         fullData: investorData,
       });
     } else {
       console.log("Complete Startup Data:", {
-        personalInfo: {
-          firstName: startupData.firstName,
-          lastName: startupData.lastName,
-          position: startupData.position,
-          contactNumber: startupData.contactNumber,
-          linkedinLink: startupData.linkedinLink,
-        },
-        companyInfo: {
-          name: startupData.name,
-          website: startupData.website,
-          description: startupData.description,
-          city: startupData.city,
-          dateFounded: startupData.dateFounded,
-          keywords: startupData.keywords,
-          industry: startupData.industry,
-        },
         fullData: startupData,
       });
     }
