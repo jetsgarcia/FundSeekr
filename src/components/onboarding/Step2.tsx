@@ -18,8 +18,8 @@ interface InvestorData {
   keyContactPersonName: string;
   keyContactNumber: string;
   keyContactLinkedin: string;
-  decisionPeriodInWeeks: string;
-  typicalCheckSizeInPhp: string;
+  decisionPeriodInWeeks: number;
+  typicalCheckSizeInPhp: number;
 }
 
 interface StartupData {

@@ -43,8 +43,8 @@ interface InvestorData {
   keyContactPersonName: string;
   keyContactNumber: string;
   keyContactLinkedin: string;
-  decisionPeriodInWeeks: string;
-  typicalCheckSizeInPhp: string;
+  decisionPeriodInWeeks: number;
+  typicalCheckSizeInPhp: number;
 }
 
 interface StartupData {
@@ -184,7 +184,11 @@ export function Step3({
                       <Input
                         id="checkSize"
                         type="number"
-                        value={investorData.typicalCheckSizeInPhp}
+                        value={
+                          investorData.typicalCheckSizeInPhp === 0
+                            ? ""
+                            : investorData.typicalCheckSizeInPhp.toString()
+                        }
                         onChange={(e) =>
                           handleInvestorChange(
                             "typicalCheckSizeInPhp",
@@ -321,7 +325,11 @@ export function Step3({
                     <Input
                       id="decisionTimeline"
                       type="number"
-                      value={investorData.decisionPeriodInWeeks}
+                      value={
+                        investorData.decisionPeriodInWeeks === 0
+                          ? ""
+                          : investorData.decisionPeriodInWeeks.toString()
+                      }
                       onChange={(e) =>
                         handleInvestorChange(
                           "decisionPeriodInWeeks",

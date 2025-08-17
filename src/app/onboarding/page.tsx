@@ -17,8 +17,8 @@ interface InvestorData {
   keyContactPersonName: string;
   keyContactNumber: string;
   keyContactLinkedin: string;
-  decisionPeriodInWeeks: string;
-  typicalCheckSizeInPhp: string;
+  decisionPeriodInWeeks: number;
+  typicalCheckSizeInPhp: number;
 }
 
 interface StartupData {
@@ -53,8 +53,8 @@ export default function OnboardingPage() {
     keyContactPersonName: "",
     keyContactNumber: "+63",
     keyContactLinkedin: "",
-    decisionPeriodInWeeks: "",
-    typicalCheckSizeInPhp: "",
+    decisionPeriodInWeeks: 0,
+    typicalCheckSizeInPhp: 0,
   });
 
   const [startupData, setStartupData] = useState<StartupData>({
@@ -99,14 +99,22 @@ export default function OnboardingPage() {
   }, [userType, investorData, startupData, isSubmitted]);
 
   const handleInvestorChange = (field: keyof InvestorData, value: string) => {
-    setInvestorData((prev) => ({ ...prev, [field]: value }));
+    if (
+      field === "typicalCheckSizeInPhp" ||
+      field === "decisionPeriodInWeeks"
+    ) {
+      const numericValue = value === "" ? 0 : parseFloat(value) || 0;
+      setInvestorData((prev) => ({ ...prev, [field]: numericValue }));
+    } else {
+      setInvestorData((prev) => ({ ...prev, [field]: value }));
+    }
   };
 
   const handleStartupChange = (field: keyof StartupData, value: string) => {
     setStartupData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (step === 2) {
       setStep(3);
       return;
@@ -114,15 +122,35 @@ export default function OnboardingPage() {
 
     setIsSubmitted(true); // Prevent warning from unload
 
-    // if (userType === "investor") {
-    //   console.log("Complete Investor Data:", {
-    //     fullData: investorData,
-    //   });
-    // } else {
-    //   console.log("Complete Startup Data:", {
-    //     fullData: startupData,
-    //   });
-    // }
+    const data = {
+      step,
+      userType,
+      ...(userType === "investor" ? investorData : startupData),
+    };
+
+    try {
+      const response = await fetch("/api/onboarding", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error("Server error:", response.status, errorData);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log("Success:", result);
+      // Handle success (e.g., redirect, show success message)
+    } catch (error) {
+      console.error("Fetch error:", error);
+      setIsSubmitted(false); // Allow retry
+      // Handle error (e.g., show error message to user)
+    }
   };
 
   const isFormValid = (): boolean => {
@@ -144,8 +172,8 @@ export default function OnboardingPage() {
           investorData.city &&
           investorData.keyContactPersonName &&
           investorData.keyContactNumber.length > 3 &&
-          investorData.decisionPeriodInWeeks &&
-          investorData.typicalCheckSizeInPhp
+          investorData.decisionPeriodInWeeks > 0 &&
+          investorData.typicalCheckSizeInPhp > 0
         );
       } else {
         return !!(
