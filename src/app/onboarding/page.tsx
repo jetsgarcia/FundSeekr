@@ -1,28 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Step1 } from "@/components/onboarding/Step1";
 import { Step2 } from "@/components/onboarding/Step2";
 import { Step3 } from "@/components/onboarding/Step3";
+import { toast } from "sonner";
 
-interface InvestorFormData {
+interface InvestorData {
   firstName: string;
   lastName: string;
   organization: string;
   position: string;
   organizationWebsite: string;
   investorLinkedin: string;
+  investorType: string;
+  city: string;
+  keyContactPersonName: string;
+  keyContactNumber: string;
+  keyContactLinkedin: string;
+  decisionPeriodInWeeks: number;
+  typicalCheckSizeInPhp: number;
 }
 
-interface StartupFormData {
+interface StartupData {
   firstName: string;
   lastName: string;
   position: string;
   contactNumber: string;
   linkedinLink: string;
-}
-
-interface StartupProfileData {
   name: string;
   website: string;
   description: string;
@@ -32,95 +38,136 @@ interface StartupProfileData {
   industry: string;
 }
 
-interface InvestorProfileData {
-  investorType: string;
-  city: string;
-  keyContactPersonName: string;
-  keyContactNumber: string;
-  keyContactLinkedin: string;
-  decisionPeriodInWeeks: string;
-  typicalCheckSizeInPhp: string;
-}
-
 export default function OnboardingPage() {
+  const router = useRouter();
   const [userType, setUserType] = useState<null | "investor" | "startup">(null);
   const [step, setStep] = useState(1);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const [investorData, setInvestorData] = useState<InvestorFormData>({
+  const [investorData, setInvestorData] = useState<InvestorData>({
     firstName: "",
     lastName: "",
     organization: "",
     position: "",
     organizationWebsite: "",
     investorLinkedin: "",
+    investorType: "",
+    city: "",
+    keyContactPersonName: "",
+    keyContactNumber: "+63",
+    keyContactLinkedin: "",
+    decisionPeriodInWeeks: 0,
+    typicalCheckSizeInPhp: 0,
   });
 
-  const [startupData, setStartupData] = useState<StartupFormData>({
+  const [startupData, setStartupData] = useState<StartupData>({
     firstName: "",
     lastName: "",
     position: "",
     contactNumber: "+63",
     linkedinLink: "",
+    name: "",
+    website: "",
+    description: "",
+    city: "",
+    dateFounded: "",
+    keywords: "",
+    industry: "",
   });
 
-  const [startupProfileData, setStartupProfileData] =
-    useState<StartupProfileData>({
-      name: "",
-      website: "",
-      description: "",
-      city: "",
-      dateFounded: "",
-      keywords: "",
-      industry: "",
-    });
+  // Add beforeunload warning
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // Check if user has started filling the form
+      const hasData =
+        userType !== null ||
+        Object.values(investorData).some(
+          (value) => value !== "" && value !== "+63"
+        ) ||
+        Object.values(startupData).some(
+          (value) => value !== "" && value !== "+63"
+        );
 
-  const [investorProfileData, setInvestorProfileData] =
-    useState<InvestorProfileData>({
-      investorType: "",
-      city: "",
-      keyContactPersonName: "",
-      keyContactNumber: "+63",
-      keyContactLinkedin: "",
-      decisionPeriodInWeeks: "",
-      typicalCheckSizeInPhp: "",
-    });
+      if (hasData && !isSubmitted) {
+        e.preventDefault();
+        return "You have unsaved changes. Are you sure you want to leave?";
+      }
+    };
 
-  const handleInvestorChange = (
-    field: keyof InvestorFormData,
-    value: string
-  ) => {
-    setInvestorData((prev) => ({ ...prev, [field]: value }));
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [userType, investorData, startupData, isSubmitted]);
+
+  const handleInvestorChange = (field: keyof InvestorData, value: string) => {
+    if (
+      field === "typicalCheckSizeInPhp" ||
+      field === "decisionPeriodInWeeks"
+    ) {
+      const numericValue = value === "" ? 0 : parseFloat(value) || 0;
+      setInvestorData((prev) => ({ ...prev, [field]: numericValue }));
+    } else {
+      setInvestorData((prev) => ({ ...prev, [field]: value }));
+    }
   };
 
-  const handleStartupChange = (field: keyof StartupFormData, value: string) => {
+  const handleStartupChange = (field: keyof StartupData, value: string) => {
     setStartupData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleStartupProfileChange = (
-    field: keyof StartupProfileData,
-    value: string
-  ) => {
-    setStartupProfileData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleInvestorProfileChange = (
-    field: keyof InvestorProfileData,
-    value: string
-  ) => {
-    setInvestorProfileData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (step === 2) {
       setStep(3);
       return;
     }
 
-    const basicData = userType === "investor" ? investorData : startupData;
-    const profileData =
-      userType === "investor" ? investorProfileData : startupProfileData;
-    console.log("Final form submitted:", { userType, basicData, profileData });
-    // Add your final submission logic here
+    setIsSubmitted(true); // Prevent warning from unload
+
+    const data = {
+      step,
+      userType,
+      ...(userType === "investor" ? investorData : startupData),
+    };
+
+    try {
+      const response = await fetch("/api/onboarding", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        let errorMessage = "An error occurred";
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch {
+          const errorText = await response.text();
+          errorMessage = errorText || errorMessage;
+        }
+        console.error("Server error:", response.status, errorMessage);
+        setIsSubmitted(false);
+
+        toast.error(errorMessage);
+        return; // Early return on error
+      }
+
+      // Success case
+      toast.success("Onboarding completed successfully!");
+      router.push("/home");
+    } catch (error) {
+      console.error("Network error:", error);
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("An unknown error occurred");
+      }
+      setIsSubmitted(false); // Allow retry
+    }
   };
 
   const isFormValid = (): boolean => {
@@ -138,19 +185,20 @@ export default function OnboardingPage() {
     } else if (step === 3) {
       if (userType === "investor") {
         return !!(
-          investorProfileData.investorType &&
-          investorProfileData.city &&
-          investorProfileData.keyContactPersonName &&
-          investorProfileData.keyContactNumber.length > 3 &&
-          investorProfileData.decisionPeriodInWeeks
+          investorData.investorType &&
+          investorData.city &&
+          investorData.keyContactPersonName &&
+          investorData.keyContactNumber.length > 3 &&
+          investorData.decisionPeriodInWeeks > 0 &&
+          investorData.typicalCheckSizeInPhp > 0
         );
       } else {
         return !!(
-          startupProfileData.name &&
-          startupProfileData.description &&
-          startupProfileData.city &&
-          startupProfileData.dateFounded &&
-          startupProfileData.industry
+          startupData.name &&
+          startupData.description &&
+          startupData.city &&
+          startupData.dateFounded &&
+          startupData.industry
         );
       }
     }
@@ -181,13 +229,14 @@ export default function OnboardingPage() {
       {step === 3 && userType && (
         <Step3
           userType={userType}
-          investorProfileData={investorProfileData}
-          startupProfileData={startupProfileData}
-          handleInvestorProfileChange={handleInvestorProfileChange}
-          handleStartupProfileChange={handleStartupProfileChange}
+          investorData={investorData}
+          startupData={startupData}
+          handleInvestorChange={handleInvestorChange}
+          handleStartupChange={handleStartupChange}
           handleSubmit={handleSubmit}
           isFormValid={isFormValid}
           setStep={setStep}
+          isSubmitting={isSubmitted}
         />
       )}
     </>

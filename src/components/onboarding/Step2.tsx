@@ -6,29 +6,43 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { User, Building2, Globe, Phone, Linkedin } from "lucide-react";
 
-interface InvestorFormData {
+interface InvestorData {
   firstName: string;
   lastName: string;
   organization: string;
   position: string;
   organizationWebsite: string;
   investorLinkedin: string;
+  investorType: string;
+  city: string;
+  keyContactPersonName: string;
+  keyContactNumber: string;
+  keyContactLinkedin: string;
+  decisionPeriodInWeeks: number;
+  typicalCheckSizeInPhp: number;
 }
 
-interface StartupFormData {
+interface StartupData {
   firstName: string;
   lastName: string;
   position: string;
   contactNumber: string;
   linkedinLink: string;
+  name: string;
+  website: string;
+  description: string;
+  city: string;
+  dateFounded: string;
+  keywords: string;
+  industry: string;
 }
 
 interface Step2Props {
   userType: "investor" | "startup";
-  investorData: InvestorFormData;
-  startupData: StartupFormData;
-  handleInvestorChange: (field: keyof InvestorFormData, value: string) => void;
-  handleStartupChange: (field: keyof StartupFormData, value: string) => void;
+  investorData: InvestorData;
+  startupData: StartupData;
+  handleInvestorChange: (field: keyof InvestorData, value: string) => void;
+  handleStartupChange: (field: keyof StartupData, value: string) => void;
   setStep: (step: number) => void;
   isFormValid: () => boolean;
   handleSubmit: () => void;
@@ -47,13 +61,13 @@ export function Step2({
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
       <div className="w-full max-w-5xl mx-auto space-y-8">
-        <Card className="w-full shadow-xl border-0 bg-white/80 backdrop-blur-sm">
+        <Card className="w-full shadow-xl border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
           <CardHeader className="space-y-6 pt-8 pb-8">
             <div className="text-center space-y-2">
-              <h1 className="text-3xl font-bold text-slate-900">
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">
                 Basic Information
               </h1>
-              <p className="text-slate-600 text-lg">
+              <p className="text-slate-600 dark:text-slate-300 text-lg">
                 {userType === "investor"
                   ? "Tell us about yourself as an investor"
                   : "Tell us about yourself and your startup"}
@@ -66,44 +80,44 @@ export function Step2({
               <>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   {/* First Name */}
-                  <div className="space-y-1">
+                  <div className="flex flex-col gap-2">
                     <Label
                       htmlFor="firstName"
-                      className="text-sm font-medium text-slate-700"
+                      className="text-sm font-medium text-slate-700 dark:text-slate-300"
                     >
                       First Name <span className="text-red-500">*</span>
                     </Label>
                     <div className="relative">
-                      <User className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                      <User className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
                       <Input
                         id="firstName"
                         value={investorData.firstName}
                         onChange={(e) =>
                           handleInvestorChange("firstName", e.target.value)
                         }
-                        className="pl-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                        className="pl-10 border-slate-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-700 dark:text-slate-100"
                         placeholder="John"
                       />
                     </div>
                   </div>
 
                   {/* Last Name */}
-                  <div className="space-y-1">
+                  <div className="flex flex-col gap-2">
                     <Label
                       htmlFor="lastName"
-                      className="text-sm font-medium text-slate-700"
+                      className="text-sm font-medium text-slate-700 dark:text-slate-300"
                     >
                       Last Name <span className="text-red-500">*</span>
                     </Label>
                     <div className="relative">
-                      <User className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                      <User className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
                       <Input
                         id="lastName"
                         value={investorData.lastName}
                         onChange={(e) =>
                           handleInvestorChange("lastName", e.target.value)
                         }
-                        className="pl-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                        className="pl-10 border-slate-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-700 dark:text-slate-100"
                         placeholder="Smith"
                       />
                     </div>
@@ -111,22 +125,22 @@ export function Step2({
                 </div>
 
                 {/* Organization */}
-                <div className="space-y-1">
+                <div className="flex flex-col gap-2">
                   <Label
                     htmlFor="organization"
-                    className="text-sm font-medium text-slate-700"
+                    className="text-sm font-medium text-slate-700 dark:text-slate-300"
                   >
                     Organization
                   </Label>
                   <div className="relative">
-                    <Building2 className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                    <Building2 className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
                     <Input
                       id="organization"
                       value={investorData.organization}
                       onChange={(e) =>
                         handleInvestorChange("organization", e.target.value)
                       }
-                      className="pl-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                      className="pl-10 border-slate-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-700 dark:text-slate-100"
                       placeholder="ABC Venture Capital"
                     />
                   </div>
@@ -135,35 +149,35 @@ export function Step2({
                 {/* Position and Website (only if organization is filled) */}
                 {investorData.organization && (
                   <>
-                    <div className="space-y-1">
+                    <div className="flex flex-col gap-2">
                       <Label
                         htmlFor="position"
-                        className="text-sm font-medium text-slate-700"
+                        className="text-sm font-medium text-slate-700 dark:text-slate-300"
                       >
                         Position
                       </Label>
                       <div className="relative">
-                        <User className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                        <User className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
                         <Input
                           id="position"
                           value={investorData.position}
                           onChange={(e) =>
                             handleInvestorChange("position", e.target.value)
                           }
-                          className="pl-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                          className="pl-10 border-slate-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-700 dark:text-slate-100"
                           placeholder="Senior Partner"
                         />
                       </div>
                     </div>
-                    <div className="space-y-1">
+                    <div className="flex flex-col gap-2">
                       <Label
                         htmlFor="website"
-                        className="text-sm font-medium text-slate-700"
+                        className="text-sm font-medium text-slate-700 dark:text-slate-300"
                       >
                         Website URL
                       </Label>
                       <div className="relative">
-                        <Globe className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                        <Globe className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
                         <Input
                           id="website"
                           type="url"
@@ -174,7 +188,7 @@ export function Step2({
                               e.target.value
                             )
                           }
-                          className="pl-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                          className="pl-10 border-slate-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-700 dark:text-slate-100"
                           placeholder="https://abcventures.com"
                         />
                       </div>
@@ -183,15 +197,15 @@ export function Step2({
                 )}
 
                 {/* LinkedIn Profile */}
-                <div className="space-y-1">
+                <div className="flex flex-col gap-2">
                   <Label
                     htmlFor="linkedinProfile"
-                    className="text-sm font-medium text-slate-700"
+                    className="text-sm font-medium text-slate-700 dark:text-slate-300"
                   >
                     LinkedIn Profile
                   </Label>
                   <div className="relative">
-                    <Linkedin className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                    <Linkedin className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
                     <Input
                       id="linkedinProfile"
                       type="url"
@@ -199,7 +213,7 @@ export function Step2({
                       onChange={(e) =>
                         handleInvestorChange("investorLinkedin", e.target.value)
                       }
-                      className="pl-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                      className="pl-10 border-slate-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-700 dark:text-slate-100"
                       placeholder="https://linkedin.com/in/johnsmith"
                     />
                   </div>
@@ -209,44 +223,44 @@ export function Step2({
               <>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   {/* First Name */}
-                  <div className="space-y-1">
+                  <div className="flex flex-col gap-2">
                     <Label
                       htmlFor="firstName"
-                      className="text-sm font-medium text-slate-700"
+                      className="text-sm font-medium text-slate-700 dark:text-slate-300"
                     >
                       First Name <span className="text-red-500">*</span>
                     </Label>
                     <div className="relative">
-                      <User className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                      <User className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
                       <Input
                         id="firstName"
                         value={startupData.firstName}
                         onChange={(e) =>
                           handleStartupChange("firstName", e.target.value)
                         }
-                        className="pl-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                        className="pl-10 border-slate-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-700 dark:text-slate-100"
                         placeholder="John"
                       />
                     </div>
                   </div>
 
                   {/* Last Name */}
-                  <div className="space-y-1">
+                  <div className="flex flex-col gap-2">
                     <Label
                       htmlFor="lastName"
-                      className="text-sm font-medium text-slate-700"
+                      className="text-sm font-medium text-slate-700 dark:text-slate-300"
                     >
                       Last Name <span className="text-red-500">*</span>
                     </Label>
                     <div className="relative">
-                      <User className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                      <User className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
                       <Input
                         id="lastName"
                         value={startupData.lastName}
                         onChange={(e) =>
                           handleStartupChange("lastName", e.target.value)
                         }
-                        className="pl-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                        className="pl-10 border-slate-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-700 dark:text-slate-100"
                         placeholder="Smith"
                       />
                     </div>
@@ -254,22 +268,22 @@ export function Step2({
                 </div>
 
                 {/* Position */}
-                <div className="space-y-1">
+                <div className="flex flex-col gap-2">
                   <Label
                     htmlFor="position"
-                    className="text-sm font-medium text-slate-700"
+                    className="text-sm font-medium text-slate-700 dark:text-slate-300"
                   >
                     Position <span className="text-red-500">*</span>
                   </Label>
                   <div className="relative">
-                    <User className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                    <User className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
                     <Input
                       id="position"
                       value={startupData.position}
                       onChange={(e) =>
                         handleStartupChange("position", e.target.value)
                       }
-                      className="pl-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                      className="pl-10 border-slate-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-700 dark:text-slate-100"
                       placeholder="CEO, CTO, Founder"
                     />
                   </div>
@@ -277,15 +291,15 @@ export function Step2({
 
                 {/* Contact Number and LinkedIn in one row */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  <div className="space-y-1">
+                  <div className="flex flex-col gap-2">
                     <Label
                       htmlFor="contactNumber"
-                      className="text-sm font-medium text-slate-700"
+                      className="text-sm font-medium text-slate-700 dark:text-slate-300"
                     >
                       Contact Number <span className="text-red-500">*</span>
                     </Label>
                     <div className="relative">
-                      <Phone className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                      <Phone className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
                       <Input
                         id="contactNumber"
                         type="tel"
@@ -304,21 +318,21 @@ export function Step2({
                           }
                           // Ignore all other inputs (incomplete prefixes like "+" or "+6")
                         }}
-                        className="pl-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                        className="pl-10 border-slate-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-700 dark:text-slate-100"
                         placeholder="+639123456789"
                         maxLength={13}
                       />
                     </div>
                   </div>
-                  <div className="space-y-1">
+                  <div className="flex flex-col gap-2">
                     <Label
                       htmlFor="linkedinProfile"
-                      className="text-sm font-medium text-slate-700"
+                      className="text-sm font-medium text-slate-700 dark:text-slate-300"
                     >
                       LinkedIn Profile
                     </Label>
                     <div className="relative">
-                      <Linkedin className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                      <Linkedin className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
                       <Input
                         id="linkedinProfile"
                         type="url"
@@ -326,7 +340,7 @@ export function Step2({
                         onChange={(e) =>
                           handleStartupChange("linkedinLink", e.target.value)
                         }
-                        className="pl-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                        className="pl-10 border-slate-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-700 dark:text-slate-100"
                         placeholder="https://linkedin.com/in/johnsmith"
                       />
                     </div>
@@ -339,7 +353,7 @@ export function Step2({
               <Button
                 variant="outline"
                 onClick={() => setStep(1)}
-                className="px-6 border-slate-300 hover:bg-slate-50 transition-colors bg-transparent"
+                className="px-6 border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors bg-transparent dark:bg-transparent dark:text-slate-200"
               >
                 Back
               </Button>
@@ -348,7 +362,7 @@ export function Step2({
                 disabled={!isFormValid()}
                 className="px-6 bg-blue-600 hover:bg-blue-700 transition-colors shadow-lg"
               >
-                Continue
+                Next
               </Button>
             </div>
           </CardContent>
