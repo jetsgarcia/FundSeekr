@@ -40,11 +40,18 @@ export async function checkOnboardingStatus(request: NextRequest) {
   }
 
   const isUserOnboarded = user?.serverMetadata?.onboarded;
+  const { pathname } = request.nextUrl;
 
-  if (
-    !isUserOnboarded &&
-    !isExcludedRoute(request.nextUrl.pathname, "onboarding")
-  ) {
+  // If user is onboarded but trying to access onboarding page, redirect to /home
+  if (isUserOnboarded && isExcludedRoute(pathname, "onboarding")) {
+    return {
+      redirect: NextResponse.redirect(new URL("/home", request.url)),
+      user,
+    };
+  }
+
+  // If user is not onboarded and trying to access non-onboarding pages, redirect to onboarding
+  if (!isUserOnboarded && !isExcludedRoute(pathname, "onboarding")) {
     return {
       redirect: NextResponse.redirect(new URL("/onboarding", request.url)),
       user,
