@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Step1 } from "@/components/onboarding/Step1";
 import { Step2 } from "@/components/onboarding/Step2";
 import { Step3 } from "@/components/onboarding/Step3";
+import { toast } from "sonner";
 
 interface InvestorData {
   firstName: string;
@@ -37,6 +39,7 @@ interface StartupData {
 }
 
 export default function OnboardingPage() {
+  const router = useRouter();
   const [userType, setUserType] = useState<null | "investor" | "startup">(null);
   const [step, setStep] = useState(1);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -143,13 +146,14 @@ export default function OnboardingPage() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const result = await response.json();
-      console.log("Success:", result);
-      // Handle success (e.g., redirect, show success message)
+      router.push("/home");
     } catch (error) {
-      console.error("Fetch error:", error);
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("An unknown error occurred");
+      }
       setIsSubmitted(false); // Allow retry
-      // Handle error (e.g., show error message to user)
     }
   };
 
@@ -219,6 +223,7 @@ export default function OnboardingPage() {
           handleSubmit={handleSubmit}
           isFormValid={isFormValid}
           setStep={setStep}
+          isSubmitting={isSubmitted}
         />
       )}
     </>

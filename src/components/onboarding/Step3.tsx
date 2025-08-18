@@ -28,6 +28,7 @@ import {
   Globe,
   Calendar,
   Tag,
+  Loader2,
 } from "lucide-react";
 import { format, parse, startOfDay } from "date-fns";
 
@@ -71,6 +72,7 @@ interface Step3Props {
   setStep: (step: number) => void;
   isFormValid: () => boolean;
   handleSubmit: () => void;
+  isSubmitting?: boolean;
 }
 
 export function Step3({
@@ -82,6 +84,7 @@ export function Step3({
   setStep,
   isFormValid,
   handleSubmit,
+  isSubmitting,
 }: Step3Props) {
   // State for calendar date
   const [calendarDate, setCalendarDate] = React.useState<Date | undefined>(
@@ -538,15 +541,22 @@ export function Step3({
                 variant="outline"
                 onClick={() => setStep(2)}
                 className="px-6 border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors bg-transparent"
+                disabled={isSubmitting}
               >
                 Back
               </Button>
               <Button
                 onClick={handleSubmit}
-                disabled={!isFormValid()}
+                disabled={!isFormValid() || isSubmitting}
                 className="px-6 bg-blue-600 hover:bg-blue-700 transition-colors shadow-lg"
               >
-                Submit
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="animate-spin h-4 w-4" />
+                  </>
+                ) : (
+                  "Submit"
+                )}
               </Button>
             </div>
           </CardContent>
