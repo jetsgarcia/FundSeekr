@@ -141,13 +141,26 @@ export default function OnboardingPage() {
       });
 
       if (!response.ok) {
-        const errorData = await response.text();
-        console.error("Server error:", response.status, errorData);
-        throw new Error(`HTTP error! status: ${response.status}`);
+        let errorMessage = "An error occurred";
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch {
+          const errorText = await response.text();
+          errorMessage = errorText || errorMessage;
+        }
+        console.error("Server error:", response.status, errorMessage);
+        setIsSubmitted(false);
+
+        toast.error(errorMessage);
+        return; // Early return on error
       }
 
+      // Success case
+      toast.success("Onboarding completed successfully!");
       router.push("/home");
     } catch (error) {
+      console.error("Network error:", error);
       if (error instanceof Error) {
         toast.error(error.message);
       } else {
