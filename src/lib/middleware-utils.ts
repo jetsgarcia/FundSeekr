@@ -6,8 +6,7 @@ import { stackServerApp } from "@/stack";
 export const EXCLUDED_ROUTES = {
   onboarding: ["/onboarding"],
   auth: ["/sign-in", "/sign-up", "/login"],
-  public: ["/api", "/_next", "/favicon.ico"],
-  publicAccess: ["/handler", "/sign-up", "/sign-in", "/terms"],
+  publicAccess: ["/", "/handler", "/sign-up", "/sign-in", "/terms"],
 } as const;
 
 export type ExcludeType = keyof typeof EXCLUDED_ROUTES;

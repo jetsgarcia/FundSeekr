@@ -11,7 +11,7 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Skip middleware for public routes
-  if (isExcludedRoute(pathname, "public")) {
+  if (isExcludedRoute(pathname, "publicAccess")) {
     return NextResponse.next();
   }
 
@@ -33,5 +33,7 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|gif|webp|svg|ico)$).*)",
+  ],
 };

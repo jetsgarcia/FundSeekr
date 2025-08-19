@@ -44,6 +44,40 @@ export async function POST(request: Request) {
       );
     }
 
+    try {
+      // Check if user already has data in either investors or startups table
+      const existingInvestor = await prisma.investors.findFirst({
+        where: {
+          user_id: user.id,
+        },
+      });
+
+      const existingStartup = await prisma.startups.findFirst({
+        where: {
+          user_id: user.id,
+        },
+      });
+
+      if (existingInvestor || existingStartup) {
+        return Response.json(
+          {
+            message: "User has already completed onboarding",
+            success: false,
+          },
+          { status: 409 }
+        );
+      }
+    } catch (error) {
+      return Response.json(
+        {
+          message: "Error checking user data",
+          success: false,
+          error: error instanceof Error ? error.message : "Unknown error",
+        },
+        { status: 500 }
+      );
+    }
+
     if (userType === "investor") {
       // Validate investor type
       const mappedInvestorType = mapInvestorTypeToEnum(rest.investorType);
@@ -75,7 +109,7 @@ export async function POST(request: Request) {
           },
         });
 
-        user.update({
+        await user.update({
           serverMetadata: {
             onboarded: true,
           },
@@ -90,8 +124,6 @@ export async function POST(request: Request) {
           { status: 201 }
         );
       } catch (error) {
-        console.log(error);
-
         return Response.json(
           {
             message: "Error creating investor",
@@ -101,7 +133,7 @@ export async function POST(request: Request) {
           { status: 400 }
         );
       }
-    } else {
+    } else if (userType === "startup") {
       const newStartup = await prisma.startups.create({
         data: {
           name: rest.name,
@@ -117,7 +149,7 @@ export async function POST(request: Request) {
         },
       });
 
-      user.update({
+      await user.update({
         serverMetadata: {
           onboarded: true,
         },
@@ -133,7 +165,6 @@ export async function POST(request: Request) {
       );
     }
   } catch (error) {
-    console.log(error);
     return Response.json(
       {
         message: "Error processing request",
