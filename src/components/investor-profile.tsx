@@ -51,6 +51,34 @@ interface NewKeyContact {
   phone: string;
 }
 
+// Interface for the complete investor profile state
+interface InvestorProfileState {
+  profile: investors;
+  ui: {
+    newIndustry: string;
+    newExcludedIndustry: string;
+    newValueProp: string;
+    newPortfolioCompany: string;
+    newFundingStage: string;
+    newBusinessModel: string;
+    newGeographicFocus: string;
+    newNotableExit: NewNotableExit;
+    keyContacts: KeyContact[];
+    newKeyContact: NewKeyContact;
+    keyContactErrors: {
+      name: string;
+      linkedin: string;
+      phone: string;
+    };
+    notableExitErrors: {
+      company: string;
+      year: string;
+      exit_type: string;
+      value_php: string;
+    };
+  };
+}
+
 // Use Prisma generated types
 interface InvestorProfileProps {
   user: investors;
@@ -58,243 +86,271 @@ interface InvestorProfileProps {
 
 export function InvestorProfile({ user }: InvestorProfileProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [editedUser, setEditedUser] = useState<investors>(user);
-  const [newIndustry, setNewIndustry] = useState("");
-  const [newExcludedIndustry, setNewExcludedIndustry] = useState("");
-  const [newValueProp, setNewValueProp] = useState("");
-  const [newPortfolioCompany, setNewPortfolioCompany] = useState("");
-  const [newFundingStage, setNewFundingStage] = useState("");
-  const [newBusinessModel, setNewBusinessModel] = useState("");
-  const [newGeographicFocus, setNewGeographicFocus] = useState("");
-  const [newNotableExit, setNewNotableExit] = useState<NewNotableExit>({
-    company: "",
-    year: "",
-    exit_type: "",
-    value_php: "",
-  });
 
-  // State for multiple key contacts
-  const [keyContacts, setKeyContacts] = useState<KeyContact[]>(() => {
-    const contacts: KeyContact[] = [];
-    if (
-      user.key_contact_person_name ||
-      user.key_contact_linkedin ||
-      user.key_contact_number
-    ) {
-      contacts.push({
-        name: user.key_contact_person_name || "",
-        linkedin: user.key_contact_linkedin || undefined,
-        phone: user.key_contact_number || undefined,
-      });
+  // Single state object containing all investor profile data and UI state
+  const [investorState, setInvestorState] = useState<InvestorProfileState>(
+    () => {
+      const initialKeyContacts: KeyContact[] = [];
+      if (
+        user.key_contact_person_name ||
+        user.key_contact_linkedin ||
+        user.key_contact_number
+      ) {
+        initialKeyContacts.push({
+          name: user.key_contact_person_name || "",
+          linkedin: user.key_contact_linkedin || undefined,
+          phone: user.key_contact_number || undefined,
+        });
+      }
+
+      return {
+        profile: user,
+        ui: {
+          newIndustry: "",
+          newExcludedIndustry: "",
+          newValueProp: "",
+          newPortfolioCompany: "",
+          newFundingStage: "",
+          newBusinessModel: "",
+          newGeographicFocus: "",
+          newNotableExit: {
+            company: "",
+            year: "",
+            exit_type: "",
+            value_php: "",
+          },
+          keyContacts: initialKeyContacts,
+          newKeyContact: {
+            name: "",
+            linkedin: "",
+            phone: "+63 ",
+          },
+          keyContactErrors: {
+            name: "",
+            linkedin: "",
+            phone: "",
+          },
+          notableExitErrors: {
+            company: "",
+            year: "",
+            exit_type: "",
+            value_php: "",
+          },
+        },
+      };
     }
-    return contacts;
-  });
+  );
 
-  const [newKeyContact, setNewKeyContact] = useState<NewKeyContact>({
-    name: "",
-    linkedin: "",
-    phone: "+63 ",
-  });
+  // Helper function to update profile data
+  const updateProfile = (updates: Partial<investors>) => {
+    setInvestorState((prev) => ({
+      ...prev,
+      profile: { ...prev.profile, ...updates },
+    }));
+  };
 
-  // Validation states
-  const [keyContactErrors, setKeyContactErrors] = useState({
-    name: "",
-    linkedin: "",
-    phone: "",
-  });
-
-  const [notableExitErrors, setNotableExitErrors] = useState({
-    company: "",
-    year: "",
-    exit_type: "",
-    value_php: "",
-  });
+  // Helper function to update UI state
+  const updateUI = (updates: Partial<InvestorProfileState["ui"]>) => {
+    setInvestorState((prev) => ({
+      ...prev,
+      ui: { ...prev.ui, ...updates },
+    }));
+  };
 
   const formatEnumValue = (value: string | null) => {
     if (!value) return null;
-    return value;
+    // Convert enum values to display format
+    return value.replace(/_/g, " ");
   };
 
   const handleSave = () => {
-    console.log("Saving changes:", editedUser);
+    console.log("Saving changes:", investorState.profile);
     setIsEditing(false);
   };
 
   const handleCancel = () => {
-    setEditedUser(user);
+    setInvestorState((prev) => ({
+      ...prev,
+      profile: user,
+    }));
     setIsEditing(false);
   };
 
   const addIndustry = () => {
+    const { newIndustry } = investorState.ui;
     if (
       newIndustry.trim() &&
-      !editedUser.preferred_industries.includes(newIndustry.trim())
+      !investorState.profile.preferred_industries.includes(newIndustry.trim())
     ) {
-      setEditedUser({
-        ...editedUser,
+      updateProfile({
         preferred_industries: [
-          ...editedUser.preferred_industries,
+          ...investorState.profile.preferred_industries,
           newIndustry.trim(),
         ],
       });
-      setNewIndustry("");
+      updateUI({ newIndustry: "" });
     }
   };
 
   const removeIndustry = (index: number) => {
-    setEditedUser({
-      ...editedUser,
-      preferred_industries: editedUser.preferred_industries.filter(
+    updateProfile({
+      preferred_industries: investorState.profile.preferred_industries.filter(
         (_, i) => i !== index
       ),
     });
   };
 
   const addExcludedIndustry = () => {
+    const { newExcludedIndustry } = investorState.ui;
     if (
       newExcludedIndustry.trim() &&
-      !editedUser.excluded_industries.includes(newExcludedIndustry.trim())
+      !investorState.profile.excluded_industries.includes(
+        newExcludedIndustry.trim()
+      )
     ) {
-      setEditedUser({
-        ...editedUser,
+      updateProfile({
         excluded_industries: [
-          ...editedUser.excluded_industries,
+          ...investorState.profile.excluded_industries,
           newExcludedIndustry.trim(),
         ],
       });
-      setNewExcludedIndustry("");
+      updateUI({ newExcludedIndustry: "" });
     }
   };
 
   const removeExcludedIndustry = (index: number) => {
-    setEditedUser({
-      ...editedUser,
-      excluded_industries: editedUser.excluded_industries.filter(
+    updateProfile({
+      excluded_industries: investorState.profile.excluded_industries.filter(
         (_, i) => i !== index
       ),
     });
   };
 
   const addValueProp = () => {
+    const { newValueProp } = investorState.ui;
     if (
       newValueProp.trim() &&
-      !editedUser.value_proposition.includes(newValueProp.trim())
+      !investorState.profile.value_proposition.includes(newValueProp.trim())
     ) {
-      setEditedUser({
-        ...editedUser,
+      updateProfile({
         value_proposition: [
-          ...editedUser.value_proposition,
+          ...investorState.profile.value_proposition,
           newValueProp.trim(),
         ],
       });
-      setNewValueProp("");
+      updateUI({ newValueProp: "" });
     }
   };
 
   const removeValueProp = (index: number) => {
-    setEditedUser({
-      ...editedUser,
-      value_proposition: editedUser.value_proposition.filter(
+    updateProfile({
+      value_proposition: investorState.profile.value_proposition.filter(
         (_, i) => i !== index
       ),
     });
   };
 
   const addPortfolioCompany = () => {
+    const { newPortfolioCompany } = investorState.ui;
     if (
       newPortfolioCompany.trim() &&
-      !editedUser.portfolio_companies.includes(newPortfolioCompany.trim())
+      !investorState.profile.portfolio_companies.includes(
+        newPortfolioCompany.trim()
+      )
     ) {
-      setEditedUser({
-        ...editedUser,
+      updateProfile({
         portfolio_companies: [
-          ...editedUser.portfolio_companies,
+          ...investorState.profile.portfolio_companies,
           newPortfolioCompany.trim(),
         ],
       });
-      setNewPortfolioCompany("");
+      updateUI({ newPortfolioCompany: "" });
     }
   };
 
   const removePortfolioCompany = (index: number) => {
-    setEditedUser({
-      ...editedUser,
-      portfolio_companies: editedUser.portfolio_companies.filter(
+    updateProfile({
+      portfolio_companies: investorState.profile.portfolio_companies.filter(
         (_, i) => i !== index
       ),
     });
   };
 
   const addFundingStage = () => {
+    const { newFundingStage } = investorState.ui;
     if (
       newFundingStage.trim() &&
-      !editedUser.preferred_funding_stages.includes(newFundingStage.trim())
+      !investorState.profile.preferred_funding_stages.includes(
+        newFundingStage.trim()
+      )
     ) {
-      setEditedUser({
-        ...editedUser,
+      updateProfile({
         preferred_funding_stages: [
-          ...editedUser.preferred_funding_stages,
+          ...investorState.profile.preferred_funding_stages,
           newFundingStage.trim(),
         ],
       });
-      setNewFundingStage("");
+      updateUI({ newFundingStage: "" });
     }
   };
 
   const removeFundingStage = (index: number) => {
-    setEditedUser({
-      ...editedUser,
-      preferred_funding_stages: editedUser.preferred_funding_stages.filter(
-        (_, i) => i !== index
-      ),
+    updateProfile({
+      preferred_funding_stages:
+        investorState.profile.preferred_funding_stages.filter(
+          (_, i) => i !== index
+        ),
     });
   };
 
   const addBusinessModel = () => {
+    const { newBusinessModel } = investorState.ui;
     if (
       newBusinessModel.trim() &&
-      !editedUser.preferred_business_models.includes(newBusinessModel.trim())
+      !investorState.profile.preferred_business_models.includes(
+        newBusinessModel.trim()
+      )
     ) {
-      setEditedUser({
-        ...editedUser,
+      updateProfile({
         preferred_business_models: [
-          ...editedUser.preferred_business_models,
+          ...investorState.profile.preferred_business_models,
           newBusinessModel.trim(),
         ],
       });
-      setNewBusinessModel("");
+      updateUI({ newBusinessModel: "" });
     }
   };
 
   const removeBusinessModel = (index: number) => {
-    setEditedUser({
-      ...editedUser,
-      preferred_business_models: editedUser.preferred_business_models.filter(
-        (_, i) => i !== index
-      ),
+    updateProfile({
+      preferred_business_models:
+        investorState.profile.preferred_business_models.filter(
+          (_, i) => i !== index
+        ),
     });
   };
 
   const addGeographicFocus = () => {
+    const { newGeographicFocus } = investorState.ui;
     if (
       newGeographicFocus.trim() &&
-      !editedUser.geographic_focus.includes(newGeographicFocus.trim())
+      !investorState.profile.geographic_focus.includes(
+        newGeographicFocus.trim()
+      )
     ) {
-      setEditedUser({
-        ...editedUser,
+      updateProfile({
         geographic_focus: [
-          ...editedUser.geographic_focus,
+          ...investorState.profile.geographic_focus,
           newGeographicFocus.trim(),
         ],
       });
-      setNewGeographicFocus("");
+      updateUI({ newGeographicFocus: "" });
     }
   };
 
   const removeGeographicFocus = (index: number) => {
-    setEditedUser({
-      ...editedUser,
-      geographic_focus: editedUser.geographic_focus.filter(
+    updateProfile({
+      geographic_focus: investorState.profile.geographic_focus.filter(
         (_, i) => i !== index
       ),
     });
@@ -305,6 +361,7 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
       return;
     }
 
+    const { newNotableExit } = investorState.ui;
     const exitToAdd = {
       company: newNotableExit.company.trim(),
       year: newNotableExit.year ? parseInt(newNotableExit.year) : undefined,
@@ -314,30 +371,31 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
         : undefined,
     };
 
-    setEditedUser({
-      ...editedUser,
-      notable_exits: [...editedUser.notable_exits, exitToAdd as any],
+    updateProfile({
+      notable_exits: [...investorState.profile.notable_exits, exitToAdd as any],
     });
 
-    setNewNotableExit({
-      company: "",
-      year: "",
-      exit_type: "",
-      value_php: "",
-    });
-
-    setNotableExitErrors({
-      company: "",
-      year: "",
-      exit_type: "",
-      value_php: "",
+    updateUI({
+      newNotableExit: {
+        company: "",
+        year: "",
+        exit_type: "",
+        value_php: "",
+      },
+      notableExitErrors: {
+        company: "",
+        year: "",
+        exit_type: "",
+        value_php: "",
+      },
     });
   };
 
   const removeNotableExit = (index: number) => {
-    setEditedUser({
-      ...editedUser,
-      notable_exits: editedUser.notable_exits.filter((_, i) => i !== index),
+    updateProfile({
+      notable_exits: investorState.profile.notable_exits.filter(
+        (_, i) => i !== index
+      ),
     });
   };
 
@@ -346,28 +404,32 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
       return;
     }
 
+    const { newKeyContact, keyContacts } = investorState.ui;
     const contactToAdd: KeyContact = {
       name: newKeyContact.name.trim(),
       linkedin: newKeyContact.linkedin.trim() || undefined,
       phone: newKeyContact.phone.trim() || undefined,
     };
 
-    setKeyContacts([...keyContacts, contactToAdd]);
-    setNewKeyContact({
-      name: "",
-      linkedin: "",
-      phone: "+63 ",
-    });
-
-    setKeyContactErrors({
-      name: "",
-      linkedin: "",
-      phone: "",
+    updateUI({
+      keyContacts: [...keyContacts, contactToAdd],
+      newKeyContact: {
+        name: "",
+        linkedin: "",
+        phone: "+63 ",
+      },
+      keyContactErrors: {
+        name: "",
+        linkedin: "",
+        phone: "",
+      },
     });
   };
 
   const removeKeyContact = (index: number) => {
-    setKeyContacts(keyContacts.filter((_, i) => i !== index));
+    updateUI({
+      keyContacts: investorState.ui.keyContacts.filter((_, i) => i !== index),
+    });
   };
 
   const updateKeyContact = (
@@ -375,7 +437,7 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
     field: keyof KeyContact,
     value: string
   ) => {
-    const updatedContacts = keyContacts.map((contact, i) => {
+    const updatedContacts = investorState.ui.keyContacts.map((contact, i) => {
       if (i === index) {
         if (field === "phone") {
           return { ...contact, [field]: formatPhoneNumber(value) || undefined };
@@ -384,7 +446,7 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
       }
       return contact;
     });
-    setKeyContacts(updatedContacts);
+    updateUI({ keyContacts: updatedContacts });
   };
 
   const formatPhoneNumber = (value: string) => {
@@ -461,6 +523,7 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
     };
 
     let hasErrors = false;
+    const { newKeyContact } = investorState.ui;
 
     // Validate name
     if (!newKeyContact.name.trim()) {
@@ -489,7 +552,7 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
       hasErrors = true;
     }
 
-    setKeyContactErrors(errors);
+    updateUI({ keyContactErrors: errors });
     return !hasErrors;
   };
 
@@ -503,6 +566,7 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
     };
 
     let hasErrors = false;
+    const { newNotableExit } = investorState.ui;
 
     // Validate company name
     if (!newNotableExit.company.trim()) {
@@ -541,7 +605,7 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
       }
     }
 
-    setNotableExitErrors(errors);
+    updateUI({ notableExitErrors: errors });
     return !hasErrors;
   };
 
@@ -550,15 +614,19 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
     const formatted = formatPhoneNumber(value);
 
     if (isNewContact) {
-      setNewKeyContact({
-        ...newKeyContact,
-        phone: formatted,
+      updateUI({
+        newKeyContact: {
+          ...investorState.ui.newKeyContact,
+          phone: formatted,
+        },
       });
       // Clear phone error when user starts typing
-      if (keyContactErrors.phone) {
-        setKeyContactErrors({
-          ...keyContactErrors,
-          phone: "",
+      if (investorState.ui.keyContactErrors.phone) {
+        updateUI({
+          keyContactErrors: {
+            ...investorState.ui.keyContactErrors,
+            phone: "",
+          },
         });
       }
     }
@@ -567,21 +635,29 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
   };
 
   // Clear specific key contact error
-  const clearKeyContactError = (field: keyof typeof keyContactErrors) => {
-    if (keyContactErrors[field]) {
-      setKeyContactErrors({
-        ...keyContactErrors,
-        [field]: "",
+  const clearKeyContactError = (
+    field: keyof typeof investorState.ui.keyContactErrors
+  ) => {
+    if (investorState.ui.keyContactErrors[field]) {
+      updateUI({
+        keyContactErrors: {
+          ...investorState.ui.keyContactErrors,
+          [field]: "",
+        },
       });
     }
   };
 
   // Clear specific notable exit error
-  const clearNotableExitError = (field: keyof typeof notableExitErrors) => {
-    if (notableExitErrors[field]) {
-      setNotableExitErrors({
-        ...notableExitErrors,
-        [field]: "",
+  const clearNotableExitError = (
+    field: keyof typeof investorState.ui.notableExitErrors
+  ) => {
+    if (investorState.ui.notableExitErrors[field]) {
+      updateUI({
+        notableExitErrors: {
+          ...investorState.ui.notableExitErrors,
+          [field]: "",
+        },
       });
     }
   };
@@ -618,102 +694,154 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Main info card */}
         <div className="md:col-span-3 bg-card rounded-lg p-6 shadow-sm border">
-          <div className="flex flex-col md:flex-row justify-between">
-            <div className="flex-1">
-              {isEditing ? (
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="organization">Organization</Label>
-                    <Input
-                      id="organization"
-                      value={editedUser.organization || ""}
-                      onChange={(e) =>
-                        setEditedUser({
-                          ...editedUser,
-                          organization: e.target.value,
-                        })
-                      }
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="investor_type">Investor Type</Label>
-                    <Select
-                      value={editedUser.investor_type || ""}
-                      onValueChange={(value) =>
-                        setEditedUser({
-                          ...editedUser,
-                          investor_type: value as any,
-                        })
-                      }
-                    >
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Select investor type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Angel investor">
-                          Angel investor
-                        </SelectItem>
-                        <SelectItem value="Venture capital">
-                          Venture capital
-                        </SelectItem>
-                        <SelectItem value="Private equity">
-                          Private equity
-                        </SelectItem>
-                        <SelectItem value="Corporate VC">
-                          Corporate VC
-                        </SelectItem>
-                        <SelectItem value="Family office">
-                          Family office
-                        </SelectItem>
-                        <SelectItem value="Government fund">
-                          Government fund
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="position">Position</Label>
-                    <Input
-                      id="position"
-                      value={editedUser.position || ""}
-                      onChange={(e) =>
-                        setEditedUser({
-                          ...editedUser,
-                          position: e.target.value,
-                        })
-                      }
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="city">City</Label>
-                    <Input
-                      id="city"
-                      value={editedUser.city || ""}
-                      onChange={(e) =>
-                        setEditedUser({ ...editedUser, city: e.target.value })
-                      }
-                      className="mt-1"
-                    />
-                  </div>
+          {isEditing ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="organization">Organization</Label>
+                  <Input
+                    id="organization"
+                    value={investorState.profile.organization || ""}
+                    onChange={(e) =>
+                      updateProfile({
+                        organization: e.target.value,
+                      })
+                    }
+                    className="mt-1"
+                  />
                 </div>
-              ) : (
-                <>
-                  <h2 className="text-2xl font-bold">
-                    {editedUser.organization || "Organization Name"}
-                  </h2>
-                  <p className="text-muted-foreground">
-                    {formatEnumValue(editedUser.investor_type) ||
-                      "Investor Type"}
+                <div>
+                  <Label htmlFor="investor_type">Investor Type</Label>
+                  <Select
+                    value={investorState.profile.investor_type || ""}
+                    onValueChange={(value) =>
+                      updateProfile({
+                        investor_type: value as any,
+                      })
+                    }
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select investor type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Angel_investor">
+                        Angel investor
+                      </SelectItem>
+                      <SelectItem value="Crowdfunding_investor">
+                        Crowdfunding investor
+                      </SelectItem>
+                      <SelectItem value="Venture_capital">
+                        Venture capital
+                      </SelectItem>
+                      <SelectItem value="Corporate_investor">
+                        Corporate investor
+                      </SelectItem>
+                      <SelectItem value="Private_equity">
+                        Private equity
+                      </SelectItem>
+                      <SelectItem value="Impact_investor">
+                        Impact investor
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="position">Position</Label>
+                  <Input
+                    id="position"
+                    value={investorState.profile.position || ""}
+                    onChange={(e) =>
+                      updateProfile({
+                        position: e.target.value,
+                      })
+                    }
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="city">City</Label>
+                  <Input
+                    id="city"
+                    value={investorState.profile.city || ""}
+                    onChange={(e) => updateProfile({ city: e.target.value })}
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="organization_website">Website</Label>
+                  <Input
+                    id="organization_website"
+                    type="url"
+                    value={investorState.profile.organization_website || ""}
+                    onChange={(e) =>
+                      updateProfile({
+                        organization_website: e.target.value,
+                      })
+                    }
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="investor_linkedin">LinkedIn</Label>
+                  <Input
+                    id="investor_linkedin"
+                    type="url"
+                    value={investorState.profile.investor_linkedin || ""}
+                    onChange={(e) =>
+                      updateProfile({
+                        investor_linkedin: e.target.value,
+                      })
+                    }
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col md:flex-row justify-between">
+              <div className="flex-1">
+                <h2 className="text-2xl font-bold">
+                  {investorState.profile.organization || "Organization Name"}
+                </h2>
+                <p className="text-muted-foreground">
+                  {formatEnumValue(investorState.profile.investor_type) ||
+                    "Investor Type"}
+                </p>
+                {investorState.profile.position && (
+                  <p className="text-sm text-muted-foreground">
+                    {investorState.profile.position}
                   </p>
-                  {editedUser.position && (
-                    <p className="text-sm text-muted-foreground">
-                      {editedUser.position}
-                    </p>
-                  )}
-                  <div className="mt-2 flex items-center">
-                    <span className="inline-flex items-center text-sm text-muted-foreground">
+                )}
+                <div className="mt-2 flex items-center">
+                  <span className="inline-flex items-center text-sm text-muted-foreground">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4 mr-1"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                      <circle cx="12" cy="10" r="3" />
+                    </svg>
+                    {investorState.profile.city || "Location"}
+                  </span>
+                </div>
+              </div>
+              <div className="mt-4 md:mt-0">
+                <div className="flex flex-col md:items-end gap-2">
+                  {investorState.profile.organization_website && (
+                    <a
+                      href={investorState.profile.organization_website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline flex items-center"
+                    >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className="h-4 w-4 mr-1"
@@ -724,105 +852,41 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                       >
-                        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-                        <circle cx="12" cy="10" r="3" />
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                        <path d="M2 12h20" />
                       </svg>
-                      {editedUser.city || "Location"}
-                    </span>
-                  </div>
-                </>
-              )}
-            </div>
-            <div className="mt-4 md:mt-0">
-              <div className="flex flex-col md:items-end gap-2">
-                {isEditing ? (
-                  <div className="space-y-2">
-                    <div>
-                      <Label htmlFor="organization_website">Website</Label>
-                      <Input
-                        id="organization_website"
-                        type="url"
-                        value={editedUser.organization_website || ""}
-                        onChange={(e) =>
-                          setEditedUser({
-                            ...editedUser,
-                            organization_website: e.target.value,
-                          })
-                        }
-                        className="mt-1"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="investor_linkedin">LinkedIn</Label>
-                      <Input
-                        id="investor_linkedin"
-                        type="url"
-                        value={editedUser.investor_linkedin || ""}
-                        onChange={(e) =>
-                          setEditedUser({
-                            ...editedUser,
-                            investor_linkedin: e.target.value,
-                          })
-                        }
-                        className="mt-1"
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    {editedUser.organization_website && (
-                      <a
-                        href={editedUser.organization_website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary hover:underline flex items-center"
+                      Website
+                    </a>
+                  )}
+                  {investorState.profile.investor_linkedin && (
+                    <a
+                      href={investorState.profile.investor_linkedin}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline flex items-center"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4 mr-1"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
                       >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4 mr-1"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <circle cx="12" cy="12" r="10" />
-                          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-                          <path d="M2 12h20" />
-                        </svg>
-                        Website
-                      </a>
-                    )}
-                    {editedUser.investor_linkedin && (
-                      <a
-                        href={editedUser.investor_linkedin}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary hover:underline flex items-center"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4 mr-1"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
-                          <rect width="4" height="12" x="2" y="9" />
-                          <circle cx="4" cy="4" r="2" />
-                        </svg>
-                        LinkedIn
-                      </a>
-                    )}
-                  </>
-                )}
+                        <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+                        <rect width="4" height="12" x="2" y="9" />
+                        <circle cx="4" cy="4" r="2" />
+                      </svg>
+                      LinkedIn
+                    </a>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Investment Preferences */}
@@ -842,10 +906,11 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
                   <Input
                     id="typical_check_size"
                     type="number"
-                    value={editedUser.typical_check_size_in_php || ""}
+                    value={
+                      investorState.profile.typical_check_size_in_php || ""
+                    }
                     onChange={(e) =>
-                      setEditedUser({
-                        ...editedUser,
+                      updateProfile({
                         typical_check_size_in_php: e.target.value
                           ? parseInt(e.target.value)
                           : null,
@@ -857,8 +922,10 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
                 </div>
               ) : (
                 <p className="text-base">
-                  {editedUser.typical_check_size_in_php
-                    ? formatCurrency(editedUser.typical_check_size_in_php)
+                  {investorState.profile.typical_check_size_in_php
+                    ? formatCurrency(
+                        investorState.profile.typical_check_size_in_php
+                      )
                     : "Not specified"}
                 </p>
               )}
@@ -874,10 +941,9 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
                   <Input
                     id="decision_period"
                     type="number"
-                    value={editedUser.decision_period_in_weeks || ""}
+                    value={investorState.profile.decision_period_in_weeks || ""}
                     onChange={(e) =>
-                      setEditedUser({
-                        ...editedUser,
+                      updateProfile({
                         decision_period_in_weeks: e.target.value
                           ? parseInt(e.target.value)
                           : null,
@@ -890,8 +956,8 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
               ) : (
                 <p className="text-base flex items-center">
                   <ClockIcon className="h-4 w-4 mr-1" />
-                  {editedUser.decision_period_in_weeks
-                    ? `${editedUser.decision_period_in_weeks} weeks`
+                  {investorState.profile.decision_period_in_weeks
+                    ? `${investorState.profile.decision_period_in_weeks} weeks`
                     : "Not specified"}
                 </p>
               )}
@@ -903,10 +969,9 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
               </h4>
               {isEditing ? (
                 <Select
-                  value={editedUser.involvement_level || ""}
+                  value={investorState.profile.involvement_level || ""}
                   onValueChange={(value) =>
-                    setEditedUser({
-                      ...editedUser,
+                    updateProfile({
                       involvement_level: value as any,
                     })
                   }
@@ -915,16 +980,16 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
                     <SelectValue placeholder="Select involvement level" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Hands-off">Hands-off</SelectItem>
-                    <SelectItem value="Light touch">Light touch</SelectItem>
+                    <SelectItem value="Hands_off">Hands off</SelectItem>
+                    <SelectItem value="Advisor">Advisor</SelectItem>
                     <SelectItem value="Active">Active</SelectItem>
-                    <SelectItem value="Very active">Very active</SelectItem>
+                    <SelectItem value="Controlling">Controlling</SelectItem>
                   </SelectContent>
                 </Select>
               ) : (
                 <p className="text-base flex items-center">
                   <BuildingIcon className="h-4 w-4 mr-1" />
-                  {formatEnumValue(editedUser.involvement_level) ||
+                  {formatEnumValue(investorState.profile.involvement_level) ||
                     "Not specified"}
                 </p>
               )}
@@ -939,13 +1004,13 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
             {isEditing ? (
               <div className="space-y-2">
                 <div className="flex flex-wrap gap-2">
-                  {editedUser.preferred_funding_stages.map(
+                  {investorState.profile.preferred_funding_stages.map(
                     (stage: string, index: number) => (
                       <span
                         key={index}
                         className="px-2 py-1 bg-primary/10 text-primary rounded-md text-xs flex items-center gap-1"
                       >
-                        {stage}
+                        {formatEnumValue(stage)}
                         <button
                           onClick={() => removeFundingStage(index)}
                           className="hover:bg-primary/20 rounded-full p-0.5"
@@ -958,20 +1023,20 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
                 </div>
                 <div className="flex gap-2">
                   <Select
-                    value={newFundingStage}
-                    onValueChange={setNewFundingStage}
+                    value={investorState.ui.newFundingStage}
+                    onValueChange={(value) =>
+                      updateUI({ newFundingStage: value })
+                    }
                   >
                     <SelectTrigger className="flex-1">
                       <SelectValue placeholder="Add funding stage" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Pre-seed">Pre-seed</SelectItem>
+                      <SelectItem value="Pre_Seed">Pre-Seed</SelectItem>
                       <SelectItem value="Seed">Seed</SelectItem>
-                      <SelectItem value="Series A">Series A</SelectItem>
-                      <SelectItem value="Series B">Series B</SelectItem>
-                      <SelectItem value="Series C">Series C</SelectItem>
-                      <SelectItem value="Growth">Growth</SelectItem>
-                      <SelectItem value="Later stage">Later stage</SelectItem>
+                      <SelectItem value="Series_A">Series A</SelectItem>
+                      <SelectItem value="Series_B">Series B</SelectItem>
+                      <SelectItem value="Series_C_">Series C+</SelectItem>
                     </SelectContent>
                   </Select>
                   <Button onClick={addFundingStage} size="sm">
@@ -981,13 +1046,13 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
               </div>
             ) : (
               <div className="flex flex-wrap gap-1 mt-1">
-                {editedUser.preferred_funding_stages.map(
+                {investorState.profile.preferred_funding_stages.map(
                   (stage: string, index: number) => (
                     <span
                       key={index}
                       className="px-2 py-1 bg-primary/10 text-primary rounded-md text-xs"
                     >
-                      {stage}
+                      {formatEnumValue(stage)}
                     </span>
                   )
                 )}
@@ -1003,7 +1068,7 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
             {isEditing ? (
               <div className="space-y-2">
                 <div className="flex flex-wrap gap-2">
-                  {editedUser.preferred_business_models.map(
+                  {investorState.profile.preferred_business_models.map(
                     (model: string, index: number) => (
                       <span
                         key={index}
@@ -1022,8 +1087,10 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
                 </div>
                 <div className="flex gap-2">
                   <Input
-                    value={newBusinessModel}
-                    onChange={(e) => setNewBusinessModel(e.target.value)}
+                    value={investorState.ui.newBusinessModel}
+                    onChange={(e) =>
+                      updateUI({ newBusinessModel: e.target.value })
+                    }
                     placeholder="Add business model"
                     className="flex-1"
                     onKeyPress={(e) => e.key === "Enter" && addBusinessModel()}
@@ -1035,7 +1102,7 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
               </div>
             ) : (
               <div className="flex flex-wrap gap-1 mt-1">
-                {editedUser.preferred_business_models.map(
+                {investorState.profile.preferred_business_models.map(
                   (model: string, index: number) => (
                     <span
                       key={index}
@@ -1057,7 +1124,7 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
             {isEditing ? (
               <div className="space-y-2">
                 <div className="flex flex-wrap gap-2">
-                  {editedUser.geographic_focus.map(
+                  {investorState.profile.geographic_focus.map(
                     (location: string, index: number) => (
                       <span
                         key={index}
@@ -1077,8 +1144,10 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
                 </div>
                 <div className="flex gap-2">
                   <Input
-                    value={newGeographicFocus}
-                    onChange={(e) => setNewGeographicFocus(e.target.value)}
+                    value={investorState.ui.newGeographicFocus}
+                    onChange={(e) =>
+                      updateUI({ newGeographicFocus: e.target.value })
+                    }
                     placeholder="Add geographic location"
                     className="flex-1"
                     onKeyPress={(e) =>
@@ -1092,7 +1161,7 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
               </div>
             ) : (
               <div className="flex flex-wrap gap-1 mt-1">
-                {editedUser.geographic_focus.map(
+                {investorState.profile.geographic_focus.map(
                   (location: string, index: number) => (
                     <span
                       key={index}
@@ -1115,25 +1184,27 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
             {isEditing ? (
               <div className="space-y-2">
                 <div className="flex flex-wrap gap-2">
-                  {editedUser.preferred_industries.map((industry, index) => (
-                    <span
-                      key={index}
-                      className="px-2 py-1 bg-primary/10 text-primary rounded-md text-xs flex items-center gap-1"
-                    >
-                      {industry}
-                      <button
-                        onClick={() => removeIndustry(index)}
-                        className="hover:bg-primary/20 rounded-full p-0.5"
+                  {investorState.profile.preferred_industries.map(
+                    (industry, index) => (
+                      <span
+                        key={index}
+                        className="px-2 py-1 bg-primary/10 text-primary rounded-md text-xs flex items-center gap-1"
                       >
-                        <XIcon className="h-3 w-3" />
-                      </button>
-                    </span>
-                  ))}
+                        {industry}
+                        <button
+                          onClick={() => removeIndustry(index)}
+                          className="hover:bg-primary/20 rounded-full p-0.5"
+                        >
+                          <XIcon className="h-3 w-3" />
+                        </button>
+                      </span>
+                    )
+                  )}
                 </div>
                 <div className="flex gap-2">
                   <Input
-                    value={newIndustry}
-                    onChange={(e) => setNewIndustry(e.target.value)}
+                    value={investorState.ui.newIndustry}
+                    onChange={(e) => updateUI({ newIndustry: e.target.value })}
                     placeholder="Add preferred industry"
                     className="flex-1"
                     onKeyPress={(e) => e.key === "Enter" && addIndustry()}
@@ -1145,14 +1216,16 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
               </div>
             ) : (
               <div className="flex flex-wrap gap-2">
-                {editedUser.preferred_industries.map((industry, index) => (
-                  <span
-                    key={index}
-                    className="px-2 py-1 bg-primary/10 text-primary rounded-md text-xs"
-                  >
-                    {industry}
-                  </span>
-                ))}
+                {investorState.profile.preferred_industries.map(
+                  (industry, index) => (
+                    <span
+                      key={index}
+                      className="px-2 py-1 bg-primary/10 text-primary rounded-md text-xs"
+                    >
+                      {industry}
+                    </span>
+                  )
+                )}
               </div>
             )}
           </div>
@@ -1165,7 +1238,7 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
             {isEditing ? (
               <div className="space-y-2">
                 <div className="flex flex-wrap gap-2">
-                  {editedUser.excluded_industries.map(
+                  {investorState.profile.excluded_industries.map(
                     (industry: string, index: number) => (
                       <span
                         key={index}
@@ -1184,8 +1257,10 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
                 </div>
                 <div className="flex gap-2">
                   <Input
-                    value={newExcludedIndustry}
-                    onChange={(e) => setNewExcludedIndustry(e.target.value)}
+                    value={investorState.ui.newExcludedIndustry}
+                    onChange={(e) =>
+                      updateUI({ newExcludedIndustry: e.target.value })
+                    }
                     placeholder="Add excluded industry"
                     className="flex-1"
                     onKeyPress={(e) =>
@@ -1199,7 +1274,7 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
               </div>
             ) : (
               <div className="flex flex-wrap gap-2">
-                {editedUser.excluded_industries.map(
+                {investorState.profile.excluded_industries.map(
                   (industry: string, index: number) => (
                     <span
                       key={index}
@@ -1222,7 +1297,7 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
           {isEditing ? (
             <div className="space-y-3">
               <div className="space-y-2">
-                {editedUser.value_proposition.map(
+                {investorState.profile.value_proposition.map(
                   (area: string, index: number) => (
                     <div
                       key={index}
@@ -1255,8 +1330,8 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
               </div>
               <div className="flex gap-2">
                 <Input
-                  value={newValueProp}
-                  onChange={(e) => setNewValueProp(e.target.value)}
+                  value={investorState.ui.newValueProp}
+                  onChange={(e) => updateUI({ newValueProp: e.target.value })}
                   placeholder="Add value proposition"
                   className="flex-1"
                   onKeyPress={(e) => e.key === "Enter" && addValueProp()}
@@ -1268,7 +1343,7 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
             </div>
           ) : (
             <ul className="space-y-2">
-              {editedUser.value_proposition.map(
+              {investorState.profile.value_proposition.map(
                 (area: string, index: number) => (
                   <li key={index} className="flex items-start">
                     <svg
@@ -1299,7 +1374,7 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
           {isEditing ? (
             <div className="space-y-3">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {editedUser.portfolio_companies.map(
+                {investorState.profile.portfolio_companies.map(
                   (company: string, index: number) => (
                     <div
                       key={index}
@@ -1318,8 +1393,10 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
               </div>
               <div className="flex gap-2">
                 <Input
-                  value={newPortfolioCompany}
-                  onChange={(e) => setNewPortfolioCompany(e.target.value)}
+                  value={investorState.ui.newPortfolioCompany}
+                  onChange={(e) =>
+                    updateUI({ newPortfolioCompany: e.target.value })
+                  }
                   placeholder="Add portfolio company"
                   className="flex-1"
                   onKeyPress={(e) => e.key === "Enter" && addPortfolioCompany()}
@@ -1331,7 +1408,7 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {editedUser.portfolio_companies.map(
+              {investorState.profile.portfolio_companies.map(
                 (company: string, index: number) => (
                   <div key={index} className="p-3 bg-accent rounded-md">
                     {company}
@@ -1343,7 +1420,7 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
         </div>
 
         {/* Key Contact Information */}
-        {(keyContacts.length > 0 || isEditing) && (
+        {(investorState.ui.keyContacts.length > 0 || isEditing) && (
           <div className="bg-card rounded-lg p-6 shadow-sm border">
             <div className="mb-4">
               <h3 className="text-xl font-semibold">Key Contacts</h3>
@@ -1352,72 +1429,75 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
               <div className="space-y-4">
                 {/* Existing Contacts */}
                 <div className="space-y-3">
-                  {keyContacts.map((contact, index) => (
-                    <div
-                      key={index}
-                      className="border rounded-md p-3 bg-accent"
-                    >
-                      <div className="space-y-3">
-                        <div>
-                          <Label htmlFor={`contact_name_${index}`}>
-                            Contact Name
-                          </Label>
-                          <Input
-                            id={`contact_name_${index}`}
-                            value={contact.name}
-                            onChange={(e) =>
-                              updateKeyContact(index, "name", e.target.value)
-                            }
-                            className="mt-1"
-                            placeholder="Enter contact name"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor={`contact_linkedin_${index}`}>
-                            LinkedIn URL
-                          </Label>
-                          <Input
-                            id={`contact_linkedin_${index}`}
-                            type="url"
-                            value={contact.linkedin || ""}
-                            onChange={(e) =>
-                              updateKeyContact(
-                                index,
-                                "linkedin",
-                                e.target.value
-                              )
-                            }
-                            className="mt-1"
-                            placeholder="Enter LinkedIn URL"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor={`contact_phone_${index}`}>
-                            Phone Number
-                          </Label>
-                          <Input
-                            id={`contact_phone_${index}`}
-                            type="tel"
-                            value={contact.phone || "+63 "}
-                            onChange={(e) =>
-                              updateKeyContact(index, "phone", e.target.value)
-                            }
-                            className="mt-1"
-                            placeholder="+63 XXX XXX XXXX"
-                          />
-                        </div>
-                        <div className="flex justify-end">
-                          <button
-                            onClick={() => removeKeyContact(index)}
-                            className="text-destructive hover:bg-destructive/20 rounded-full p-2 flex items-center gap-1"
-                          >
-                            <XIcon className="h-3 w-3" />
-                            <span className="text-xs">Remove Contact</span>
-                          </button>
+                  {investorState.ui.keyContacts.map(
+                    (contact: KeyContact, index: number) => (
+                      <div
+                        key={index}
+                        className="border rounded-md p-3 bg-accent"
+                      >
+                        <div className="space-y-3">
+                          <div>
+                            <Label htmlFor={`contact_name_${index}`}>
+                              Contact Name
+                            </Label>
+                            <Input
+                              id={`contact_name_${index}`}
+                              value={contact.name}
+                              onChange={(e) =>
+                                updateKeyContact(index, "name", e.target.value)
+                              }
+                              className="mt-1"
+                              placeholder="Enter contact name"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor={`contact_linkedin_${index}`}>
+                              LinkedIn URL
+                            </Label>
+                            <Input
+                              id={`contact_linkedin_${index}`}
+                              type="url"
+                              value={contact.linkedin || ""}
+                              onChange={(e) =>
+                                updateKeyContact(
+                                  index,
+                                  "linkedin",
+                                  e.target.value
+                                )
+                              }
+                              className="mt-1"
+                              placeholder="Enter LinkedIn URL"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor={`contact_phone_${index}`}>
+                              Phone Number
+                            </Label>
+                            <Input
+                              id={`contact_phone_${index}`}
+                              type="tel"
+                              value={contact.phone || "+63 "}
+                              onChange={(e) =>
+                                updateKeyContact(index, "phone", e.target.value)
+                              }
+                              className="mt-1"
+                              placeholder="+63 XXX XXX XXXX"
+                              maxLength={16}
+                            />
+                          </div>
+                          <div className="flex justify-end">
+                            <button
+                              onClick={() => removeKeyContact(index)}
+                              className="text-destructive hover:bg-destructive/20 rounded-full p-2 flex items-center gap-1"
+                            >
+                              <XIcon className="h-3 w-3" />
+                              <span className="text-xs">Remove Contact</span>
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  )}
                 </div>
 
                 {/* Add New Contact */}
@@ -1428,22 +1508,26 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
                       <Label htmlFor="new_contact_name">Contact Name</Label>
                       <Input
                         id="new_contact_name"
-                        value={newKeyContact.name}
+                        value={investorState.ui.newKeyContact.name}
                         onChange={(e) => {
-                          setNewKeyContact({
-                            ...newKeyContact,
-                            name: e.target.value,
+                          updateUI({
+                            newKeyContact: {
+                              ...investorState.ui.newKeyContact,
+                              name: e.target.value,
+                            },
                           });
                           clearKeyContactError("name");
                         }}
                         placeholder="Enter contact name"
                         className={`mt-1 ${
-                          keyContactErrors.name ? "border-red-500" : ""
+                          investorState.ui.keyContactErrors.name
+                            ? "border-red-500"
+                            : ""
                         }`}
                       />
-                      {keyContactErrors.name && (
+                      {investorState.ui.keyContactErrors.name && (
                         <p className="text-red-500 text-xs mt-1">
-                          {keyContactErrors.name}
+                          {investorState.ui.keyContactErrors.name}
                         </p>
                       )}
                     </div>
@@ -1452,22 +1536,26 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
                       <Input
                         id="new_contact_linkedin"
                         type="url"
-                        value={newKeyContact.linkedin}
+                        value={investorState.ui.newKeyContact.linkedin}
                         onChange={(e) => {
-                          setNewKeyContact({
-                            ...newKeyContact,
-                            linkedin: e.target.value,
+                          updateUI({
+                            newKeyContact: {
+                              ...investorState.ui.newKeyContact,
+                              linkedin: e.target.value,
+                            },
                           });
                           clearKeyContactError("linkedin");
                         }}
                         placeholder="https://linkedin.com/in/username"
                         className={`mt-1 ${
-                          keyContactErrors.linkedin ? "border-red-500" : ""
+                          investorState.ui.keyContactErrors.linkedin
+                            ? "border-red-500"
+                            : ""
                         }`}
                       />
-                      {keyContactErrors.linkedin && (
+                      {investorState.ui.keyContactErrors.linkedin && (
                         <p className="text-red-500 text-xs mt-1">
-                          {keyContactErrors.linkedin}
+                          {investorState.ui.keyContactErrors.linkedin}
                         </p>
                       )}
                     </div>
@@ -1476,18 +1564,21 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
                       <Input
                         id="new_contact_phone"
                         type="tel"
-                        value={newKeyContact.phone || "+63 "}
+                        value={investorState.ui.newKeyContact.phone || "+63 "}
                         onChange={(e) =>
                           handlePhoneChange(e.target.value, true)
                         }
                         placeholder="+63 XXX XXX XXXX"
                         className={`mt-1 ${
-                          keyContactErrors.phone ? "border-red-500" : ""
+                          investorState.ui.keyContactErrors.phone
+                            ? "border-red-500"
+                            : ""
                         }`}
+                        maxLength={16}
                       />
-                      {keyContactErrors.phone && (
+                      {investorState.ui.keyContactErrors.phone && (
                         <p className="text-red-500 text-xs mt-1">
-                          {keyContactErrors.phone}
+                          {investorState.ui.keyContactErrors.phone}
                         </p>
                       )}
                     </div>
@@ -1504,45 +1595,47 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
               </div>
             ) : (
               <div className="space-y-4">
-                {keyContacts.map((contact, index) => (
-                  <div key={index} className="border-b pb-3 last:border-0">
-                    <div className="space-y-2">
-                      <p className="text-base font-medium">{contact.name}</p>
-                      {contact.linkedin && (
-                        <a
-                          href={contact.linkedin}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-primary hover:underline flex items-center"
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-4 w-4 mr-1"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
+                {investorState.ui.keyContacts.map(
+                  (contact: KeyContact, index: number) => (
+                    <div key={index} className="border-b pb-3 last:border-0">
+                      <div className="space-y-2">
+                        <p className="text-base font-medium">{contact.name}</p>
+                        {contact.linkedin && (
+                          <a
+                            href={contact.linkedin}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline flex items-center"
                           >
-                            <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
-                            <rect width="4" height="12" x="2" y="9" />
-                            <circle cx="4" cy="4" r="2" />
-                          </svg>
-                          LinkedIn
-                        </a>
-                      )}
-                      {contact.phone && (
-                        <div>
-                          <h4 className="text-sm font-medium text-muted-foreground">
-                            Phone
-                          </h4>
-                          <p className="text-base">{contact.phone}</p>
-                        </div>
-                      )}
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-4 w-4 mr-1"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+                              <rect width="4" height="12" x="2" y="9" />
+                              <circle cx="4" cy="4" r="2" />
+                            </svg>
+                            LinkedIn
+                          </a>
+                        )}
+                        {contact.phone && (
+                          <div>
+                            <h4 className="text-sm font-medium text-muted-foreground">
+                              Phone
+                            </h4>
+                            <p className="text-base">{contact.phone}</p>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                )}
               </div>
             )}
           </div>
@@ -1556,8 +1649,8 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
           {isEditing ? (
             <div className="space-y-4">
               <div className="space-y-3">
-                {editedUser.notable_exits.length > 0 ? (
-                  editedUser.notable_exits.map(
+                {investorState.profile.notable_exits.length > 0 ? (
+                  investorState.profile.notable_exits.map(
                     (exit: unknown, index: number) => {
                       const exitData = exit as NotableExit;
                       return (
@@ -1602,111 +1695,133 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
                 )}
               </div>
 
-              <div className="border-t pt-4 space-y-3">
+              <div className="border-t pt-4 space-y-4">
                 <h4 className="font-medium text-sm">Add New Exit</h4>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <Label htmlFor="exit_company">Company</Label>
-                    <Input
-                      id="exit_company"
-                      value={newNotableExit.company}
-                      onChange={(e) => {
-                        setNewNotableExit({
-                          ...newNotableExit,
-                          company: e.target.value,
-                        });
-                        clearNotableExitError("company");
-                      }}
-                      placeholder="Company name"
-                      className={`mt-1 ${
-                        notableExitErrors.company ? "border-red-500" : ""
-                      }`}
-                    />
-                    {notableExitErrors.company && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {notableExitErrors.company}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <Label htmlFor="exit_year">Year</Label>
-                    <Input
-                      id="exit_year"
-                      type="number"
-                      value={newNotableExit.year}
-                      onChange={(e) => {
-                        setNewNotableExit({
-                          ...newNotableExit,
-                          year: e.target.value,
-                        });
-                        clearNotableExitError("year");
-                      }}
-                      placeholder="2024"
-                      className={`mt-1 ${
-                        notableExitErrors.year ? "border-red-500" : ""
-                      }`}
-                    />
-                    {notableExitErrors.year && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {notableExitErrors.year}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <Label htmlFor="exit_type">Exit Type</Label>
-                    <Select
-                      value={newNotableExit.exit_type}
-                      onValueChange={(value) => {
-                        setNewNotableExit({
-                          ...newNotableExit,
-                          exit_type: value,
-                        });
-                        clearNotableExitError("exit_type");
-                      }}
-                    >
-                      <SelectTrigger
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="w-full">
+                      <Label htmlFor="exit_company">Company</Label>
+                      <Input
+                        id="exit_company"
+                        value={investorState.ui.newNotableExit.company}
+                        onChange={(e) => {
+                          updateUI({
+                            newNotableExit: {
+                              ...investorState.ui.newNotableExit,
+                              company: e.target.value,
+                            },
+                          });
+                          clearNotableExitError("company");
+                        }}
+                        placeholder="Company name"
                         className={`mt-1 ${
-                          notableExitErrors.exit_type ? "border-red-500" : ""
+                          investorState.ui.notableExitErrors.company
+                            ? "border-red-500"
+                            : ""
                         }`}
-                      >
-                        <SelectValue placeholder="Select exit type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="IPO">IPO</SelectItem>
-                        <SelectItem value="Acquisition">Acquisition</SelectItem>
-                        <SelectItem value="Merger">Merger</SelectItem>
-                        <SelectItem value="Buyout">Buyout</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {notableExitErrors.exit_type && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {notableExitErrors.exit_type}
-                      </p>
-                    )}
+                      />
+                      {investorState.ui.notableExitErrors.company && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {investorState.ui.notableExitErrors.company}
+                        </p>
+                      )}
+                    </div>
+                    <div className="w-full">
+                      <Label htmlFor="exit_year">Year</Label>
+                      <Input
+                        id="exit_year"
+                        type="number"
+                        value={investorState.ui.newNotableExit.year}
+                        onChange={(e) => {
+                          updateUI({
+                            newNotableExit: {
+                              ...investorState.ui.newNotableExit,
+                              year: e.target.value,
+                            },
+                          });
+                          clearNotableExitError("year");
+                        }}
+                        placeholder="2025"
+                        className={`mt-1 ${
+                          investorState.ui.notableExitErrors.year
+                            ? "border-red-500"
+                            : ""
+                        }`}
+                      />
+                      {investorState.ui.notableExitErrors.year && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {investorState.ui.notableExitErrors.year}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    <Label htmlFor="exit_value">Value (PHP)</Label>
-                    <Input
-                      id="exit_value"
-                      type="number"
-                      value={newNotableExit.value_php}
-                      onChange={(e) => {
-                        setNewNotableExit({
-                          ...newNotableExit,
-                          value_php: e.target.value,
-                        });
-                        clearNotableExitError("value_php");
-                      }}
-                      placeholder="Enter amount"
-                      className={`mt-1 ${
-                        notableExitErrors.value_php ? "border-red-500" : ""
-                      }`}
-                    />
-                    {notableExitErrors.value_php && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {notableExitErrors.value_php}
-                      </p>
-                    )}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="w-full">
+                      <Label htmlFor="exit_type">Exit Type</Label>
+                      <Select
+                        value={investorState.ui.newNotableExit.exit_type}
+                        onValueChange={(value) => {
+                          updateUI({
+                            newNotableExit: {
+                              ...investorState.ui.newNotableExit,
+                              exit_type: value,
+                            },
+                          });
+                          clearNotableExitError("exit_type");
+                        }}
+                      >
+                        <SelectTrigger
+                          className={`mt-1 ${
+                            investorState.ui.notableExitErrors.exit_type
+                              ? "border-red-500"
+                              : ""
+                          }`}
+                        >
+                          <SelectValue placeholder="Select Exit type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="IPO">IPO</SelectItem>
+                          <SelectItem value="Acquisition">
+                            Acquisition
+                          </SelectItem>
+                          <SelectItem value="Merger">Merger</SelectItem>
+                          <SelectItem value="Buyout">Buyout</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {investorState.ui.notableExitErrors.exit_type && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {investorState.ui.notableExitErrors.exit_type}
+                        </p>
+                      )}
+                    </div>
+                    <div className="w-full">
+                      <Label htmlFor="exit_value">Value (PHP)</Label>
+                      <Input
+                        id="exit_value"
+                        type="number"
+                        value={investorState.ui.newNotableExit.value_php}
+                        onChange={(e) => {
+                          updateUI({
+                            newNotableExit: {
+                              ...investorState.ui.newNotableExit,
+                              value_php: e.target.value,
+                            },
+                          });
+                          clearNotableExitError("value_php");
+                        }}
+                        placeholder="Enter amount"
+                        className={`mt-1 ${
+                          investorState.ui.notableExitErrors.value_php
+                            ? "border-red-500"
+                            : ""
+                        }`}
+                      />
+                      {investorState.ui.notableExitErrors.value_php && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {investorState.ui.notableExitErrors.value_php}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <Button onClick={addNotableExit} size="sm" className="w-full">
@@ -1717,32 +1832,34 @@ export function InvestorProfile({ user }: InvestorProfileProps) {
             </div>
           ) : (
             <div className="space-y-4">
-              {editedUser.notable_exits.length > 0 ? (
-                editedUser.notable_exits.map((exit: unknown, index: number) => {
-                  const exitData = exit as NotableExit;
-                  return (
-                    <div key={index} className="border-b pb-3 last:border-0">
-                      <div className="flex justify-between items-center">
-                        <h4 className="font-medium">
-                          {exitData.company || "Company Name"}
-                        </h4>
-                        <span className="text-sm text-muted-foreground">
-                          {exitData.year || "Year"}
-                        </span>
+              {investorState.profile.notable_exits.length > 0 ? (
+                investorState.profile.notable_exits.map(
+                  (exit: unknown, index: number) => {
+                    const exitData = exit as NotableExit;
+                    return (
+                      <div key={index} className="border-b pb-3 last:border-0">
+                        <div className="flex justify-between items-center">
+                          <h4 className="font-medium">
+                            {exitData.company || "Company Name"}
+                          </h4>
+                          <span className="text-sm text-muted-foreground">
+                            {exitData.year || "Year"}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center mt-1">
+                          <span className="text-xs px-2 py-0.5 rounded bg-accent">
+                            {exitData.exit_type || "Exit Type"}
+                          </span>
+                          <span className="font-medium text-sm">
+                            {exitData.value_php
+                              ? formatCurrency(exitData.value_php)
+                              : "Value"}
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex justify-between items-center mt-1">
-                        <span className="text-xs px-2 py-0.5 rounded bg-accent">
-                          {exitData.exit_type || "Exit Type"}
-                        </span>
-                        <span className="font-medium text-sm">
-                          {exitData.value_php
-                            ? formatCurrency(exitData.value_php)
-                            : "Value"}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })
+                    );
+                  }
+                )
               ) : (
                 <p className="text-muted-foreground text-sm">
                   No notable exits yet
