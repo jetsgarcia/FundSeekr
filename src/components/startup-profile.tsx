@@ -9,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { DatePicker } from "@/components/ui/date-picker";
 import { formatCurrency } from "@/lib/utils";
 import {
   PencilIcon,
@@ -23,8 +24,6 @@ import {
   MinusIcon,
   SaveIcon,
   XIcon,
-  DollarSignIcon,
-  TrendingUpIcon,
 } from "lucide-react";
 import { startups, development_stage_enum } from "@prisma/client";
 import { useState } from "react";
@@ -51,12 +50,13 @@ interface IntellectualProperty {
   description: string;
 }
 
-interface FundingRequest {
-  amount: number;
-  purpose: string;
-  equity_offered?: number;
-  timeline?: string;
-  milestones?: string[];
+// Interface for the complete startup profile state
+interface StartupProfileState {
+  profile: startups;
+  ui: {
+    newKeyword: string;
+    newTargetMarket: string;
+  };
 }
 
 interface StartupProfileProps {
@@ -65,25 +65,31 @@ interface StartupProfileProps {
 
 export function StartupProfile({ startup }: StartupProfileProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [editedStartup, setEditedStartup] = useState<startups>(startup);
-  const [newKeyword, setNewKeyword] = useState("");
-  const [newTargetMarket, setNewTargetMarket] = useState("");
-  const [newMilestone, setNewMilestone] = useState("");
 
-  // Mock funding request data
-  const [fundingRequest, setFundingRequest] = useState<FundingRequest>({
-    amount: 500000,
-    purpose:
-      "Expand our team and scale our technology platform to serve more customers",
-    equity_offered: 15,
-    timeline: "6 months",
-    milestones: [
-      "Hire 5 additional developers",
-      "Launch mobile application",
-      "Acquire 1,000 new customers",
-      "Establish partnerships with 3 major clients",
-    ],
-  });
+  // Single state object containing all startup profile data and UI state
+  const [startupState, setStartupState] = useState<StartupProfileState>(() => ({
+    profile: startup,
+    ui: {
+      newKeyword: "",
+      newTargetMarket: "",
+    },
+  }));
+
+  // Helper function to update profile data
+  const updateProfile = (updates: Partial<startups>) => {
+    setStartupState((prev) => ({
+      ...prev,
+      profile: { ...prev.profile, ...updates },
+    }));
+  };
+
+  // Helper function to update UI state
+  const updateUI = (updates: Partial<StartupProfileState["ui"]>) => {
+    setStartupState((prev) => ({
+      ...prev,
+      ui: { ...prev.ui, ...updates },
+    }));
+  };
 
   const formatDevelopmentStage = (stage: development_stage_enum | null) => {
     if (!stage) return "Not specified";
@@ -126,78 +132,99 @@ export function StartupProfile({ startup }: StartupProfileProps) {
   };
 
   const handleSave = () => {
-    console.log("Saving changes:", editedStartup);
+    // Validate LinkedIn URLs before saving
+    const invalidTeamLinkedIns = startupState.profile.team_members.some(
+      (member: any) => member.linkedin && !validateLinkedInUrl(member.linkedin)
+    );
+    const invalidAdvisorLinkedIns = startupState.profile.advisors.some(
+      (advisor: any) =>
+        advisor.linkedin && !validateLinkedInUrl(advisor.linkedin)
+    );
+
+    if (invalidTeamLinkedIns || invalidAdvisorLinkedIns) {
+      alert(
+        "Please fix invalid LinkedIn URLs before saving. LinkedIn URLs should be in the format: https://linkedin.com/in/username"
+      );
+      return;
+    }
+
+    console.log("Saving changes:", startupState.profile);
     setIsEditing(false);
   };
 
   const handleCancel = () => {
-    setEditedStartup(startup);
+    setStartupState((prev) => ({
+      ...prev,
+      profile: startup,
+    }));
     setIsEditing(false);
   };
 
   const addKeyword = () => {
+    const { newKeyword } = startupState.ui;
     if (
       newKeyword.trim() &&
-      !editedStartup.keywords.includes(newKeyword.trim())
+      !startupState.profile.keywords.includes(newKeyword.trim())
     ) {
-      setEditedStartup({
-        ...editedStartup,
-        keywords: [...editedStartup.keywords, newKeyword.trim()],
+      updateProfile({
+        keywords: [...startupState.profile.keywords, newKeyword.trim()],
       });
-      setNewKeyword("");
+      updateUI({ newKeyword: "" });
     }
   };
 
   const removeKeyword = (index: number) => {
-    setEditedStartup({
-      ...editedStartup,
-      keywords: editedStartup.keywords.filter((_, i) => i !== index),
+    updateProfile({
+      keywords: startupState.profile.keywords.filter((_, i) => i !== index),
     });
   };
 
   const addTargetMarket = () => {
+    const { newTargetMarket } = startupState.ui;
     if (
       newTargetMarket.trim() &&
-      !editedStartup.target_market.includes(newTargetMarket.trim())
+      !startupState.profile.target_market.includes(newTargetMarket.trim())
     ) {
-      setEditedStartup({
-        ...editedStartup,
-        target_market: [...editedStartup.target_market, newTargetMarket.trim()],
+      updateProfile({
+        target_market: [
+          ...startupState.profile.target_market,
+          newTargetMarket.trim(),
+        ],
       });
-      setNewTargetMarket("");
+      updateUI({ newTargetMarket: "" });
     }
   };
 
   const removeTargetMarket = (index: number) => {
-    setEditedStartup({
-      ...editedStartup,
-      target_market: editedStartup.target_market.filter((_, i) => i !== index),
+    updateProfile({
+      target_market: startupState.profile.target_market.filter(
+        (_, i) => i !== index
+      ),
     });
   };
 
   const updateTeamMember = (index: number, field: string, value: string) => {
-    const updatedTeam = [...editedStartup.team_members];
+    const updatedTeam = [...startupState.profile.team_members];
     updatedTeam[index] = { ...(updatedTeam[index] as any), [field]: value };
-    setEditedStartup({
-      ...editedStartup,
+    updateProfile({
       team_members: updatedTeam,
     });
   };
 
   const addTeamMember = () => {
-    setEditedStartup({
-      ...editedStartup,
+    updateProfile({
       team_members: [
-        ...editedStartup.team_members,
+        ...startupState.profile.team_members,
         { name: "", role: "", linkedin: "" },
       ],
     });
   };
 
   const removeTeamMember = (index: number) => {
-    setEditedStartup({
-      ...editedStartup,
-      team_members: editedStartup.team_members.filter((_, i) => i !== index),
+    updateProfile({
+      team_members: startupState.profile.team_members.filter(
+        (_, i) => i !== index
+      ),
     });
   };
 
@@ -206,79 +233,73 @@ export function StartupProfile({ startup }: StartupProfileProps) {
     field: string,
     value: string | number
   ) => {
-    const updatedMetrics = [...editedStartup.key_metrics];
+    const updatedMetrics = [...startupState.profile.key_metrics];
     updatedMetrics[index] = {
       ...(updatedMetrics[index] as any),
       [field]: value,
     };
-    setEditedStartup({
-      ...editedStartup,
+    updateProfile({
       key_metrics: updatedMetrics,
     });
   };
 
   const addKeyMetric = () => {
-    setEditedStartup({
-      ...editedStartup,
-      key_metrics: [...editedStartup.key_metrics, { metric: "", value: 0 }],
+    updateProfile({
+      key_metrics: [
+        ...startupState.profile.key_metrics,
+        { metric: "", value: 0 },
+      ],
     });
   };
 
   const removeKeyMetric = (index: number) => {
-    setEditedStartup({
-      ...editedStartup,
-      key_metrics: editedStartup.key_metrics.filter((_, i) => i !== index),
+    updateProfile({
+      key_metrics: startupState.profile.key_metrics.filter(
+        (_, i) => i !== index
+      ),
     });
   };
 
   const updateAdvisor = (index: number, field: string, value: string) => {
-    const updatedAdvisors = [...editedStartup.advisors];
+    const updatedAdvisors = [...startupState.profile.advisors];
     updatedAdvisors[index] = {
       ...(updatedAdvisors[index] as any),
       [field]: value,
     };
-    setEditedStartup({
-      ...editedStartup,
+    updateProfile({
       advisors: updatedAdvisors,
     });
   };
 
   const addAdvisor = () => {
-    setEditedStartup({
-      ...editedStartup,
+    updateProfile({
       advisors: [
-        ...editedStartup.advisors,
+        ...startupState.profile.advisors,
         { name: "", expertise: "", linkedin: "" },
       ],
     });
   };
 
   const removeAdvisor = (index: number) => {
-    setEditedStartup({
-      ...editedStartup,
-      advisors: editedStartup.advisors.filter((_, i) => i !== index),
+    updateProfile({
+      advisors: startupState.profile.advisors.filter((_, i) => i !== index),
     });
   };
 
-  const addMilestone = () => {
-    if (
-      newMilestone.trim() &&
-      !fundingRequest.milestones?.includes(newMilestone.trim())
-    ) {
-      setFundingRequest({
-        ...fundingRequest,
-        milestones: [...(fundingRequest.milestones || []), newMilestone.trim()],
-      });
-      setNewMilestone("");
-    }
+  const validateLinkedInUrl = (url: string): boolean => {
+    if (!url) return true; // Empty URL is valid
+    const linkedinPattern =
+      /^https?:\/\/(www\.)?linkedin\.com\/in\/[a-zA-Z0-9\-_.]+\/?$/;
+    return linkedinPattern.test(url);
   };
 
-  const removeMilestone = (index: number) => {
-    setFundingRequest({
-      ...fundingRequest,
-      milestones:
-        fundingRequest.milestones?.filter((_, i) => i !== index) || [],
-    });
+  const validateNumber = (value: string): boolean => {
+    return !isNaN(Number(value)) && Number(value) >= 0;
+  };
+
+  const handleNumberInput = (value: string): string => {
+    // Remove any non-numeric characters except decimal point
+    return value.replace(/[^0-9.]/g, "");
   };
 
   return (
@@ -313,174 +334,176 @@ export function StartupProfile({ startup }: StartupProfileProps) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Main info card */}
         <div className="md:col-span-3 bg-card rounded-lg p-6 shadow-sm border">
-          <div className="flex flex-col md:flex-row justify-between">
-            <div className="flex-1">
-              {isEditing ? (
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="name">Company Name</Label>
-                    <Input
-                      id="name"
-                      value={editedStartup.name || ""}
-                      onChange={(e) =>
-                        setEditedStartup({
-                          ...editedStartup,
-                          name: e.target.value,
-                        })
-                      }
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="industry">Industry</Label>
-                    <Input
-                      id="industry"
-                      value={editedStartup.industry || ""}
-                      onChange={(e) =>
-                        setEditedStartup({
-                          ...editedStartup,
-                          industry: e.target.value,
-                        })
-                      }
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="city">City</Label>
-                    <Input
-                      id="city"
-                      value={editedStartup.city || ""}
-                      onChange={(e) =>
-                        setEditedStartup({
-                          ...editedStartup,
-                          city: e.target.value,
-                        })
-                      }
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="development_stage">Development Stage</Label>
-                    <Select
-                      value={editedStartup.development_stage || ""}
-                      onValueChange={(value) =>
-                        setEditedStartup({
-                          ...editedStartup,
-                          development_stage: value as development_stage_enum,
-                        })
-                      }
-                    >
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Select development stage" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Idea">Idea</SelectItem>
-                        <SelectItem value="Prototype">Prototype</SelectItem>
-                        <SelectItem value="MVP">MVP</SelectItem>
-                        <SelectItem value="Early_traction">
-                          Early Traction
-                        </SelectItem>
-                        <SelectItem value="Growth">Growth</SelectItem>
-                        <SelectItem value="Expansion">Expansion</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+          {isEditing ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Left column - Basic info */}
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="name">Company Name</Label>
+                  <Input
+                    id="name"
+                    value={startupState.profile.name || ""}
+                    onChange={(e) =>
+                      updateProfile({
+                        name: e.target.value,
+                      })
+                    }
+                    className="mt-1"
+                  />
                 </div>
-              ) : (
-                <>
-                  <h2 className="text-2xl font-bold">
-                    {editedStartup.name || "Startup Name"}
-                  </h2>
-                  <p className="text-muted-foreground">
-                    {editedStartup.industry || "Industry"}
-                  </p>
-                  <div className="mt-2 flex items-center space-x-4">
-                    <span className="inline-flex items-center text-sm text-muted-foreground">
-                      <MapPinIcon className="h-4 w-4 mr-1" />
-                      {editedStartup.city || "Location"}
-                    </span>
-                    {editedStartup.date_founded && (
-                      <span className="inline-flex items-center text-sm text-muted-foreground">
-                        <CalendarIcon className="h-4 w-4 mr-1" />
-                        Founded {formatDate(editedStartup.date_founded)}
-                        {` (${getYearsInBusiness(
-                          editedStartup.date_founded
-                        )} years)`}
-                      </span>
-                    )}
-                  </div>
-                  <div className="mt-3">
-                    <span className="inline-flex items-center px-2 py-1 bg-primary/10 text-primary rounded-md text-xs">
-                      {formatDevelopmentStage(editedStartup.development_stage)}
-                    </span>
-                  </div>
-                </>
-              )}
-            </div>
-            <div className="mt-4 md:mt-0">
-              <div className="flex flex-col md:items-end gap-2">
-                {isEditing ? (
-                  <div className="space-y-2">
-                    <div>
-                      <Label htmlFor="website">Website</Label>
-                      <Input
-                        id="website"
-                        type="url"
-                        value={editedStartup.website || ""}
-                        onChange={(e) =>
-                          setEditedStartup({
-                            ...editedStartup,
-                            website: e.target.value,
-                          })
-                        }
-                        className="mt-1"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="product_demo_url">Product Demo URL</Label>
-                      <Input
-                        id="product_demo_url"
-                        type="url"
-                        value={editedStartup.product_demo_url || ""}
-                        onChange={(e) =>
-                          setEditedStartup({
-                            ...editedStartup,
-                            product_demo_url: e.target.value,
-                          })
-                        }
-                        className="mt-1"
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    {editedStartup.website && (
-                      <a
-                        href={editedStartup.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary hover:underline flex items-center"
-                      >
-                        <GlobeIcon className="h-4 w-4 mr-1" />
-                        Website
-                      </a>
-                    )}
-                    {editedStartup.product_demo_url && (
-                      <a
-                        href={editedStartup.product_demo_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary hover:underline flex items-center"
-                      >
-                        <PlayIcon className="h-4 w-4 mr-1" />
-                        Product Demo
-                      </a>
-                    )}
-                  </>
-                )}
+                <div>
+                  <Label htmlFor="industry">Industry</Label>
+                  <Input
+                    id="industry"
+                    value={startupState.profile.industry || ""}
+                    onChange={(e) =>
+                      updateProfile({
+                        industry: e.target.value,
+                      })
+                    }
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="city">City</Label>
+                  <Input
+                    id="city"
+                    value={startupState.profile.city || ""}
+                    onChange={(e) =>
+                      updateProfile({
+                        city: e.target.value,
+                      })
+                    }
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="development_stage">Development Stage</Label>
+                  <Select
+                    value={startupState.profile.development_stage || ""}
+                    onValueChange={(value) =>
+                      updateProfile({
+                        development_stage: value as development_stage_enum,
+                      })
+                    }
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select development stage" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Idea">Idea</SelectItem>
+                      <SelectItem value="MVP">MVP</SelectItem>
+                      <SelectItem value="Early_traction">
+                        Early Traction
+                      </SelectItem>
+                      <SelectItem value="Growth">Growth</SelectItem>
+                      <SelectItem value="Expansion">Expansion</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="date_founded">Date Founded</Label>
+                  <DatePicker
+                    date={startupState.profile.date_founded}
+                    onDateChange={(date) =>
+                      updateProfile({
+                        date_founded: date,
+                      })
+                    }
+                    placeholder="Select founding date"
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+
+              {/* Right column - URLs */}
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="website">Website</Label>
+                  <Input
+                    id="website"
+                    type="url"
+                    value={startupState.profile.website || ""}
+                    onChange={(e) => updateProfile({ website: e.target.value })}
+                    className="mt-1"
+                    placeholder="https://example.com"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="product_demo_url">Product Demo URL</Label>
+                  <Input
+                    id="product_demo_url"
+                    type="url"
+                    value={startupState.profile.product_demo_url || ""}
+                    onChange={(e) =>
+                      updateProfile({ product_demo_url: e.target.value })
+                    }
+                    className="mt-1"
+                    placeholder="https://demo.example.com"
+                  />
+                </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="flex flex-col md:flex-row justify-between">
+              <div className="flex-1">
+                <h2 className="text-2xl font-bold">
+                  {startupState.profile.name || "Startup Name"}
+                </h2>
+                <p className="text-muted-foreground">
+                  {startupState.profile.industry || "Industry"}
+                </p>
+                <div className="mt-2 flex items-center space-x-4">
+                  <span className="inline-flex items-center text-sm text-muted-foreground">
+                    <MapPinIcon className="h-4 w-4 mr-1" />
+                    {startupState.profile.city || "Location"}
+                  </span>
+                  {startupState.profile.date_founded && (
+                    <span className="inline-flex items-center text-sm text-muted-foreground">
+                      <CalendarIcon className="h-4 w-4 mr-1" />
+                      Founded {formatDate(startupState.profile.date_founded)}
+                      {` (${getYearsInBusiness(
+                        startupState.profile.date_founded
+                      )} years)`}
+                    </span>
+                  )}
+                </div>
+                <div className="mt-3">
+                  <span className="inline-flex items-center px-2 py-1 bg-primary/10 text-primary rounded-md text-xs">
+                    {formatDevelopmentStage(
+                      startupState.profile.development_stage
+                    )}
+                  </span>
+                </div>
+              </div>
+              <div className="mt-4 md:mt-0">
+                <div className="flex flex-col md:items-end gap-2">
+                  {startupState.profile.website && (
+                    <a
+                      href={startupState.profile.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline flex items-center"
+                    >
+                      <GlobeIcon className="h-4 w-4 mr-1" />
+                      Website
+                    </a>
+                  )}
+                  {startupState.profile.product_demo_url && (
+                    <a
+                      href={startupState.profile.product_demo_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline flex items-center"
+                    >
+                      <PlayIcon className="h-4 w-4 mr-1" />
+                      Product Demo
+                    </a>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Company Description */}
@@ -492,12 +515,9 @@ export function StartupProfile({ startup }: StartupProfileProps) {
                 <Label htmlFor="description">Company Description</Label>
                 <Textarea
                   id="description"
-                  value={editedStartup.description || ""}
+                  value={startupState.profile.description || ""}
                   onChange={(e) =>
-                    setEditedStartup({
-                      ...editedStartup,
-                      description: e.target.value,
-                    })
+                    updateProfile({ description: e.target.value })
                   }
                   rows={4}
                   className="mt-1"
@@ -506,7 +526,8 @@ export function StartupProfile({ startup }: StartupProfileProps) {
             </div>
           ) : (
             <p className="text-base leading-relaxed mb-4">
-              {editedStartup.description || "Company description not provided."}
+              {startupState.profile.description ||
+                "Company description not provided."}
             </p>
           )}
 
@@ -518,7 +539,7 @@ export function StartupProfile({ startup }: StartupProfileProps) {
               {isEditing ? (
                 <div className="space-y-2">
                   <div className="flex flex-wrap gap-1">
-                    {editedStartup.target_market.map((market, index) => (
+                    {startupState.profile.target_market.map((market, index) => (
                       <span
                         key={index}
                         className="px-2 py-1 bg-primary/10 text-primary rounded-md text-xs flex items-center gap-1"
@@ -535,8 +556,10 @@ export function StartupProfile({ startup }: StartupProfileProps) {
                   </div>
                   <div className="flex gap-2">
                     <Input
-                      value={newTargetMarket}
-                      onChange={(e) => setNewTargetMarket(e.target.value)}
+                      value={startupState.ui.newTargetMarket}
+                      onChange={(e) =>
+                        updateUI({ newTargetMarket: e.target.value })
+                      }
                       placeholder="Add target market"
                       className="flex-1"
                       onKeyPress={(e) => e.key === "Enter" && addTargetMarket()}
@@ -552,7 +575,7 @@ export function StartupProfile({ startup }: StartupProfileProps) {
                 </div>
               ) : (
                 <div className="flex flex-wrap gap-1">
-                  {editedStartup.target_market.map((market, index) => (
+                  {startupState.profile.target_market.map((market, index) => (
                     <span
                       key={index}
                       className="px-2 py-1 bg-primary/10 text-primary rounded-md text-xs"
@@ -569,7 +592,7 @@ export function StartupProfile({ startup }: StartupProfileProps) {
                 Intellectual Property
               </h4>
               <div className="space-y-2">
-                {editedStartup.intellectual_property.map((ip, index) => {
+                {startupState.profile.intellectual_property.map((ip, index) => {
                   const ipData = ip as unknown as IntellectualProperty;
                   return (
                     <div key={index} className="text-sm">
@@ -599,20 +622,33 @@ export function StartupProfile({ startup }: StartupProfileProps) {
               {isEditing ? (
                 <Input
                   type="number"
-                  value={editedStartup.valuation || ""}
-                  onChange={(e) =>
-                    setEditedStartup({
-                      ...editedStartup,
-                      valuation: Number(e.target.value),
-                    })
-                  }
-                  placeholder="Enter valuation"
+                  value={startupState.profile.valuation || ""}
+                  onChange={(e) => {
+                    const value = handleNumberInput(e.target.value);
+                    if (validateNumber(value) || value === "") {
+                      updateProfile({
+                        valuation: value === "" ? null : Number(value),
+                      });
+                    }
+                  }}
+                  onKeyPress={(e) => {
+                    // Prevent non-numeric characters
+                    if (
+                      !/[0-9.]/.test(e.key) &&
+                      !["Backspace", "Delete", "Tab", "Enter"].includes(e.key)
+                    ) {
+                      e.preventDefault();
+                    }
+                  }}
+                  placeholder="Enter valuation (numbers only)"
                   className="mt-1"
+                  min="0"
+                  step="1"
                 />
               ) : (
                 <p className="text-lg font-semibold">
-                  {editedStartup.valuation
-                    ? formatCurrency(editedStartup.valuation)
+                  {startupState.profile.valuation
+                    ? formatCurrency(startupState.profile.valuation)
                     : "Not disclosed"}
                 </p>
               )}
@@ -624,7 +660,7 @@ export function StartupProfile({ startup }: StartupProfileProps) {
               </h4>
               {isEditing ? (
                 <div className="space-y-2">
-                  {editedStartup.key_metrics.map((metric, index) => {
+                  {startupState.profile.key_metrics.map((metric, index) => {
                     const metricData = metric as unknown as KeyMetric;
                     return (
                       <div key={index} className="flex gap-2 items-center">
@@ -639,15 +675,31 @@ export function StartupProfile({ startup }: StartupProfileProps) {
                         <Input
                           type="number"
                           value={metricData?.value || ""}
-                          onChange={(e) =>
-                            updateKeyMetric(
-                              index,
-                              "value",
-                              Number(e.target.value)
-                            )
-                          }
+                          onChange={(e) => {
+                            const value = handleNumberInput(e.target.value);
+                            if (validateNumber(value) || value === "") {
+                              updateKeyMetric(
+                                index,
+                                "value",
+                                value === "" ? 0 : Number(value)
+                              );
+                            }
+                          }}
+                          onKeyPress={(e) => {
+                            // Prevent non-numeric characters
+                            if (
+                              !/[0-9.]/.test(e.key) &&
+                              !["Backspace", "Delete", "Tab", "Enter"].includes(
+                                e.key
+                              )
+                            ) {
+                              e.preventDefault();
+                            }
+                          }}
                           placeholder="Value"
                           className="w-24"
+                          min="0"
+                          step="1"
                         />
                         <Button
                           onClick={() => removeKeyMetric(index)}
@@ -666,7 +718,7 @@ export function StartupProfile({ startup }: StartupProfileProps) {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {editedStartup.key_metrics.map((metric, index) => {
+                  {startupState.profile.key_metrics.map((metric, index) => {
                     const metricData = metric as unknown as KeyMetric;
                     return (
                       <div
@@ -701,7 +753,7 @@ export function StartupProfile({ startup }: StartupProfileProps) {
           {isEditing ? (
             <div className="space-y-3">
               <div className="flex flex-wrap gap-2">
-                {editedStartup.keywords.map((keyword, index) => (
+                {startupState.profile.keywords.map((keyword, index) => (
                   <span
                     key={index}
                     className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm flex items-center gap-1"
@@ -718,8 +770,8 @@ export function StartupProfile({ startup }: StartupProfileProps) {
               </div>
               <div className="flex gap-2">
                 <Input
-                  value={newKeyword}
-                  onChange={(e) => setNewKeyword(e.target.value)}
+                  value={startupState.ui.newKeyword}
+                  onChange={(e) => updateUI({ newKeyword: e.target.value })}
                   placeholder="Add keyword or technology"
                   className="flex-1"
                   onKeyPress={(e) => e.key === "Enter" && addKeyword()}
@@ -731,7 +783,7 @@ export function StartupProfile({ startup }: StartupProfileProps) {
             </div>
           ) : (
             <div className="flex flex-wrap gap-2">
-              {editedStartup.keywords.map((keyword, index) => (
+              {startupState.profile.keywords.map((keyword, index) => (
                 <span
                   key={index}
                   className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm"
@@ -751,7 +803,7 @@ export function StartupProfile({ startup }: StartupProfileProps) {
           </h3>
           {isEditing ? (
             <div className="space-y-4">
-              {editedStartup.team_members.map((member, index) => {
+              {startupState.profile.team_members.map((member, index) => {
                 const memberData = member as unknown as TeamMember;
                 return (
                   <div
@@ -784,11 +836,18 @@ export function StartupProfile({ startup }: StartupProfileProps) {
                     />
                     <Input
                       value={memberData?.linkedin || ""}
-                      onChange={(e) =>
-                        updateTeamMember(index, "linkedin", e.target.value)
-                      }
-                      placeholder="LinkedIn URL"
+                      onChange={(e) => {
+                        const url = e.target.value;
+                        updateTeamMember(index, "linkedin", url);
+                      }}
+                      placeholder="LinkedIn URL (e.g., https://linkedin.com/in/username)"
                       type="url"
+                      className={
+                        memberData?.linkedin &&
+                        !validateLinkedInUrl(memberData.linkedin)
+                          ? "border-red-500"
+                          : ""
+                      }
                     />
                   </div>
                 );
@@ -800,7 +859,7 @@ export function StartupProfile({ startup }: StartupProfileProps) {
             </div>
           ) : (
             <div className="space-y-4">
-              {editedStartup.team_members.map((member, index) => {
+              {startupState.profile.team_members.map((member, index) => {
                 const memberData = member as unknown as TeamMember;
                 return (
                   <div
@@ -840,7 +899,7 @@ export function StartupProfile({ startup }: StartupProfileProps) {
           </h3>
           {isEditing ? (
             <div className="space-y-4">
-              {editedStartup.advisors.map((advisor, index) => {
+              {startupState.profile.advisors.map((advisor, index) => {
                 const advisorData = advisor as unknown as Advisor;
                 return (
                   <div
@@ -873,11 +932,18 @@ export function StartupProfile({ startup }: StartupProfileProps) {
                     />
                     <Input
                       value={advisorData?.linkedin || ""}
-                      onChange={(e) =>
-                        updateAdvisor(index, "linkedin", e.target.value)
-                      }
-                      placeholder="LinkedIn URL"
+                      onChange={(e) => {
+                        const url = e.target.value;
+                        updateAdvisor(index, "linkedin", url);
+                      }}
+                      placeholder="LinkedIn URL (e.g., https://linkedin.com/in/username)"
                       type="url"
+                      className={
+                        advisorData?.linkedin &&
+                        !validateLinkedInUrl(advisorData.linkedin)
+                          ? "border-red-500"
+                          : ""
+                      }
                     />
                   </div>
                 );
@@ -889,7 +955,7 @@ export function StartupProfile({ startup }: StartupProfileProps) {
             </div>
           ) : (
             <div className="space-y-4">
-              {editedStartup.advisors.map((advisor, index) => {
+              {startupState.profile.advisors.map((advisor, index) => {
                 const advisorData = advisor as unknown as Advisor;
                 return (
                   <div key={index} className="p-3 bg-accent rounded-md">
@@ -918,172 +984,6 @@ export function StartupProfile({ startup }: StartupProfileProps) {
               })}
             </div>
           )}
-        </div>
-
-        {/* Funding Request */}
-        <div className="md:col-span-3 bg-card rounded-lg p-6 shadow-sm border">
-          <h3 className="text-xl font-semibold mb-4 flex items-center">
-            <DollarSignIcon className="h-5 w-5 mr-2" />
-            Funding Request
-          </h3>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Funding Overview */}
-            <div className="space-y-4">
-              <div>
-                <h4 className="text-sm font-medium text-muted-foreground mb-2">
-                  Funding Amount
-                </h4>
-                {isEditing ? (
-                  <Input
-                    type="number"
-                    value={fundingRequest.amount || ""}
-                    onChange={(e) =>
-                      setFundingRequest({
-                        ...fundingRequest,
-                        amount: Number(e.target.value),
-                      })
-                    }
-                    placeholder="Enter funding amount"
-                    className="mt-1"
-                  />
-                ) : (
-                  <p className="text-2xl font-bold text-primary">
-                    {formatCurrency(fundingRequest.amount)}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <h4 className="text-sm font-medium text-muted-foreground mb-2">
-                  Equity Offered
-                </h4>
-                {isEditing ? (
-                  <Input
-                    type="number"
-                    value={fundingRequest.equity_offered || ""}
-                    onChange={(e) =>
-                      setFundingRequest({
-                        ...fundingRequest,
-                        equity_offered: Number(e.target.value),
-                      })
-                    }
-                    placeholder="Enter equity percentage"
-                    className="mt-1"
-                  />
-                ) : (
-                  <p className="text-lg font-semibold">
-                    {fundingRequest.equity_offered
-                      ? `${fundingRequest.equity_offered}%`
-                      : "To be negotiated"}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <h4 className="text-sm font-medium text-muted-foreground mb-2">
-                  Timeline
-                </h4>
-                {isEditing ? (
-                  <Input
-                    value={fundingRequest.timeline || ""}
-                    onChange={(e) =>
-                      setFundingRequest({
-                        ...fundingRequest,
-                        timeline: e.target.value,
-                      })
-                    }
-                    placeholder="Enter timeline"
-                    className="mt-1"
-                  />
-                ) : (
-                  <p className="text-base">
-                    {fundingRequest.timeline || "Flexible"}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* Purpose and Use of Funds */}
-            <div className="space-y-4">
-              <div>
-                <h4 className="text-sm font-medium text-muted-foreground mb-2">
-                  Purpose & Use of Funds
-                </h4>
-                {isEditing ? (
-                  <Textarea
-                    value={fundingRequest.purpose || ""}
-                    onChange={(e) =>
-                      setFundingRequest({
-                        ...fundingRequest,
-                        purpose: e.target.value,
-                      })
-                    }
-                    placeholder="Describe how you will use the funding"
-                    rows={4}
-                    className="mt-1"
-                  />
-                ) : (
-                  <p className="text-base leading-relaxed">
-                    {fundingRequest.purpose || "Purpose not specified"}
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Milestones */}
-          <div className="mt-6">
-            <h4 className="text-sm font-medium text-muted-foreground mb-3 flex items-center">
-              <TrendingUpIcon className="h-4 w-4 mr-1" />
-              Key Milestones
-            </h4>
-            {isEditing ? (
-              <div className="space-y-3">
-                <div className="space-y-2">
-                  {fundingRequest.milestones?.map((milestone, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-2 p-2 bg-accent rounded-md"
-                    >
-                      <span className="flex-1 text-sm">{milestone}</span>
-                      <Button
-                        onClick={() => removeMilestone(index)}
-                        size="sm"
-                        variant="ghost"
-                      >
-                        <MinusIcon className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-                <div className="flex gap-2">
-                  <Input
-                    value={newMilestone}
-                    onChange={(e) => setNewMilestone(e.target.value)}
-                    placeholder="Add milestone"
-                    className="flex-1"
-                    onKeyPress={(e) => e.key === "Enter" && addMilestone()}
-                  />
-                  <Button onClick={addMilestone} size="sm" variant="outline">
-                    <PlusIcon className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {fundingRequest.milestones?.map((milestone, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center gap-2 p-2 bg-accent rounded-md"
-                  >
-                    <div className="w-2 h-2 bg-primary rounded-full"></div>
-                    <span className="text-sm">{milestone}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
         </div>
       </div>
     </div>
