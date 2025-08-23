@@ -44,7 +44,7 @@ model investors {
   organization_website      String?                 @db.VarChar
   investor_linkedin         String?                 @db.VarChar
   decision_period_in_weeks  Int?
-  typical_check_size_in_php Int?
+  typical_check_size_in_php BigInt?
   investor_type             investor_type_enum?
   preferred_industries      String[]
   excluded_industries       String[]
