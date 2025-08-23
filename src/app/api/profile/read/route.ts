@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { stackServerApp } from "@/stack";
 import prisma from "@/lib/prisma";
+import { serializeBigInt } from "@/lib/bigint-serializer";
 
 export async function GET() {
   try {
@@ -34,7 +35,7 @@ export async function GET() {
     if (investor) {
       return NextResponse.json({
         userType: "investor",
-        profile: investor,
+        profile: serializeBigInt(investor),
       });
     }
 
@@ -42,7 +43,7 @@ export async function GET() {
     if (startup) {
       return NextResponse.json({
         userType: "startup",
-        profile: startup,
+        profile: serializeBigInt(startup),
       });
     }
 
