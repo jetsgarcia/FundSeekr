@@ -110,6 +110,7 @@ export async function POST(request: Request) {
         });
 
         await user.update({
+          displayName: rest.firstName + " " + rest.lastName,
           serverMetadata: {
             onboarded: true,
           },
@@ -150,6 +151,7 @@ export async function POST(request: Request) {
       });
 
       await user.update({
+        displayName: rest.firstName + " " + rest.lastName,
         serverMetadata: {
           onboarded: true,
         },
