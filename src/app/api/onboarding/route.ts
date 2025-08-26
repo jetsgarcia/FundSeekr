@@ -1,21 +1,6 @@
 import prisma from "@/lib/prisma";
 import { stackServerApp } from "@/stack";
-import { investor_type_enum } from "@prisma/client";
-
-function mapInvestorTypeToEnum(
-  displayValue: string
-): investor_type_enum | null {
-  const mapping: { [key: string]: investor_type_enum } = {
-    "Angel investor": investor_type_enum.Angel_investor,
-    "Crowdfunding investor": investor_type_enum.Crowdfunding_investor,
-    "Venture capital": investor_type_enum.Venture_capital,
-    "Corporate investor": investor_type_enum.Corporate_investor,
-    "Private equity": investor_type_enum.Private_equity,
-    "Impact investor": investor_type_enum.Impact_investor,
-  };
-
-  return mapping[displayValue] || null;
-}
+import { mapInvestorTypeToEnum } from "@/lib/mapInvestorTypeToEnum";
 
 export async function POST(request: Request) {
   try {
@@ -24,6 +9,7 @@ export async function POST(request: Request) {
 
     const { step, userType, ...rest } = body;
 
+    // Validations
     if (!user) {
       return Response.json(
         {
@@ -45,7 +31,6 @@ export async function POST(request: Request) {
     }
 
     try {
-      // Check if user already has data in either investors or startups table
       const existingInvestor = await prisma.investors.findFirst({
         where: {
           user_id: user.id,
@@ -79,17 +64,7 @@ export async function POST(request: Request) {
     }
 
     if (userType === "investor") {
-      // Validate investor type
       const mappedInvestorType = mapInvestorTypeToEnum(rest.investorType);
-      if (!mappedInvestorType) {
-        return Response.json(
-          {
-            message: `Invalid investor type: ${rest.investorType}`,
-            success: false,
-          },
-          { status: 400 }
-        );
-      }
 
       try {
         const newInvestor = await prisma.investors.create({
