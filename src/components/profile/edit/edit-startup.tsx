@@ -69,7 +69,6 @@ export function EditStartupProfile({
 }: EditStartupProfileProps) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
-  // Basic fields
   const [name, setName] = useState(startup.name || "");
   const [description, setDescription] = useState(startup.description || "");
   const [industry, setIndustry] = useState(startup.industry || "");
@@ -304,11 +303,8 @@ export function EditStartupProfile({
     value: string
   ) => {
     const updated = [...keyMetrics];
-    // If updating the value field, only allow numeric input
     if (field === "value") {
-      // Remove any non-numeric characters except decimal point
       const numericValue = value.replace(/[^0-9.]/g, "");
-      // Ensure only one decimal point
       const parts = numericValue.split(".");
       const processedValue =
         parts.length > 2
