@@ -33,6 +33,35 @@ interface NotableExit {
   year: string;
 }
 
+interface NotableExitJson {
+  company?: string;
+  exit_amount?: string;
+  year?: string;
+}
+
+interface InvestorFormData {
+  organization: string;
+  position: string;
+  city: string;
+  organization_website: string;
+  investor_linkedin: string;
+  typical_check_size_in_php: BigInt | null;
+  decision_period_in_weeks: number | null;
+  investor_type: string | null;
+  involvement_level: string | null;
+  key_contact_person_name: string;
+  key_contact_linkedin: string;
+  key_contact_number: string;
+  preferred_industries: string[];
+  excluded_industries: string[];
+  preferred_business_models: string[];
+  preferred_funding_stages: string[];
+  geographic_focus: string[];
+  value_proposition: string[];
+  portfolio_companies: string[];
+  notable_exits: NotableExit[];
+}
+
 interface EditInvestorProfileProps {
   investor: InvestorProfileType;
   onSave?: (data: Record<string, unknown>) => Promise<{
@@ -108,7 +137,7 @@ export function EditInvestorProfile({
   // Complex JSON fields
   const [notableExits, setNotableExits] = useState<NotableExit[]>(
     investor.notable_exits?.map((exit: Prisma.JsonValue) => {
-      const exitObj = exit as Record<string, any>;
+      const exitObj = exit as NotableExitJson;
       return {
         company: String(exitObj?.company || ""),
         exit_amount: String(exitObj?.exit_amount || ""),
@@ -126,7 +155,7 @@ export function EditInvestorProfile({
 
     startTransition(async () => {
       try {
-        const formData = {
+        const formData: InvestorFormData = {
           organization,
           position,
           city,
@@ -174,7 +203,9 @@ export function EditInvestorProfile({
           notable_exits: notableExits.filter((exit) => exit.company.trim()),
         };
 
-        const result = await onSave(formData);
+        // Convert to a plain object for the API call
+        const plainFormData = { ...formData };
+        const result = await onSave(plainFormData);
 
         if (result.ok) {
           toast.success("Profile updated successfully!");
@@ -225,7 +256,7 @@ export function EditInvestorProfile({
       setPortfolioCompanies(investor.portfolio_companies?.join(", ") || "");
       setNotableExits(
         investor.notable_exits?.map((exit: Prisma.JsonValue) => {
-          const exitObj = exit as Record<string, any>;
+          const exitObj = exit as NotableExitJson;
           return {
             company: String(exitObj?.company || ""),
             exit_amount: String(exitObj?.exit_amount || ""),
