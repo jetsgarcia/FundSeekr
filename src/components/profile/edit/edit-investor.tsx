@@ -45,7 +45,7 @@ interface InvestorFormData {
   city: string;
   organization_website: string;
   investor_linkedin: string;
-  typical_check_size_in_php: BigInt | null;
+  typical_check_size_in_php: bigint | null;
   decision_period_in_weeks: number | null;
   investor_type: string | null;
   involvement_level: string | null;
