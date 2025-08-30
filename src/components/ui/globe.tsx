@@ -16,7 +16,7 @@ declare module "@react-three/fiber" {
 extend({ ThreeGlobe: ThreeGlobe });
 
 const RING_PROPAGATION_SPEED = 3;
-const aspect = 1.2;
+// Removed fixed aspect ratio to make the globe responsive
 const cameraZ = 300;
 
 type Position = {
@@ -64,6 +64,8 @@ export function Globe({ globeConfig, data }: WorldProps) {
   const globeRef = useRef<ThreeGlobe | null>(null);
   const groupRef = useRef<Group | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  // Track theme changes to trigger recalculation
+  const [themeChangeCounter, setThemeChangeCounter] = useState(0);
 
   const defaultProps = {
     pointSize: 1,
@@ -81,6 +83,11 @@ export function Globe({ globeConfig, data }: WorldProps) {
     maxRings: 3,
     ...globeConfig,
   };
+
+  // Detect theme changes by monitoring globeConfig changes
+  useEffect(() => {
+    setThemeChangeCounter((prev) => prev + 1);
+  }, [globeConfig.globeColor]);
 
   // Initialize globe only once
   useEffect(() => {
@@ -105,12 +112,21 @@ export function Globe({ globeConfig, data }: WorldProps) {
     globeMaterial.emissive = new Color(defaultProps.emissive);
     globeMaterial.emissiveIntensity = defaultProps.emissiveIntensity || 0.1;
     globeMaterial.shininess = defaultProps.shininess || 0.9;
+
+    // Force the globe to update its geometry when theme changes
+    if (themeChangeCounter > 0) {
+      if (groupRef.current) {
+        // Refresh the globe's position
+        groupRef.current.position.set(0, 0, 0);
+      }
+    }
   }, [
     isInitialized,
     defaultProps.globeColor,
     defaultProps.emissive,
     defaultProps.emissiveIntensity,
     defaultProps.shininess,
+    themeChangeCounter,
   ]);
 
   // Build data when globe is initialized or when data changes
@@ -242,9 +258,18 @@ export function WebGLRendererConfig() {
   const { gl, size } = useThree();
 
   useEffect(() => {
-    gl.setPixelRatio(window.devicePixelRatio);
+    // Make sure we're using the correct pixel ratio
+    gl.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     gl.setSize(size.width, size.height);
-    gl.setClearColor(0xffaaff, 0);
+    gl.setClearColor(0x000000, 0);
+
+    // Handle resize events
+    const handleResize = () => {
+      gl.setSize(size.width, size.height);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, [gl, size]);
 
   return null;
@@ -254,8 +279,14 @@ export function World(props: WorldProps) {
   const { globeConfig } = props;
   const scene = new Scene();
   scene.fog = new Fog(0xffffff, 400, 2000);
+
+  // Use a responsive approach to maintain aspect ratio
   return (
-    <Canvas scene={scene} camera={new PerspectiveCamera(50, aspect, 180, 1800)}>
+    <Canvas
+      scene={scene}
+      camera={new PerspectiveCamera(50, 1, 180, 1800)}
+      resize={{ scroll: false }}
+    >
       <WebGLRendererConfig />
       <ambientLight
         color={globeConfig.ambientLight ?? "#ffffff"}
@@ -280,8 +311,8 @@ export function World(props: WorldProps) {
         enableZoom={false}
         minDistance={cameraZ}
         maxDistance={cameraZ}
-        autoRotateSpeed={1}
-        autoRotate={true}
+        autoRotateSpeed={globeConfig.autoRotateSpeed || 0.5}
+        autoRotate={globeConfig.autoRotate !== false}
         minPolarAngle={Math.PI / 3.5}
         maxPolarAngle={Math.PI - Math.PI / 3}
       />
