@@ -17,13 +17,13 @@ import {
   Plus,
   Trash2,
   Building2,
-  DollarSign,
+  Banknote,
   Target,
   TrendingUp,
   Phone,
   Briefcase,
 } from "lucide-react";
-import type { investors as InvestorProfileType } from "@prisma/client";
+import type { investors as InvestorProfileType, Prisma } from "@prisma/client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -35,9 +35,11 @@ interface NotableExit {
 
 interface EditInvestorProfileProps {
   investor: InvestorProfileType;
-  onSave?: (
-    data: any
-  ) => Promise<{ ok: boolean; profile?: any; error?: string }>;
+  onSave?: (data: Record<string, unknown>) => Promise<{
+    ok: boolean;
+    profile?: Record<string, unknown>;
+    error?: string;
+  }>;
   onCancel?: () => void;
 }
 
@@ -105,11 +107,14 @@ export function EditInvestorProfile({
 
   // Complex JSON fields
   const [notableExits, setNotableExits] = useState<NotableExit[]>(
-    investor.notable_exits?.map((exit: any) => ({
-      company: String(exit.company || ""),
-      exit_amount: String(exit.exit_amount || ""),
-      year: String(exit.year || ""),
-    })) || []
+    investor.notable_exits?.map((exit: Prisma.JsonValue) => {
+      const exitObj = exit as Record<string, any>;
+      return {
+        company: String(exitObj?.company || ""),
+        exit_amount: String(exitObj?.exit_amount || ""),
+        year: String(exitObj?.year || ""),
+      };
+    }) || []
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -179,11 +184,13 @@ export function EditInvestorProfile({
             result.error || "Failed to update profile. Please try again."
           );
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("Error saving investor profile:", error);
-        toast.error(
-          error.message || "Failed to update profile. Please try again."
-        );
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Failed to update profile. Please try again.";
+        toast.error(errorMessage);
       }
     });
   };
@@ -217,11 +224,14 @@ export function EditInvestorProfile({
       setValueProposition(investor.value_proposition?.join(", ") || "");
       setPortfolioCompanies(investor.portfolio_companies?.join(", ") || "");
       setNotableExits(
-        investor.notable_exits?.map((exit: any) => ({
-          company: String(exit.company || ""),
-          exit_amount: String(exit.exit_amount || ""),
-          year: String(exit.year || ""),
-        })) || []
+        investor.notable_exits?.map((exit: Prisma.JsonValue) => {
+          const exitObj = exit as Record<string, any>;
+          return {
+            company: String(exitObj?.company || ""),
+            exit_amount: String(exitObj?.exit_amount || ""),
+            year: String(exitObj?.year || ""),
+          };
+        }) || []
       );
 
       toast.info("Changes cancelled. Form reset to original values.");
@@ -245,7 +255,7 @@ export function EditInvestorProfile({
     value: string
   ) => {
     const updated = [...notableExits];
-    if (field === "exit_amount") {
+    if (field === "exit_amount" || field === "year") {
       const numericValue = value.replace(/[^0-9]/g, "");
       updated[index] = { ...updated[index], [field]: numericValue };
     } else {
@@ -377,7 +387,7 @@ export function EditInvestorProfile({
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
-              <DollarSign className="h-5 w-5" />
+              <Banknote className="h-5 w-5" />
               <span>Investment Details</span>
             </CardTitle>
           </CardHeader>
@@ -480,8 +490,8 @@ export function EditInvestorProfile({
                 placeholder="Enter preferred industries separated by commas"
               />
               <p className="text-sm text-muted-foreground">
-                Separate multiple industries with commas (e.g., "Fintech,
-                Healthcare, AI")
+                Separate multiple industries with commas (e.g., &quot;Fintech,
+                Healthcare, AI&quot;)
               </p>
             </div>
 
@@ -509,7 +519,7 @@ export function EditInvestorProfile({
                 placeholder="Enter preferred business models separated by commas"
               />
               <p className="text-sm text-muted-foreground">
-                E.g., "SaaS, Marketplace, B2B"
+                E.g., &quot;SaaS, Marketplace, B2B&quot;
               </p>
             </div>
 
@@ -524,7 +534,7 @@ export function EditInvestorProfile({
                 placeholder="Enter preferred funding stages separated by commas"
               />
               <p className="text-sm text-muted-foreground">
-                E.g., "Pre-Seed, Seed, Series A"
+                E.g., &quot;Pre-Seed, Seed, Series A&quot;
               </p>
             </div>
 
@@ -537,7 +547,7 @@ export function EditInvestorProfile({
                 placeholder="Enter geographic focus separated by commas"
               />
               <p className="text-sm text-muted-foreground">
-                E.g., "Philippines, Southeast Asia, Global"
+                E.g., &quot;Philippines, Southeast Asia, Global&quot;
               </p>
             </div>
 
@@ -631,6 +641,7 @@ export function EditInvestorProfile({
                   />
                   <Input
                     placeholder="Year"
+                    type="number"
                     value={exit.year}
                     onChange={(e) =>
                       updateNotableExit(index, "year", e.target.value)
