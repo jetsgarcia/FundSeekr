@@ -12,10 +12,10 @@ import {
   TrendingUp,
   Calendar,
   Globe,
-  DollarSign,
   Users,
   User,
   Linkedin,
+  PhilippinePeso,
 } from "lucide-react";
 import { Button } from "../ui/button";
 
@@ -163,7 +163,7 @@ export function StartupProfile({
       <Card className="shadow-lg border-0 bg-card/80 backdrop-blur-sm">
         <CardHeader className="bg-gradient-to-r from-green-50 to-green-50/50 dark:from-green-950/20 dark:to-green-950/10 rounded-t-lg">
           <CardTitle className="flex items-center space-x-2 text-green-700 dark:text-green-300">
-            <DollarSign className="h-5 w-5" />
+            <PhilippinePeso className="h-5 w-5" />
             <span>Valuation</span>
           </CardTitle>
         </CardHeader>
