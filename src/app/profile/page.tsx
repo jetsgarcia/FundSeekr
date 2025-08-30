@@ -11,6 +11,7 @@ import {
 } from "@/components/profile/startup-profile";
 import type { investors as InvestorProfileType } from "@prisma/client";
 import Link from "next/link";
+import Image from "next/image";
 
 export default async function ProfilePage() {
   const user = await stackServerApp.getUser();
@@ -33,7 +34,17 @@ export default async function ProfilePage() {
                   <div className="flex items-center space-x-6">
                     <div className="relative">
                       <div className="h-20 w-20 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg">
-                        <User className="h-10 w-10 text-primary-foreground" />
+                        {user?.profileImageUrl ? (
+                          <Image
+                            className="h-20 w-20 rounded-full"
+                            width={80}
+                            height={80}
+                            src={user.profileImageUrl}
+                            alt="User image"
+                          />
+                        ) : (
+                          <User className="h-10 w-10 text-primary-foreground" />
+                        )}
                       </div>
                     </div>
                     <div>
