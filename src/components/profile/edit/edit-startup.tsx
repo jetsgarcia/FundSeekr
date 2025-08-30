@@ -57,8 +57,12 @@ interface IntellectualProperty {
 interface EditStartupProfileProps {
   startup: ExtendedStartupProfile;
   onSave?: (
-    data: any
-  ) => Promise<{ ok: boolean; profile?: any; error?: string }>;
+    data: Record<string, unknown>
+  ) => Promise<{
+    ok: boolean;
+    profile?: Record<string, unknown>;
+    error?: string;
+  }>;
   onCancel?: () => void;
 }
 
@@ -180,11 +184,13 @@ export function EditStartupProfile({
             result.error || "Failed to update profile. Please try again."
           );
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("Error saving startup profile:", error);
-        toast.error(
-          error.message || "Failed to update profile. Please try again."
-        );
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Failed to update profile. Please try again.";
+        toast.error(errorMessage);
       }
     });
   };
@@ -482,8 +488,8 @@ export function EditStartupProfile({
                 placeholder="Enter target markets separated by commas"
               />
               <p className="text-sm text-muted-foreground">
-                Separate multiple markets with commas (e.g., "SMBs, Enterprise,
-                Healthcare")
+                Separate multiple markets with commas (e.g., &quot;SMBs,
+                Enterprise, Healthcare&quot;)
               </p>
             </div>
           </CardContent>
@@ -507,8 +513,8 @@ export function EditStartupProfile({
                 placeholder="Enter keywords separated by commas"
               />
               <p className="text-sm text-muted-foreground">
-                Separate multiple keywords with commas (e.g., "AI, SaaS,
-                Fintech")
+                Separate multiple keywords with commas (e.g., &quot;AI, SaaS,
+                Fintech&quot;)
               </p>
             </div>
           </CardContent>
