@@ -518,8 +518,10 @@ export default function HomePage() {
           )}
         </div>
         <div className="sm:relative sm:overflow-hidden sm:w-[47rem]">
-          <div className="sm:absolute inset-0 h-[21rem] sm:h-full">
-            <World data={sampleArcs} globeConfig={globeConfig} />
+          <div className="sm:absolute inset-0 h-[21rem] sm:h-full w-full">
+            <div className="relative w-full h-full" key={resolvedTheme}>
+              <World data={sampleArcs} globeConfig={globeConfig} />
+            </div>
           </div>
         </div>
       </main>
