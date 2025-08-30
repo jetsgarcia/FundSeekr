@@ -88,6 +88,7 @@ export async function POST(request: Request) {
           displayName: rest.firstName + " " + rest.lastName,
           serverMetadata: {
             onboarded: true,
+            userType: "Investor",
           },
         });
 
@@ -129,6 +130,7 @@ export async function POST(request: Request) {
         displayName: rest.firstName + " " + rest.lastName,
         serverMetadata: {
           onboarded: true,
+          userType: "Startup",
         },
       });
 

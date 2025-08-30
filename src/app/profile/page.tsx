@@ -10,6 +10,7 @@ import {
   ExtendedStartupProfile,
 } from "@/components/profile/startup-profile";
 import type { investors as InvestorProfileType } from "@prisma/client";
+import Link from "next/link";
 
 export default async function ProfilePage() {
   const user = await stackServerApp.getUser();
@@ -60,9 +61,12 @@ export default async function ProfilePage() {
                   <Button
                     size="lg"
                     className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg"
+                    asChild
                   >
-                    <Edit3 />
-                    Edit Profile
+                    <Link href="/profile/edit">
+                      <Edit3 />
+                      Edit Profile
+                    </Link>
                   </Button>
                 </div>
               </CardContent>
