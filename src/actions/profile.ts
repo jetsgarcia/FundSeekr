@@ -4,6 +4,9 @@ import { revalidatePath } from "next/cache";
 import type {
   investors as InvestorProfile,
   startups as StartupProfile,
+  development_stage_enum,
+  investor_type_enum,
+  involvement_level_enum,
 } from "@prisma/client";
 
 type readProfileType =
@@ -54,6 +57,45 @@ export async function readProfile(): Promise<readProfileType> {
   return { ok: false, error: "An unexpected error occurred" };
 }
 
+// Define types for complex fields
+type TeamMember = {
+  name: string;
+  position: string;
+  linkedin?: string;
+  bio?: string;
+};
+
+type Advisor = {
+  name: string;
+  position?: string;
+  company?: string;
+  linkedin?: string;
+  expertise?: string;
+};
+
+type KeyMetric = {
+  metric_name: string;
+  value: string | number;
+  period?: string;
+  description?: string;
+};
+
+type IntellectualProperty = {
+  type: string;
+  title: string;
+  status?: string;
+  description?: string;
+  filing_date?: string;
+};
+
+type NotableExit = {
+  company_name: string;
+  exit_type: string;
+  exit_value?: string | number;
+  exit_date?: string;
+  description?: string;
+};
+
 export async function updateStartupProfile(data: {
   name?: string;
   description?: string;
@@ -63,13 +105,13 @@ export async function updateStartupProfile(data: {
   valuation?: number | null;
   date_founded?: Date | null;
   product_demo_url?: string;
-  development_stage?: string | null;
+  development_stage?: development_stage_enum | null;
   target_market?: string[];
   keywords?: string[];
-  team_members?: any[];
-  advisors?: any[];
-  key_metrics?: any[];
-  intellectual_property?: any[];
+  team_members?: TeamMember[];
+  advisors?: Advisor[];
+  key_metrics?: KeyMetric[];
+  intellectual_property?: IntellectualProperty[];
 }): Promise<updateProfileType> {
   const user = await stackServerApp.getUser();
 
@@ -103,7 +145,7 @@ export async function updateStartupProfile(data: {
         valuation: data.valuation,
         date_founded: data.date_founded,
         product_demo_url: data.product_demo_url,
-        development_stage: data.development_stage as any, 
+        development_stage: data.development_stage,
         target_market: data.target_market,
         keywords: data.keywords,
         team_members: data.team_members,
@@ -132,8 +174,8 @@ export async function updateInvestorProfile(data: {
   investor_linkedin?: string;
   typical_check_size_in_php?: bigint | null;
   decision_period_in_weeks?: number | null;
-  investor_type?: string | null;
-  involvement_level?: string | null;
+  investor_type?: investor_type_enum | null;
+  involvement_level?: involvement_level_enum | null;
   key_contact_person_name?: string;
   key_contact_linkedin?: string;
   key_contact_number?: string;
@@ -144,7 +186,7 @@ export async function updateInvestorProfile(data: {
   geographic_focus?: string[];
   value_proposition?: string[];
   portfolio_companies?: string[];
-  notable_exits?: any[];
+  notable_exits?: NotableExit[];
 }): Promise<updateProfileType> {
   const user = await stackServerApp.getUser();
 
@@ -177,8 +219,8 @@ export async function updateInvestorProfile(data: {
         investor_linkedin: data.investor_linkedin,
         typical_check_size_in_php: data.typical_check_size_in_php,
         decision_period_in_weeks: data.decision_period_in_weeks,
-        investor_type: data.investor_type as any, // Cast to enum
-        involvement_level: data.involvement_level as any, // Cast to enum
+        investor_type: data.investor_type,
+        involvement_level: data.involvement_level,
         key_contact_person_name: data.key_contact_person_name,
         key_contact_linkedin: data.key_contact_linkedin,
         key_contact_number: data.key_contact_number,
