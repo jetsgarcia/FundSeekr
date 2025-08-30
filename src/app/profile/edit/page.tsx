@@ -5,7 +5,7 @@ import {
   updateInvestorProfile,
 } from "@/actions/profile";
 import ErrorPage from "@/components/error-page";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { EditInvestorProfile } from "@/components/profile/edit/edit-investor";
@@ -22,13 +22,13 @@ export default async function EditProfilePage() {
     return <ErrorPage error={response.error} />;
   }
 
-  const handleStartupSave = async (data: any) => {
+  const handleStartupSave = async (data: Record<string, unknown>) => {
     "use server";
     const result = await updateStartupProfile(data);
     return result;
   };
 
-  const handleInvestorSave = async (data: any) => {
+  const handleInvestorSave = async (data: Record<string, unknown>) => {
     "use server";
     const result = await updateInvestorProfile(data);
     return result;
