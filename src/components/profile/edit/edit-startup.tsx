@@ -17,6 +17,7 @@ import {
   Plus,
   Trash2,
   User,
+  Loader2,
   Building,
   Target,
   TrendingUp,
@@ -67,6 +68,7 @@ export function EditStartupProfile({
   startup,
   onSave,
 }: EditStartupProfileProps) {
+  const [isCancelling, setIsCancelling] = useState(false);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const [name, setName] = useState(startup.name || "");
@@ -742,15 +744,21 @@ export function EditStartupProfile({
             type="button"
             variant="outline"
             onClick={() => {
+              setIsCancelling(true);
               router.push("/profile");
             }}
-            disabled={isPending}
+            disabled={isCancelling}
+            className="px-6 font-medium"
           >
-            Cancel
+            {isCancelling ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              "Cancel"
+            )}
           </Button>
           <Button
             type="submit"
-            className="bg-gradient-to-r from-primary to-primary/80"
+            className="bg-gradient-to-r from-primary to-primary/80 hover:bg-primary/90 px-6 font-medium"
             disabled={isPending}
           >
             <Save className="h-4 w-4 mr-2" />

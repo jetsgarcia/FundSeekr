@@ -19,6 +19,7 @@ import {
   Building2,
   Banknote,
   Target,
+  Loader2,
   TrendingUp,
   Phone,
   Briefcase,
@@ -75,8 +76,8 @@ interface EditInvestorProfileProps {
 export function EditInvestorProfile({
   investor,
   onSave,
-  onCancel,
 }: EditInvestorProfileProps) {
+  const [isCancelling, setIsCancelling] = useState(false);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
@@ -647,15 +648,21 @@ export function EditInvestorProfile({
             type="button"
             variant="outline"
             onClick={() => {
+              setIsCancelling(true);
               router.push("/profile");
             }}
-            disabled={isPending}
+            disabled={isCancelling}
+            className="px-6 font-medium"
           >
-            Cancel
+            {isCancelling ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              "Cancel"
+            )}
           </Button>
           <Button
             type="submit"
-            className="bg-gradient-to-r from-primary to-primary/80"
+            className="bg-gradient-to-r from-primary to-primary/80 hover:bg-primary/90 px-6 font-medium"
             disabled={isPending}
           >
             <Save className="h-4 w-4 mr-2" />

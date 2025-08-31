@@ -1,8 +1,11 @@
+"use client";
+
 import { Card, CardContent } from "../ui/card";
 import Image from "next/image";
-import { Edit3, Mail, User } from "lucide-react";
+import { Edit3, Loader2, Mail, User } from "lucide-react";
 import { Button } from "../ui/button";
 import Link from "next/link";
+import { useState } from "react";
 
 interface UserProfileHeaderProps {
   profileImageUrl?: string | null;
@@ -11,12 +14,13 @@ interface UserProfileHeaderProps {
   primaryEmail?: string;
 }
 
-export async function UserProfileHeader({
+export function UserProfileHeader({
   profileImageUrl,
   displayName,
   userType,
   primaryEmail,
 }: UserProfileHeaderProps) {
+  const [isLoading, setIsLoading] = useState(false);
   return (
     <div className="relative">
       <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-primary/5 rounded-2xl"></div>
@@ -55,16 +59,21 @@ export async function UserProfileHeader({
                 </div>
               </div>
             </div>
-            <Button
-              size="lg"
-              className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg"
-              asChild
-            >
-              <Link href="/profile/edit">
-                <Edit3 />
-                Edit Profile
-              </Link>
-            </Button>
+            <Link href="/profile/edit" passHref>
+              <Button
+                size="lg"
+                className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg flex items-center gap-2"
+                onClick={() => setIsLoading(true)}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Edit3 className="h-4 w-4" />
+                )}
+                {isLoading ? "Loading..." : "Edit Profile"}
+              </Button>
+            </Link>
           </div>
         </CardContent>
       </Card>
