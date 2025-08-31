@@ -48,19 +48,13 @@ export default async function ProfilePage() {
                       </div>
                     </div>
                     <div>
-                      <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                        {user?.displayName}
-                      </h1>
-                      <div className="flex items-center space-x-2 mt-2">
-                        <span className="px-3 py-1 rounded-full text-sm font-medium bg-accent">
+                      <div className="flex items-center space-x-4">
+                        <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                          {user?.displayName}
+                        </h1>
+                        <span className="px-3 py-1 mt-1 rounded-full text-sm font-medium bg-accent">
                           {user?.serverMetadata.userType}
                         </span>
-                        <div className="flex items-center text-muted-foreground">
-                          <MapPin className="h-4 w-4 mr-1" />
-                          <span className="text-sm">
-                            {response?.profile.city}
-                          </span>
-                        </div>
                       </div>
 
                       <div className="flex items-center text-muted-foreground mt-1">
