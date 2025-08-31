@@ -17,6 +17,7 @@ import {
   Plus,
   Trash2,
   User,
+  Loader2,
   Building,
   Target,
   TrendingUp,
@@ -56,21 +57,18 @@ interface IntellectualProperty {
 
 interface EditStartupProfileProps {
   startup: ExtendedStartupProfile;
-  onSave?: (
-    data: Record<string, unknown>
-  ) => Promise<{
+  onSave?: (data: Record<string, unknown>) => Promise<{
     ok: boolean;
     profile?: Record<string, unknown>;
     error?: string;
   }>;
-  onCancel?: () => void;
 }
 
 export function EditStartupProfile({
   startup,
   onSave,
-  onCancel,
 }: EditStartupProfileProps) {
+  const [isCancelling, setIsCancelling] = useState(false);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const [name, setName] = useState(startup.name || "");
@@ -193,67 +191,6 @@ export function EditStartupProfile({
         toast.error(errorMessage);
       }
     });
-  };
-
-  const handleCancel = () => {
-    if (onCancel) {
-      onCancel();
-    } else {
-      // Reset all fields to original values
-      setName(startup.name || "");
-      setDescription(startup.description || "");
-      setIndustry(startup.industry || "");
-      setCity(startup.city || "");
-      setWebsite(startup.website || "");
-      setValuation(startup.valuation?.toString() || "");
-      setDateFounded(
-        startup.date_founded
-          ? new Date(startup.date_founded).toISOString().split("T")[0]
-          : ""
-      );
-      setProductDemoUrl(startup.product_demo_url || "");
-      setDevelopmentStage(startup.development_stage || "");
-      setTargetMarket(startup.target_market?.join(", ") || "");
-      setKeywords(startup.keywords?.join(", ") || "");
-
-      // Reset complex fields
-      setTeamMembers(
-        startup.team_members?.map((member) => ({
-          name: String(member.name || ""),
-          position: String(member.position || ""),
-          linkedin: String(member.linkedin || ""),
-        })) || []
-      );
-
-      setAdvisors(
-        startup.advisors?.map((advisor) => ({
-          name: String(advisor.name || ""),
-          expertise: String(advisor.expertise || ""),
-          company: String(advisor.company || ""),
-          linkedin: String(advisor.linkedin || ""),
-        })) || []
-      );
-
-      setKeyMetrics(
-        startup.key_metrics?.map((metric) => ({
-          name: String(metric.name || ""),
-          value: String(metric.value || ""),
-          description: String(metric.description || ""),
-        })) || []
-      );
-
-      setIntellectualProperty(
-        startup.intellectual_property?.map((ip) => ({
-          type: String(ip.type || ""),
-          title: String(ip.title || ""),
-          description: String(ip.description || ""),
-          status: String(ip.status || ""),
-          application_number: String(ip.application_number || ""),
-        })) || []
-      );
-
-      toast.info("Changes cancelled. Form reset to original values.");
-    }
   };
 
   const addTeamMember = () => {
@@ -806,14 +743,22 @@ export function EditStartupProfile({
           <Button
             type="button"
             variant="outline"
-            onClick={handleCancel}
-            disabled={isPending}
+            onClick={() => {
+              setIsCancelling(true);
+              router.push("/profile");
+            }}
+            disabled={isCancelling}
+            className="px-6 font-medium"
           >
-            Cancel
+            {isCancelling ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              "Cancel"
+            )}
           </Button>
           <Button
             type="submit"
-            className="bg-gradient-to-r from-primary to-primary/80"
+            className="bg-gradient-to-r from-primary to-primary/80 hover:bg-primary/90 px-6 font-medium"
             disabled={isPending}
           >
             <Save className="h-4 w-4 mr-2" />

@@ -12,10 +12,15 @@ import {
   TrendingUp,
   Calendar,
   Globe,
-  DollarSign,
   Users,
   User,
   Linkedin,
+  PhilippinePeso,
+  FileText,
+  Video,
+  Tag,
+  Shield,
+  Play,
 } from "lucide-react";
 import { Button } from "../ui/button";
 
@@ -84,8 +89,8 @@ export function StartupProfile({
     <div className="grid gap-6 lg:grid-cols-3 md:grid-cols-2">
       {/* Company Information */}
       <Card className="shadow-lg border-0 bg-card/80 backdrop-blur-sm">
-        <CardHeader className="bg-gradient-to-r from-orange-50 to-orange-50/50 dark:from-orange-950/20 dark:to-orange-950/10 rounded-t-lg">
-          <CardTitle className="flex items-center space-x-2 text-orange-700 dark:text-orange-300">
+        <CardHeader className="bg-secondary/50 rounded-t-lg">
+          <CardTitle className="flex items-center space-x-2 text-primary">
             <Building2 className="h-5 w-5" />
             <span>Company Information</span>
           </CardTitle>
@@ -161,15 +166,15 @@ export function StartupProfile({
 
       {/* Valuation */}
       <Card className="shadow-lg border-0 bg-card/80 backdrop-blur-sm">
-        <CardHeader className="bg-gradient-to-r from-green-50 to-green-50/50 dark:from-green-950/20 dark:to-green-950/10 rounded-t-lg">
-          <CardTitle className="flex items-center space-x-2 text-green-700 dark:text-green-300">
-            <DollarSign className="h-5 w-5" />
+        <CardHeader className="bg-secondary/50 rounded-t-lg">
+          <CardTitle className="flex items-center space-x-2 text-primary">
+            <PhilippinePeso className="h-5 w-5" />
             <span>Valuation</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
           <div className="text-center">
-            <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
+            <div className="text-3xl font-bold text-primary mb-2">
               {startup.valuation
                 ? formatCurrencyAbbreviation(startup.valuation)
                 : "Not disclosed"}
@@ -182,9 +187,9 @@ export function StartupProfile({
       {/* Description */}
       {startup.description && (
         <Card className="lg:col-span-1 shadow-lg border-0 bg-card/80 backdrop-blur-sm">
-          <CardHeader className="bg-gradient-to-r from-purple-50 to-purple-50/50 dark:from-purple-950/20 dark:to-purple-950/10 rounded-t-lg">
-            <CardTitle className="flex items-center space-x-2 text-purple-700 dark:text-purple-300">
-              <span>📝</span>
+          <CardHeader className="bg-secondary/50 rounded-t-lg">
+            <CardTitle className="flex items-center space-x-2 text-primary">
+              <FileText className="h-5 w-5" />
               <span>Description</span>
             </CardTitle>
           </CardHeader>
@@ -199,23 +204,20 @@ export function StartupProfile({
       {/* Product Demo */}
       {startup.product_demo_url && (
         <Card className="shadow-lg border-0 bg-card/80 backdrop-blur-sm">
-          <CardHeader className="bg-gradient-to-r from-cyan-50 to-cyan-50/50 dark:from-cyan-950/20 dark:to-cyan-950/10 rounded-t-lg">
-            <CardTitle className="flex items-center space-x-2 text-cyan-700 dark:text-cyan-300">
-              <span>🎥</span>
+          <CardHeader className="bg-secondary/50 rounded-t-lg">
+            <CardTitle className="flex items-center space-x-2 text-primary">
+              <Video className="h-5 w-5" />
               <span>Product Demo</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6 text-center">
-            <Button
-              asChild
-              className="bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700"
-            >
+            <Button asChild>
               <a
                 href={startup.product_demo_url}
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <span>🎬</span>
+                <Play className="h-4 w-4 mr-2" />
                 View Demo
               </a>
             </Button>
@@ -226,8 +228,8 @@ export function StartupProfile({
       {/* Target Market */}
       {startup.target_market && startup.target_market.length > 0 && (
         <Card className="lg:col-span-2 shadow-lg border-0 bg-card/80 backdrop-blur-sm">
-          <CardHeader className="bg-gradient-to-r from-pink-50 to-pink-50/50 dark:from-pink-950/20 dark:to-pink-950/10 rounded-t-lg">
-            <CardTitle className="flex items-center space-x-2 text-pink-700 dark:text-pink-300">
+          <CardHeader className="bg-secondary/50 rounded-t-lg">
+            <CardTitle className="flex items-center space-x-2 text-primary">
               <Target className="h-5 w-5" />
               <span>Target Market</span>
             </CardTitle>
@@ -237,7 +239,7 @@ export function StartupProfile({
               {startup.target_market.map((market: string, index: number) => (
                 <span
                   key={index}
-                  className="bg-gradient-to-r from-pink-100 to-pink-50 text-pink-700 dark:from-pink-900/20 dark:to-pink-900/10 dark:text-pink-300 px-3 py-2 rounded-full text-sm font-medium shadow-sm border border-pink-200 dark:border-pink-800"
+                  className="bg-secondary px-3 py-2 rounded-full text-sm font-medium shadow-sm border border-border"
                 >
                   {market}
                 </span>
@@ -250,9 +252,9 @@ export function StartupProfile({
       {/* Keywords */}
       {startup.keywords && startup.keywords.length > 0 && (
         <Card className="lg:col-span-1 shadow-lg border-0 bg-card/80 backdrop-blur-sm">
-          <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-50/50 dark:from-slate-950/20 dark:to-slate-950/10 rounded-t-lg">
-            <CardTitle className="flex items-center space-x-2 text-slate-700 dark:text-slate-300">
-              <span>🏷️</span>
+          <CardHeader className="bg-secondary/50 rounded-t-lg">
+            <CardTitle className="flex items-center space-x-2 text-primary">
+              <Tag className="h-5 w-5" />
               <span>Keywords</span>
             </CardTitle>
           </CardHeader>
@@ -261,7 +263,7 @@ export function StartupProfile({
               {startup.keywords.map((keyword: string, index: number) => (
                 <span
                   key={index}
-                  className="bg-gradient-to-r from-slate-100 to-slate-50 text-slate-700 dark:from-slate-900/20 dark:to-slate-900/10 dark:text-slate-300 px-3 py-2 rounded-full text-sm font-medium shadow-sm border border-slate-200 dark:border-slate-800"
+                  className="bg-secondary px-3 py-2 rounded-full text-sm font-medium shadow-sm border border-border"
                 >
                   {keyword}
                 </span>
@@ -272,9 +274,9 @@ export function StartupProfile({
       )}
 
       {/* Team Members */}
-      <Card className="lg:col-span-2 shadow-lg border-0 bg-card/80 backdrop-blur-sm">
-        <CardHeader className="bg-gradient-to-r from-sky-50 to-sky-50/50 dark:from-sky-950/20 dark:to-sky-950/10 rounded-t-lg">
-          <CardTitle className="flex items-center space-x-2 text-sky-700 dark:text-sky-300">
+      <Card className="lg:col-span-1 shadow-lg border-0 bg-card/80 backdrop-blur-sm">
+        <CardHeader className="bg-secondary/50 rounded-t-lg">
+          <CardTitle className="flex items-center space-x-2 text-primary">
             <Users className="h-5 w-5" />
             <span>Team Members</span>
           </CardTitle>
@@ -285,12 +287,12 @@ export function StartupProfile({
               {startup.team_members.map((member: TeamMember, index: number) => (
                 <div
                   key={index}
-                  className="border border-border/50 p-4 rounded-lg bg-gradient-to-r from-sky-50/50 to-sky-50/20 dark:from-sky-950/10 dark:to-sky-950/5"
+                  className="border border-border p-4 rounded-lg bg-secondary/50"
                 >
                   <div className="flex items-start space-x-3">
-                    <User className="h-5 w-5 mt-1 text-sky-600 dark:text-sky-400" />
+                    <User className="h-5 w-5 mt-1 text-muted-foreground" />
                     <div className="flex-1">
-                      <h4 className="font-medium text-sky-700 dark:text-sky-300">
+                      <h4 className="font-medium">
                         {String(member.name || "Team Member")}
                       </h4>
                       {member.position !== undefined &&
@@ -331,8 +333,8 @@ export function StartupProfile({
 
       {/* Advisors */}
       <Card className="lg:col-span-1 shadow-lg border-0 bg-card/80 backdrop-blur-sm">
-        <CardHeader className="bg-gradient-to-r from-amber-50 to-amber-50/50 dark:from-amber-950/20 dark:to-amber-950/10 rounded-t-lg">
-          <CardTitle className="flex items-center space-x-2 text-amber-700 dark:text-amber-300">
+        <CardHeader className="bg-secondary/50 rounded-t-lg">
+          <CardTitle className="flex items-center space-x-2 text-primary">
             <Target className="h-5 w-5" />
             <span>Advisors</span>
           </CardTitle>
@@ -343,20 +345,20 @@ export function StartupProfile({
               {startup.advisors.map((advisor: Advisor, index: number) => (
                 <div
                   key={index}
-                  className="bg-gradient-to-r from-amber-100 to-amber-50 text-amber-700 dark:from-amber-900/20 dark:to-amber-900/10 dark:text-amber-300 p-3 rounded-lg shadow-sm border border-amber-200 dark:border-amber-800"
+                  className="bg-secondary p-3 rounded-lg shadow-sm border border-border"
                 >
                   <div className="font-medium text-sm">
                     {String(advisor.name || "Advisor")}
                   </div>
                   {advisor.expertise !== undefined &&
                     advisor.expertise !== null && (
-                      <div className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                      <div className="text-xs text-muted-foreground mt-1">
                         {String(advisor.expertise)}
                       </div>
                     )}
                   {advisor.company !== undefined &&
                     advisor.company !== null && (
-                      <div className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                      <div className="text-xs text-muted-foreground mt-1">
                         @ {String(advisor.company)}
                       </div>
                     )}
@@ -371,8 +373,8 @@ export function StartupProfile({
 
       {/* Key Metrics */}
       <Card className="lg:col-span-3 shadow-lg border-0 bg-card/80 backdrop-blur-sm">
-        <CardHeader className="bg-gradient-to-r from-emerald-50 to-emerald-50/50 dark:from-emerald-950/20 dark:to-emerald-950/10 rounded-t-lg">
-          <CardTitle className="flex items-center space-x-2 text-emerald-700 dark:text-emerald-300">
+        <CardHeader className="bg-secondary/50 rounded-t-lg">
+          <CardTitle className="flex items-center space-x-2 text-primary">
             <TrendingUp className="h-5 w-5" />
             <span>Key Metrics</span>
           </CardTitle>
@@ -383,17 +385,17 @@ export function StartupProfile({
               {startup.key_metrics.map((metric: KeyMetric, index: number) => (
                 <div
                   key={index}
-                  className="bg-gradient-to-r from-emerald-100 to-emerald-50 dark:from-emerald-900/20 dark:to-emerald-900/10 p-4 rounded-lg shadow-sm border border-emerald-200 dark:border-emerald-800"
+                  className="bg-secondary p-4 rounded-lg shadow-sm border border-border"
                 >
-                  <div className="text-sm text-emerald-700 dark:text-emerald-300 font-medium mb-1">
+                  <div className="text-sm font-medium mb-1">
                     {String(metric.name || "Metric")}
                   </div>
-                  <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                  <div className="text-2xl font-bold text-primary">
                     {String(metric.value || "N/A")}
                   </div>
                   {metric.description !== undefined &&
                     metric.description !== null && (
-                      <div className="text-xs text-emerald-600 dark:text-emerald-400 mt-2">
+                      <div className="text-xs text-muted-foreground mt-2">
                         {String(metric.description)}
                       </div>
                     )}
@@ -410,9 +412,9 @@ export function StartupProfile({
 
       {/* Intellectual Property */}
       <Card className="lg:col-span-3 shadow-lg border-0 bg-card/80 backdrop-blur-sm">
-        <CardHeader className="bg-gradient-to-r from-violet-50 to-violet-50/50 dark:from-violet-950/20 dark:to-violet-950/10 rounded-t-lg">
-          <CardTitle className="flex items-center space-x-2 text-violet-700 dark:text-violet-300">
-            <span>🛡️</span>
+        <CardHeader className="bg-secondary/50 rounded-t-lg">
+          <CardTitle className="flex items-center space-x-2 text-primary">
+            <Shield className="h-5 w-5" />
             <span>Intellectual Property</span>
           </CardTitle>
         </CardHeader>
@@ -424,11 +426,11 @@ export function StartupProfile({
                 (ip: IntellectualProperty, index: number) => (
                   <div
                     key={index}
-                    className="border border-border/50 p-4 rounded-lg bg-gradient-to-r from-violet-50/50 to-violet-50/20 dark:from-violet-950/10 dark:to-violet-950/5"
+                    className="border border-border p-4 rounded-lg bg-secondary/50"
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <h4 className="font-medium text-violet-700 dark:text-violet-300">
+                        <h4 className="font-medium">
                           {String(ip.type || "IP Asset")}
                         </h4>
                         {ip.title !== undefined && ip.title !== null && (
@@ -444,7 +446,7 @@ export function StartupProfile({
                           )}
                       </div>
                       {ip.status !== undefined && ip.status !== null && (
-                        <span className="px-2 py-1 rounded text-xs font-medium bg-violet-100 text-violet-700 dark:bg-violet-900/20 dark:text-violet-300">
+                        <span className="px-2 py-1 rounded text-xs font-medium bg-secondary text-primary border border-border">
                           {String(ip.status)}
                         </span>
                       )}
