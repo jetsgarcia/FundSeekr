@@ -28,8 +28,8 @@ export function InvestorProfile({ investor }: { investor: InvestorProfile }) {
     <div className="grid gap-6 lg:grid-cols-3 md:grid-cols-2">
       {/* Basic Information */}
       <Card className="shadow-lg border-0 bg-card/80 backdrop-blur-sm">
-        <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-50/50 dark:from-blue-950/20 dark:to-blue-950/10 rounded-t-lg">
-          <CardTitle className="flex items-center space-x-2 text-blue-700 dark:text-blue-300">
+        <CardHeader className="bg-secondary/50 rounded-t-lg">
+          <CardTitle className="flex items-center space-x-2 text-primary">
             <Building2 className="h-5 w-5" />
             <span>Organization</span>
           </CardTitle>
@@ -90,16 +90,16 @@ export function InvestorProfile({ investor }: { investor: InvestorProfile }) {
 
       {/* Investment Details */}
       <Card className="shadow-lg border-0 bg-card/80 backdrop-blur-sm">
-        <CardHeader className="bg-gradient-to-r from-green-50 to-green-50/50 dark:from-green-950/20 dark:to-green-950/10 rounded-t-lg">
-          <CardTitle className="flex items-center space-x-2 text-green-700 dark:text-green-300">
+        <CardHeader className="bg-secondary/50 rounded-t-lg">
+          <CardTitle className="flex items-center space-x-2 text-primary">
             <DollarSign className="h-5 w-5" />
             <span>Investment Details</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6 space-y-4">
-          <div className="bg-gradient-to-r from-green-50 to-green-50/50 dark:from-green-950/10 dark:to-green-950/5 p-4 rounded-lg">
+          <div className="bg-secondary/50 p-4 rounded-lg">
             <p className="text-sm text-muted-foreground">Typical Check Size</p>
-            <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+            <p className="text-2xl font-bold text-primary">
               {investor.typical_check_size_in_php
                 ? formatCurrencyAbbreviation(
                     Number(investor.typical_check_size_in_php)
@@ -136,8 +136,8 @@ export function InvestorProfile({ investor }: { investor: InvestorProfile }) {
 
       {/* Contact Information */}
       <Card className="shadow-lg border-0 bg-card/80 backdrop-blur-sm">
-        <CardHeader className="bg-gradient-to-r from-purple-50 to-purple-50/50 dark:from-purple-950/20 dark:to-purple-950/10 rounded-t-lg">
-          <CardTitle className="flex items-center space-x-2 text-purple-700 dark:text-purple-300">
+        <CardHeader className="bg-secondary/50 rounded-t-lg">
+          <CardTitle className="flex items-center space-x-2 text-primary">
             <Phone className="h-5 w-5" />
             <span>Contact Information</span>
           </CardTitle>
@@ -186,8 +186,8 @@ export function InvestorProfile({ investor }: { investor: InvestorProfile }) {
       {investor.preferred_industries &&
         investor.preferred_industries.length > 0 && (
           <Card className="lg:col-span-2 shadow-lg border-0 bg-card/80 backdrop-blur-sm">
-            <CardHeader className="bg-gradient-to-r from-emerald-50 to-emerald-50/50 dark:from-emerald-950/20 dark:to-emerald-950/10 rounded-t-lg">
-              <CardTitle className="flex items-center space-x-2 text-emerald-700 dark:text-emerald-300">
+            <CardHeader className="bg-secondary/50 rounded-t-lg">
+              <CardTitle className="flex items-center space-x-2 text-primary">
                 <Target className="h-5 w-5" />
                 <span>Preferred Industries</span>
               </CardTitle>
@@ -198,7 +198,7 @@ export function InvestorProfile({ investor }: { investor: InvestorProfile }) {
                   (industry: string, index: number) => (
                     <span
                       key={index}
-                      className="bg-gradient-to-r from-emerald-100 to-emerald-50 text-emerald-700 dark:from-emerald-900/20 dark:to-emerald-900/10 dark:text-emerald-300 px-3 py-2 rounded-full text-sm font-medium shadow-sm border border-emerald-200 dark:border-emerald-800"
+                      className="bg-secondary px-3 py-2 rounded-full text-sm font-medium shadow-sm border border-border"
                     >
                       {industry}
                     </span>
@@ -213,8 +213,8 @@ export function InvestorProfile({ investor }: { investor: InvestorProfile }) {
       {investor.excluded_industries &&
         investor.excluded_industries.length > 0 && (
           <Card className="lg:col-span-1 shadow-lg border-0 bg-card/80 backdrop-blur-sm">
-            <CardHeader className="bg-gradient-to-r from-red-50 to-red-50/50 dark:from-red-950/20 dark:to-red-950/10 rounded-t-lg">
-              <CardTitle className="flex items-center space-x-2 text-red-700 dark:text-red-300">
+            <CardHeader className="bg-secondary/50 rounded-t-lg">
+              <CardTitle className="flex items-center space-x-2 text-destructive">
                 <span>❌</span>
                 <span>Excluded Industries</span>
               </CardTitle>
@@ -225,7 +225,7 @@ export function InvestorProfile({ investor }: { investor: InvestorProfile }) {
                   (industry: string, index: number) => (
                     <span
                       key={index}
-                      className="bg-gradient-to-r from-red-100 to-red-50 text-red-700 dark:from-red-900/20 dark:to-red-900/10 dark:text-red-300 px-3 py-2 rounded-full text-sm font-medium shadow-sm border border-red-200 dark:border-red-800"
+                      className="bg-secondary px-3 py-2 rounded-full text-sm font-medium shadow-sm border border-border text-destructive/80"
                     >
                       {industry}
                     </span>
@@ -240,8 +240,8 @@ export function InvestorProfile({ investor }: { investor: InvestorProfile }) {
       {investor.preferred_funding_stages &&
         investor.preferred_funding_stages.length > 0 && (
           <Card className="lg:col-span-3 shadow-lg border-0 bg-card/80 backdrop-blur-sm">
-            <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-50/50 dark:from-blue-950/20 dark:to-blue-950/10 rounded-t-lg">
-              <CardTitle className="flex items-center space-x-2 text-blue-700 dark:text-blue-300">
+            <CardHeader className="bg-secondary/50 rounded-t-lg">
+              <CardTitle className="flex items-center space-x-2 text-primary">
                 <TrendingUp className="h-5 w-5" />
                 <span>Preferred Funding Stages</span>
               </CardTitle>
@@ -252,7 +252,7 @@ export function InvestorProfile({ investor }: { investor: InvestorProfile }) {
                   (stage: string, index: number) => (
                     <span
                       key={index}
-                      className="bg-gradient-to-r from-blue-100 to-blue-50 text-blue-700 dark:from-blue-900/20 dark:to-blue-900/10 dark:text-blue-300 px-3 py-2 rounded-full text-sm font-medium shadow-sm border border-blue-200 dark:border-blue-800"
+                      className="bg-secondary px-3 py-2 rounded-full text-sm font-medium shadow-sm border border-border"
                     >
                       {stage}
                     </span>
@@ -265,8 +265,8 @@ export function InvestorProfile({ investor }: { investor: InvestorProfile }) {
 
       {/* Business Models */}
       <Card className="lg:col-span-2 shadow-lg border-0 bg-card/80 backdrop-blur-sm">
-        <CardHeader className="bg-gradient-to-r from-indigo-50 to-indigo-50/50 dark:from-indigo-950/20 dark:to-indigo-950/10 rounded-t-lg">
-          <CardTitle className="flex items-center space-x-2 text-indigo-700 dark:text-indigo-300">
+        <CardHeader className="bg-secondary/50 rounded-t-lg">
+          <CardTitle className="flex items-center space-x-2 text-primary">
             <Briefcase className="h-5 w-5" />
             <span>Preferred Business Models</span>
           </CardTitle>
@@ -279,7 +279,7 @@ export function InvestorProfile({ investor }: { investor: InvestorProfile }) {
                 (model: string, index: number) => (
                   <span
                     key={index}
-                    className="bg-gradient-to-r from-indigo-100 to-indigo-50 text-indigo-700 dark:from-indigo-900/20 dark:to-indigo-900/10 dark:text-indigo-300 px-3 py-2 rounded-full text-sm font-medium shadow-sm border border-indigo-200 dark:border-indigo-800"
+                    className="bg-secondary px-3 py-2 rounded-full text-sm font-medium shadow-sm border border-border"
                   >
                     {model}
                   </span>
@@ -296,8 +296,8 @@ export function InvestorProfile({ investor }: { investor: InvestorProfile }) {
 
       {/* Geographic Focus */}
       <Card className="lg:col-span-1 shadow-lg border-0 bg-card/80 backdrop-blur-sm">
-        <CardHeader className="bg-gradient-to-r from-amber-50 to-amber-50/50 dark:from-amber-950/20 dark:to-amber-950/10 rounded-t-lg">
-          <CardTitle className="flex items-center space-x-2 text-amber-700 dark:text-amber-300">
+        <CardHeader className="bg-secondary/50 rounded-t-lg">
+          <CardTitle className="flex items-center space-x-2 text-primary">
             <Globe className="h-5 w-5" />
             <span>Geographic Focus</span>
           </CardTitle>
@@ -309,7 +309,7 @@ export function InvestorProfile({ investor }: { investor: InvestorProfile }) {
                 (location: string, index: number) => (
                   <span
                     key={index}
-                    className="bg-gradient-to-r from-amber-100 to-amber-50 text-amber-700 dark:from-amber-900/20 dark:to-amber-900/10 dark:text-amber-300 px-3 py-2 rounded-full text-sm font-medium shadow-sm border border-amber-200 dark:border-amber-800"
+                    className="bg-secondary px-3 py-2 rounded-full text-sm font-medium shadow-sm border border-border"
                   >
                     {location}
                   </span>
@@ -326,8 +326,8 @@ export function InvestorProfile({ investor }: { investor: InvestorProfile }) {
 
       {/* Value Proposition */}
       <Card className="lg:col-span-3 shadow-lg border-0 bg-card/80 backdrop-blur-sm">
-        <CardHeader className="bg-gradient-to-r from-teal-50 to-teal-50/50 dark:from-teal-950/20 dark:to-teal-950/10 rounded-t-lg">
-          <CardTitle className="flex items-center space-x-2 text-teal-700 dark:text-teal-300">
+        <CardHeader className="bg-secondary/50 rounded-t-lg">
+          <CardTitle className="flex items-center space-x-2 text-primary">
             <Target className="h-5 w-5" />
             <span>Value Proposition</span>
           </CardTitle>
@@ -340,7 +340,7 @@ export function InvestorProfile({ investor }: { investor: InvestorProfile }) {
                 (value: string, index: number) => (
                   <span
                     key={index}
-                    className="bg-gradient-to-r from-teal-100 to-teal-50 text-teal-700 dark:from-teal-900/20 dark:to-teal-900/10 dark:text-teal-300 px-3 py-2 rounded-full text-sm font-medium shadow-sm border border-teal-200 dark:border-teal-800"
+                    className="bg-secondary px-3 py-2 rounded-full text-sm font-medium shadow-sm border border-border"
                   >
                     {value}
                   </span>
@@ -357,8 +357,8 @@ export function InvestorProfile({ investor }: { investor: InvestorProfile }) {
 
       {/* Portfolio Companies */}
       <Card className="lg:col-span-2 shadow-lg border-0 bg-card/80 backdrop-blur-sm">
-        <CardHeader className="bg-gradient-to-r from-rose-50 to-rose-50/50 dark:from-rose-950/20 dark:to-rose-950/10 rounded-t-lg">
-          <CardTitle className="flex items-center space-x-2 text-rose-700 dark:text-rose-300">
+        <CardHeader className="bg-secondary/50 rounded-t-lg">
+          <CardTitle className="flex items-center space-x-2 text-primary">
             <Building2 className="h-5 w-5" />
             <span>Portfolio Companies</span>
           </CardTitle>
@@ -371,7 +371,7 @@ export function InvestorProfile({ investor }: { investor: InvestorProfile }) {
                 (company: string, index: number) => (
                   <div
                     key={index}
-                    className="bg-gradient-to-r from-rose-100 to-rose-50 text-rose-700 dark:from-rose-900/20 dark:to-rose-900/10 dark:text-rose-300 px-4 py-3 rounded-lg text-sm font-medium shadow-sm border border-rose-200 dark:border-rose-800 flex items-center space-x-2"
+                    className="bg-secondary px-4 py-3 rounded-lg text-sm font-medium shadow-sm border border-border flex items-center space-x-2"
                   >
                     <Building2 className="h-4 w-4" />
                     <span>{company}</span>
@@ -389,8 +389,8 @@ export function InvestorProfile({ investor }: { investor: InvestorProfile }) {
 
       {/* Notable Exits */}
       <Card className="lg:col-span-1 shadow-lg border-0 bg-card/80 backdrop-blur-sm">
-        <CardHeader className="bg-gradient-to-r from-violet-50 to-violet-50/50 dark:from-violet-950/20 dark:to-violet-950/10 rounded-t-lg">
-          <CardTitle className="flex items-center space-x-2 text-violet-700 dark:text-violet-300">
+        <CardHeader className="bg-secondary/50 rounded-t-lg">
+          <CardTitle className="flex items-center space-x-2 text-primary">
             <TrendingUp className="h-5 w-5" />
             <span>Notable Exits</span>
           </CardTitle>
@@ -403,20 +403,20 @@ export function InvestorProfile({ investor }: { investor: InvestorProfile }) {
                 return (
                   <div
                     key={index}
-                    className="bg-gradient-to-r from-violet-100 to-violet-50 text-violet-700 dark:from-violet-900/20 dark:to-violet-900/10 dark:text-violet-300 p-4 rounded-lg shadow-sm border border-violet-200 dark:border-violet-800"
+                    className="bg-secondary p-4 rounded-lg shadow-sm border border-border"
                   >
                     <div className="text-sm font-medium">
                       {String(exit.company || "Company")}
                     </div>
                     {exit.exit_amount !== undefined &&
                       exit.exit_amount !== null && (
-                        <div className="text-xs text-violet-600 dark:text-violet-400 mt-1">
+                        <div className="text-xs text-muted-foreground mt-1">
                           Exit:{" "}
                           {formatCurrencyAbbreviation(Number(exit.exit_amount))}
                         </div>
                       )}
                     {exit.year !== undefined && exit.year !== null && (
-                      <div className="text-xs text-violet-600 dark:text-violet-400 mt-1">
+                      <div className="text-xs text-muted-foreground mt-1">
                         Year: {String(exit.year)}
                       </div>
                     )}
