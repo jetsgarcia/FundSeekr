@@ -226,49 +226,6 @@ export function EditInvestorProfile({
     });
   };
 
-  const handleCancel = () => {
-    if (onCancel) {
-      onCancel();
-    } else {
-      // Reset all fields to original values
-      setOrganization(investor.organization || "");
-      setPosition(investor.position || "");
-      setCity(investor.city || "");
-      setOrganizationWebsite(investor.organization_website || "");
-      setInvestorLinkedin(investor.investor_linkedin || "");
-      setTypicalCheckSize(investor.typical_check_size_in_php?.toString() || "");
-      setDecisionPeriod(investor.decision_period_in_weeks?.toString() || "");
-      setInvestorType(investor.investor_type || "");
-      setInvolvementLevel(investor.involvement_level || "");
-      setKeyContactName(investor.key_contact_person_name || "");
-      setKeyContactLinkedin(investor.key_contact_linkedin || "");
-      setKeyContactNumber(investor.key_contact_number || "+63");
-      setPreferredIndustries(investor.preferred_industries?.join(", ") || "");
-      setExcludedIndustries(investor.excluded_industries?.join(", ") || "");
-      setPreferredBusinessModels(
-        investor.preferred_business_models?.join(", ") || ""
-      );
-      setPreferredFundingStages(
-        investor.preferred_funding_stages?.join(", ") || ""
-      );
-      setGeographicFocus(investor.geographic_focus?.join(", ") || "");
-      setValueProposition(investor.value_proposition?.join(", ") || "");
-      setPortfolioCompanies(investor.portfolio_companies?.join(", ") || "");
-      setNotableExits(
-        investor.notable_exits?.map((exit: Prisma.JsonValue) => {
-          const exitObj = exit as NotableExitJson;
-          return {
-            company: String(exitObj?.company || ""),
-            exit_amount: String(exitObj?.exit_amount || ""),
-            year: String(exitObj?.year || ""),
-          };
-        }) || []
-      );
-
-      toast.info("Changes cancelled. Form reset to original values.");
-    }
-  };
-
   const addNotableExit = () => {
     setNotableExits([
       ...notableExits,
@@ -689,7 +646,9 @@ export function EditInvestorProfile({
           <Button
             type="button"
             variant="outline"
-            onClick={handleCancel}
+            onClick={() => {
+              router.push("/profile");
+            }}
             disabled={isPending}
           >
             Cancel
