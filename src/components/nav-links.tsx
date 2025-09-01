@@ -1,0 +1,54 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
+
+interface NavLinksProps {
+  userType?: string;
+}
+
+export function NavLinks({ userType }: NavLinksProps) {
+  const pathname = usePathname();
+
+  const linkStyles =
+    "transition-colors duration-200 hover:text-blue-500 font-light";
+  const activeLinkStyles =
+    "text-blue-500 dark:text-blue-400 font-medium font-semibold";
+
+  const getLinkClassName = (href: string) => {
+    const isActive = pathname === href;
+    return cn(linkStyles, isActive && activeLinkStyles);
+  };
+
+  return (
+    <div className="flex gap-6">
+      {userType === "Investor" && (
+        <>
+          <Link href="/home" className={getLinkClassName("/home")}>
+            Home
+          </Link>
+          <Link href="/search" className={getLinkClassName("/search")}>
+            Search Startups
+          </Link>
+        </>
+      )}
+      {userType === "Startup" && (
+        <>
+          <Link href="/home" className={getLinkClassName("/home")}>
+            Home
+          </Link>
+          <Link href="/search" className={getLinkClassName("/search")}>
+            Search Investors
+          </Link>
+          <Link
+            href="/funding-requests"
+            className={getLinkClassName("/funding-requests")}
+          >
+            Funding Requests
+          </Link>
+        </>
+      )}
+    </div>
+  );
+}
