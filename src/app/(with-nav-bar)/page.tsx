@@ -1,13 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
-import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
-import { UserButton, useUser } from "@stackframe/stack";
+import { useUser } from "@stackframe/stack";
 import { useTheme } from "next-themes";
 import dynamic from "next/dynamic";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { useMemo } from "react";
 
 const World = dynamic(
@@ -21,7 +18,6 @@ export default function HomePage() {
   const user = useUser();
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
-  const isMobile = useIsMobile();
 
   const globeConfig = isDark
     ? {
@@ -437,50 +433,6 @@ export default function HomePage() {
 
   return (
     <div className="sm:min-h-screen flex flex-col">
-      {/* Top Navigation */}
-      <header className="w-full sticky top-0 z-50 backdrop-blur supports-[backdrop-filter]:bg-background/70 border-b">
-        <div className="w-full px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          {/* Left: Logo */}
-          <Link
-            href="/"
-            className="flex items-center gap-2 font-semibold text-lg"
-          >
-            <Image
-              src="/fundseekr_logo.png"
-              alt="FundSeekr Logo"
-              width={36}
-              height={36}
-              className="rounded"
-              priority
-            />
-            <span className="hidden sm:inline-block">FundSeekr</span>
-          </Link>
-
-          {/* Right: Controls */}
-          <div className="flex items-center gap-2 sm:gap-4">
-            <ModeToggle />
-            {user ? (
-              <UserButton />
-            ) : (
-              <div>
-                <Button
-                  asChild
-                  variant="ghost"
-                  size={isMobile ? "default" : "lg"}
-                >
-                  <Link href="/sign-in">Log in</Link>
-                </Button>
-                <Button asChild size={isMobile ? "default" : "lg"}>
-                  <Link href="/sign-up" className="font-semibold">
-                    Sign up
-                  </Link>
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
-      </header>
-
       {/* Main (single section) */}
       <main className="flex-1 flex flex-col-reverse sm:flex-row sm:justify-between sm:h-[calc(100vh-4rem-1px)] sm:overflow-hidden">
         <div className="flex flex-col justify-center my-10 sm:my-0 max-w-2xl space-y-6 flex-1 px-4 sm:px-6 lg:px-8">
