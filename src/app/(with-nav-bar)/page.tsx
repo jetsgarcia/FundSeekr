@@ -432,7 +432,7 @@ export default function HomePage() {
   );
 
   return (
-    <div className="sm:min-h-screen flex flex-col">
+    <div className="sm:h-[calc(100dvh-4.1rem)] flex flex-col">
       {/* Main (single section) */}
       <main className="flex-1 flex flex-col-reverse sm:flex-row sm:justify-between sm:h-[calc(100vh-4rem-1px)] sm:overflow-hidden">
         <div className="flex flex-col justify-center my-10 sm:my-0 max-w-2xl space-y-6 flex-1 px-4 sm:px-6 lg:px-8">
