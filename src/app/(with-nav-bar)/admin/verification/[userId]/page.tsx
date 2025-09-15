@@ -6,16 +6,16 @@ import {
   StartupProfile,
   type ExtendedStartupProfile,
 } from "@/components/profile/startup-profile";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Building2, Users, User } from "lucide-react";
 import Link from "next/link";
 import { VerificationActions } from "@/components/admin/verification-actions";
 import { Prisma } from "@prisma/client";
 
 interface PageProps {
-  params: {
+  params: Promise<{
     userId: string;
-  };
+  }>;
 }
 
 // Define custom types for our data structures
@@ -68,7 +68,7 @@ async function getUserData(userId: string) {
 }
 
 export default async function UserVerificationPage({ params }: PageProps) {
-  const { userId } = params;
+  const { userId } = await params;
   const userData = await getUserData(userId);
 
   if (!userData) {
