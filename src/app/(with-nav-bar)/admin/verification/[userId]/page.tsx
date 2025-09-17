@@ -171,7 +171,6 @@ export default async function UserVerificationPage({ params }: PageProps) {
 
         {/* Floating Verification Actions */}
         <VerificationActions
-          userId={userId}
           userName={userData.name || "Unknown User"}
           userType={userType}
         />

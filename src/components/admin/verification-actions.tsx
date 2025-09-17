@@ -13,17 +13,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
-import { approveUser, rejectUser } from "@/actions/admin-verification";
-import { useRouter } from "next/navigation";
 
 interface VerificationActionsProps {
-  userId: string;
   userName: string;
   userType: string;
 }
 
 export function VerificationActions({
-  userId,
   userName,
   userType,
 }: VerificationActionsProps) {
@@ -32,32 +28,15 @@ export function VerificationActions({
   const [rejectionReason, setRejectionReason] = useState("");
   const [isApproving, setIsApproving] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
-  const router = useRouter();
 
   const handleApprove = async () => {
     setIsApproving(true);
-    try {
-      await approveUser(userId);
-      // The action will redirect, but we can show success state briefly
-      setIsApproveDialogOpen(false);
-    } catch (error) {
-      console.error("Approval failed:", error);
-      setIsApproving(false);
-      // You might want to show an error toast here
-    }
+    // TODO: Call server action to approve user
   };
 
   const handleReject = async () => {
     setIsRejecting(true);
-    try {
-      await rejectUser(userId, rejectionReason);
-      // The action will redirect, but we can show success state briefly
-      setIsRejectDialogOpen(false);
-    } catch (error) {
-      console.error("Rejection failed:", error);
-      setIsRejecting(false);
-      // You might want to show an error toast here
-    }
+    // TODO: Call server action to reject user with rejectionReason
   };
 
   return (
