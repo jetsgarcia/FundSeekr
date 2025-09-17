@@ -15,7 +15,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { useUser } from "@stackframe/stack";
 
-export function UserButton() {
+interface UserButtonProps {
+  userType?: string;
+}
+
+export function UserButton({ userType }: UserButtonProps) {
   const user = useUser();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
@@ -82,13 +86,15 @@ export function UserButton() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onClick={handleProfileView}
-          className="cursor-pointer"
-        >
-          <Eye className="mr-2 h-4 w-4" />
-          <span>View Profile</span>
-        </DropdownMenuItem>
+        {userType !== "Admin" && (
+          <DropdownMenuItem
+            onClick={handleProfileView}
+            className="cursor-pointer"
+          >
+            <Eye className="mr-2 h-4 w-4" />
+            <span>View Profile</span>
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem
           onClick={handleAccountSettings}
           className="cursor-pointer"

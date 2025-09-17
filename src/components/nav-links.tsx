@@ -49,6 +49,25 @@ export function NavLinks({ userType }: NavLinksProps) {
           </Link>
         </>
       )}
+      {userType === "Admin" && (
+        <>
+          <Link href="/admin" className={getLinkClassName("/admin")}>
+            Home
+          </Link>
+          <Link
+            href="/admin/verification"
+            className={getLinkClassName("/admin/verification")}
+          >
+            Verification
+          </Link>
+          <Link
+            href="/admin/admin-registration"
+            className={getLinkClassName("/admin/admin-registration")}
+          >
+            Admin Registration
+          </Link>
+        </>
+      )}
     </div>
   );
 }

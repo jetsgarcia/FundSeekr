@@ -12,6 +12,8 @@ export default async function WithNavLayout({
 }>) {
   const user = await stackServerApp.getUser();
 
+  console.log(user?.serverMetadata.userType);
+
   return (
     <div>
       {/* Top Navigation */}
@@ -26,7 +28,11 @@ export default async function WithNavLayout({
           {/* Right: Controls */}
           <div className="flex items-center gap-2 sm:gap-4">
             <ModeToggle />
-            {user ? <UserButton /> : <NavAuthButton />}
+            {user ? (
+              <UserButton userType={user?.serverMetadata.userType} />
+            ) : (
+              <NavAuthButton />
+            )}
           </div>
         </div>
       </header>

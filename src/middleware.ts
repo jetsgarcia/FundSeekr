@@ -4,6 +4,7 @@ import {
   isExcludedRoute,
   checkOnboardingStatus,
   checkAuthStatus,
+  checkAdminAccess,
 } from "@/lib/middleware-utils";
 
 // Main middleware function
@@ -21,8 +22,14 @@ export async function middleware(request: NextRequest) {
     return authRedirect;
   }
 
+  // Check admin access for admin routes
+  const { redirect: adminRedirect } = await checkAdminAccess(request);
+  if (adminRedirect) {
+    return adminRedirect;
+  }
+
   // Check onboarding status (only if user is authenticated)
-  if (user) {
+  if (user && user.serverMetadata?.userType !== "Admin") {
     const { redirect } = await checkOnboardingStatus(request);
     if (redirect) {
       return redirect;
