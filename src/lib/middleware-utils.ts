@@ -87,6 +87,40 @@ export async function checkAuthStatus(request: NextRequest) {
 }
 
 /**
+ * Check if user has admin access for admin routes
+ * @param request - The Next.js request object
+ * @returns Object with redirect response if user is not admin
+ */
+export async function checkAdminAccess(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Check if the route is an admin route
+  if (!pathname.startsWith("/admin")) {
+    return { redirect: null };
+  }
+
+  const user = await stackServerApp.getUser();
+
+  // If user is not authenticated, they should be redirected by checkAuthStatus first
+  if (!user) {
+    return { redirect: null };
+  }
+
+  // Check if user is an admin
+  const isAdmin = user.serverMetadata?.userType === "Admin";
+
+  if (!isAdmin) {
+    // Redirect non-admin users to home page with an error message
+    const homeUrl = new URL("/home", request.url);
+    return {
+      redirect: NextResponse.redirect(homeUrl),
+    };
+  }
+
+  return { redirect: null };
+}
+
+/**
  * Example function for future role-based access checks
  * @param request - The Next.js request object
  * @returns Object with redirect response if needed
