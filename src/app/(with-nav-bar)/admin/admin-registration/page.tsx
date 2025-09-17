@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { z } from "zod";
+import { toast } from "sonner";
 import {
   Card,
   CardContent,
@@ -13,9 +14,10 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { registerAdminUser } from "@/actions/admin-registration";
 
 const adminRegistrationSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
+  email: z.email("Please enter a valid email address"),
 });
 
 type AdminRegistrationForm = z.infer<typeof adminRegistrationSchema>;
@@ -27,7 +29,7 @@ export default function AdminRegistrationPage() {
   const [errors, setErrors] = useState<
     Partial<Record<keyof AdminRegistrationForm, string>>
   >({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   function validateField(name: keyof AdminRegistrationForm, value: string) {
     try {
@@ -64,7 +66,6 @@ export default function AdminRegistrationPage() {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setIsSubmitting(true);
 
     try {
       // Validate the entire form
@@ -73,10 +74,36 @@ export default function AdminRegistrationPage() {
       // Clear all errors
       setErrors({});
 
-      console.log("Registering admin:", validatedData);
+      // Call the server action
+      startTransition(async () => {
+        const result = await registerAdminUser(
+          validatedData.email,
+          validatedData.email.split("@")[0] // Use email prefix as default name
+        );
 
-      // TODO: Add actual registration logic here
-      // await registerAdmin(validatedData);
+        if (result.success) {
+          // Success - show success message
+          toast.success("Admin user created successfully!", {
+            description: `Email: ${result.data?.email}`,
+          });
+
+          // Reset form
+          setFormData({ email: "" });
+        } else {
+          // Handle errors
+          if (result.message.includes("Unauthorized")) {
+            setErrors({
+              email: "You are not authorized to create admin users",
+            });
+          } else if (result.message.includes("Invalid email")) {
+            setErrors({ email: "Invalid email address" });
+          } else {
+            setErrors({
+              email: result.message || "Failed to create admin user",
+            });
+          }
+        }
+      });
     } catch (error) {
       if (error instanceof z.ZodError) {
         // Set errors from validation
@@ -89,9 +116,13 @@ export default function AdminRegistrationPage() {
           }
         });
         setErrors(newErrors);
+      } else {
+        // Other errors
+        console.error("Registration error:", error);
+        setErrors({
+          email: "An unexpected error occurred. Please try again.",
+        });
       }
-    } finally {
-      setIsSubmitting(false);
     }
   }
 
@@ -128,8 +159,8 @@ export default function AdminRegistrationPage() {
               </div>
             </div>
             <CardFooter className="px-0">
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? "Registering..." : "Register"}
+              <Button type="submit" className="w-full" disabled={isPending}>
+                {isPending ? "Registering..." : "Register"}
               </Button>
             </CardFooter>
           </form>
