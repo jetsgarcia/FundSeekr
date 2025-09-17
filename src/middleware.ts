@@ -22,7 +22,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Check onboarding status (only if user is authenticated)
-  if (user) {
+  if (user && user.serverMetadata?.userType !== "Admin") {
     const { redirect } = await checkOnboardingStatus(request);
     if (redirect) {
       return redirect;
