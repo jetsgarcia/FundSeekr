@@ -11,7 +11,7 @@ import {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Skip middleware for public routes
+  // Skip auth checks for public routes
   if (isExcludedRoute(pathname, "publicAccess")) {
     return NextResponse.next();
   }
@@ -33,6 +33,12 @@ export async function middleware(request: NextRequest) {
     const { redirect } = await checkOnboardingStatus(request);
     if (redirect) {
       return redirect;
+    }
+  } else if (user && user.serverMetadata?.userType === "Admin") {
+    // If an admin ends up on generic post-auth pages (/home or onboarding), send to their dashboard
+    const postAuthGenericPaths = ["/home", "/onboarding"]; // safeguard if config changes
+    if (postAuthGenericPaths.includes(pathname)) {
+      return NextResponse.redirect(new URL("/admin", request.url));
     }
   }
 
