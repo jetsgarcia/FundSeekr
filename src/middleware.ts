@@ -7,35 +7,23 @@ import {
   checkAdminAccess,
 } from "@/lib/middleware-utils";
 
-// Main middleware function
 export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-
-  // Skip middleware for public routes
-  if (isExcludedRoute(pathname, "publicAccess")) {
-    return NextResponse.next();
-  }
-
-  // Check authentication status first
+  const currentPath = request.nextUrl.pathname;
+  if (isExcludedRoute(currentPath, "publicAccess")) return NextResponse.next();
   const { redirect: authRedirect, user } = await checkAuthStatus(request);
-  if (authRedirect) {
-    return authRedirect;
-  }
-
-  // Check admin access for admin routes
+  if (authRedirect) return authRedirect;
   const { redirect: adminRedirect } = await checkAdminAccess(request);
-  if (adminRedirect) {
-    return adminRedirect;
+  if (adminRedirect) return adminRedirect;
+  if (user) {
+    const isAdmin = user.serverMetadata?.userType === "Admin";
+    if (!isAdmin) {
+      const { redirect: onboardingRedirect } = await checkOnboardingStatus(
+        request
+      );
+      if (onboardingRedirect) return onboardingRedirect;
+    } else if (["/home", "/onboarding"].includes(currentPath))
+      return NextResponse.redirect(new URL("/admin", request.url));
   }
-
-  // Check onboarding status (only if user is authenticated)
-  if (user && user.serverMetadata?.userType !== "Admin") {
-    const { redirect } = await checkOnboardingStatus(request);
-    if (redirect) {
-      return redirect;
-    }
-  }
-
   return NextResponse.next();
 }
 
