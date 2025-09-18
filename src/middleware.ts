@@ -7,41 +7,23 @@ import {
   checkAdminAccess,
 } from "@/lib/middleware-utils";
 
-// Main middleware function
 export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-
-  // Skip auth checks for public routes
-  if (isExcludedRoute(pathname, "publicAccess")) {
-    return NextResponse.next();
-  }
-
-  // Check authentication status first
+  const currentPath = request.nextUrl.pathname;
+  if (isExcludedRoute(currentPath, "publicAccess")) return NextResponse.next();
   const { redirect: authRedirect, user } = await checkAuthStatus(request);
-  if (authRedirect) {
-    return authRedirect;
-  }
-
-  // Check admin access for admin routes
+  if (authRedirect) return authRedirect;
   const { redirect: adminRedirect } = await checkAdminAccess(request);
-  if (adminRedirect) {
-    return adminRedirect;
-  }
-
-  // Check onboarding status (only if user is authenticated)
-  if (user && user.serverMetadata?.userType !== "Admin") {
-    const { redirect } = await checkOnboardingStatus(request);
-    if (redirect) {
-      return redirect;
-    }
-  } else if (user && user.serverMetadata?.userType === "Admin") {
-    // If an admin ends up on generic post-auth pages (/home or onboarding), send to their dashboard
-    const postAuthGenericPaths = ["/home", "/onboarding"]; // safeguard if config changes
-    if (postAuthGenericPaths.includes(pathname)) {
+  if (adminRedirect) return adminRedirect;
+  if (user) {
+    const isAdmin = user.serverMetadata?.userType === "Admin";
+    if (!isAdmin) {
+      const { redirect: onboardingRedirect } = await checkOnboardingStatus(
+        request
+      );
+      if (onboardingRedirect) return onboardingRedirect;
+    } else if (["/home", "/onboarding"].includes(currentPath))
       return NextResponse.redirect(new URL("/admin", request.url));
-    }
   }
-
   return NextResponse.next();
 }
 
