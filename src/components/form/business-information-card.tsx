@@ -36,7 +36,9 @@ export const BusinessInformationCard = ({
     <CardContent className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="businessName">Startup Name <span className="text-red-500">*</span></Label>
+          <Label htmlFor="businessName">
+            Startup Name <span className="text-red-500">*</span>
+          </Label>
           <Input
             id="businessName"
             placeholder="Enter your registered startup/business name"
@@ -47,7 +49,9 @@ export const BusinessInformationCard = ({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="businessTerritory">Region <span className="text-red-500">*</span></Label>
+          <Label htmlFor="businessTerritory">
+            Region <span className="text-red-500">*</span>
+          </Label>
           <Select
             onValueChange={(value) => onInputChange("businessTerritory", value)}
           >
@@ -65,7 +69,9 @@ export const BusinessInformationCard = ({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="ownerName">Founder/Owner&apos;s Name <span className="text-red-500">*</span></Label>
+          <Label htmlFor="ownerName">
+            Founder/Owner&apos;s Name <span className="text-red-500">*</span>
+          </Label>
           <Input
             id="ownerName"
             placeholder="Enter the startup founder or owner's full name"
@@ -76,7 +82,9 @@ export const BusinessInformationCard = ({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="certificateNo">Registration Certificate No. <span className="text-red-500">*</span></Label>
+          <Label htmlFor="certificateNo">
+            Registration Certificate No. <span className="text-red-500">*</span>
+          </Label>
           <Input
             id="certificateNo"
             placeholder="Enter registration certificate number"
@@ -87,7 +95,9 @@ export const BusinessInformationCard = ({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="transactionDate">Registration Date <span className="text-red-500">*</span></Label>
+          <Label htmlFor="transactionDate">
+            Registration Date <span className="text-red-500">*</span>
+          </Label>
           <Input
             id="transactionDate"
             type="date"
@@ -99,7 +109,9 @@ export const BusinessInformationCard = ({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="businessScope">Business Scope/Industry <span className="text-red-500">*</span></Label>
+        <Label htmlFor="businessScope">
+          Business Scope/Industry <span className="text-red-500">*</span>
+        </Label>
         <textarea
           id="businessScope"
           placeholder="Describe your startup's business scope, industry, and activities (e.g., FinTech, E-commerce, HealthTech, etc.)"
