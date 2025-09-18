@@ -12,8 +12,6 @@ export default async function WithNavLayout({
 }>) {
   const user = await stackServerApp.getUser();
 
-  console.log(user?.serverMetadata.userType);
-
   return (
     <div>
       {/* Top Navigation */}
