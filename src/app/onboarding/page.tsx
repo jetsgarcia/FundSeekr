@@ -7,41 +7,37 @@ import { Step2 } from "@/components/onboarding/Step2";
 import { Step3 } from "@/components/onboarding/Step3";
 import { toast } from "sonner";
 
-interface InvestorData {
+export interface InvestorData {
   firstName: string;
   lastName: string;
   organization: string;
   linkedinURL: string;
 }
 
-interface StartupData {
+export interface StartupData {
   firstName: string;
   lastName: string;
   position: string;
   contactNumber: string;
   linkedinLink: string;
   name: string;
-  website: string;
-  description: string;
-  city: string;
-  dateFounded: string;
-  keywords: string;
-  industry: string;
 }
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const [userType, setUserType] = useState<null | "investor" | "startup">(null);
   const [step, setStep] = useState(1);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
+  const [userType, setUserType] = useState<null | "investor" | "startup">(null);
+  const [businessStructure, setBusinessStructure] = useState<
+    "Sole" | "Partnership" | "Corporation" | null
+  >(null);
   const [investorData, setInvestorData] = useState<InvestorData>({
     firstName: "",
     lastName: "",
     organization: "",
     linkedinURL: "",
   });
-
   const [startupData, setStartupData] = useState<StartupData>({
     firstName: "",
     lastName: "",
@@ -49,12 +45,6 @@ export default function OnboardingPage() {
     contactNumber: "+63",
     linkedinLink: "",
     name: "",
-    website: "",
-    description: "",
-    city: "",
-    dateFounded: "",
-    keywords: "",
-    industry: "",
   });
 
   // Before unload warning
@@ -63,6 +53,7 @@ export default function OnboardingPage() {
       // Check if user has started filling the form
       const hasData =
         userType !== null ||
+        businessStructure !== null ||
         Object.values(investorData).some(
           (value) => value !== "" && value !== "+63"
         ) ||
@@ -81,121 +72,17 @@ export default function OnboardingPage() {
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
-  }, [userType, investorData, startupData, isSubmitted]);
+  }, [userType, businessStructure, investorData, startupData, isSubmitted]);
 
-  const handleInvestorChange = (field: keyof InvestorData, value: string) => {
+  function handleInvestorChange(field: keyof InvestorData, value: string) {
     setInvestorData((prev) => ({ ...prev, [field]: value }));
-  };
+  }
 
-  const handleStartupChange = (field: keyof StartupData, value: string) => {
+  function handleStartupChange(field: keyof StartupData, value: string) {
     setStartupData((prev) => ({ ...prev, [field]: value }));
-  };
+  }
 
-  const handleSubmit = async () => {
-    if (step === 2) {
-      setStep(3);
-      return;
-    }
-
-    if (step === 3) {
-      // Handle step 3 submission
-      setIsSubmitted(true);
-      // Add step 3 data to submission
-      const data = {
-        step,
-        userType,
-        ...(userType === "investor" ? investorData : startupData),
-        // Add step 3 data here when ready
-      };
-
-      try {
-        const response = await fetch("/api/onboarding", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-        });
-
-        if (!response.ok) {
-          let errorMessage = "An error occurred";
-          try {
-            const errorData = await response.json();
-            errorMessage = errorData.message || errorMessage;
-          } catch {
-            const errorText = await response.text();
-            errorMessage = errorText || errorMessage;
-          }
-          console.error("Server error:", response.status, errorMessage);
-          setIsSubmitted(false);
-
-          toast.error(errorMessage);
-          return;
-        }
-
-        // Success case
-        toast.success("Onboarding completed successfully!");
-        router.push("/home");
-      } catch (error) {
-        console.error("Network error:", error);
-        if (error instanceof Error) {
-          toast.error(error.message);
-        } else {
-          toast.error("An unknown error occurred");
-        }
-        setIsSubmitted(false);
-      }
-      return;
-    }
-
-    setIsSubmitted(true); // Prevent warning from unload
-
-    const data = {
-      step,
-      userType,
-      ...(userType === "investor" ? investorData : startupData),
-    };
-
-    try {
-      const response = await fetch("/api/onboarding", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        let errorMessage = "An error occurred";
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.message || errorMessage;
-        } catch {
-          const errorText = await response.text();
-          errorMessage = errorText || errorMessage;
-        }
-        console.error("Server error:", response.status, errorMessage);
-        setIsSubmitted(false);
-
-        toast.error(errorMessage);
-        return; // Early return on error
-      }
-
-      // Success case
-      toast.success("Onboarding completed successfully!");
-      router.push("/home");
-    } catch (error) {
-      console.error("Network error:", error);
-      if (error instanceof Error) {
-        toast.error(error.message);
-      } else {
-        toast.error("An unknown error occurred");
-      }
-      setIsSubmitted(false); // Allow retry
-    }
-  };
-
-  const isFormValid = (): boolean => {
+  function isFormValid(): boolean {
     if (step === 2) {
       if (userType === "investor") {
         return !!(investorData.firstName && investorData.lastName);
@@ -213,17 +100,62 @@ export default function OnboardingPage() {
         // The actual validation will be handled by Step3 component
         return true;
       } else {
-        return !!(
-          startupData.name &&
-          startupData.description &&
-          startupData.city &&
-          startupData.dateFounded &&
-          startupData.industry
-        );
+        return !!startupData.name;
       }
     }
     return false;
-  };
+  }
+
+  // TODO: Change to server action
+  async function handleSubmit() {
+    // Handle step 3 submission
+    setIsSubmitted(true);
+
+    const userData = {
+      step,
+      userType,
+      businessStructure,
+      ...(userType === "investor" ? investorData : startupData),
+    };
+
+    try {
+      const response = await fetch("/api/onboarding", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(userData),
+      });
+
+      if (!response.ok) {
+        let errorMessage = "An error occurred";
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch {
+          const errorText = await response.text();
+          errorMessage = errorText || errorMessage;
+        }
+        console.error("Server error:", response.status, errorMessage);
+        setIsSubmitted(false);
+
+        toast.error(errorMessage);
+        return;
+      }
+
+      // Success case
+      toast.success("Onboarding completed successfully!");
+      router.push("/home");
+    } catch (error) {
+      console.error("Network error:", error);
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("An unknown error occurred");
+      }
+      setIsSubmitted(false);
+    }
+  }
 
   return (
     <>
@@ -232,6 +164,8 @@ export default function OnboardingPage() {
           userType={userType}
           setUserType={setUserType}
           setStep={setStep}
+          businessStructure={businessStructure}
+          setBusinessStructure={setBusinessStructure}
         />
       )}
       {step === 2 && userType && (
@@ -241,7 +175,6 @@ export default function OnboardingPage() {
           startupData={startupData}
           handleInvestorChange={handleInvestorChange}
           handleStartupChange={handleStartupChange}
-          handleSubmit={handleSubmit}
           isFormValid={isFormValid}
           setStep={setStep}
         />
