@@ -59,9 +59,7 @@ export function Step2({
                 Basic Information
               </h1>
               <p className="text-slate-600 dark:text-slate-300 text-lg">
-                {userType === "investor"
-                  ? "Tell us about yourself as an investor"
-                  : "Tell us about yourself and your startup"}
+                Tell us about yourself
               </p>
             </div>
           </CardHeader>
