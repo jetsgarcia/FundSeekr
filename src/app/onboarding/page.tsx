@@ -180,7 +180,12 @@ export default function OnboardingPage() {
         />
       )}
       {step === 3 && userType && (
-        <Step3 onSubmit={handleSubmit} onCancel={() => setStep(2)} />
+        <Step3
+          userType={userType}
+          businessStructure={businessStructure}
+          onSubmit={handleSubmit}
+          onCancel={() => setStep(2)}
+        />
       )}
     </>
   );
