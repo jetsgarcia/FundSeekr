@@ -16,28 +16,15 @@ model users_sync {
   created_at DateTime?   @default(dbgenerated("to_timestamp((trunc((((raw_json ->> 'signed_up_at_millis'::text))::bigint)::double precision) / (1000)::double precision))")) @db.Timestamptz(6)
   updated_at DateTime?   @db.Timestamptz(6)
   deleted_at DateTime?   @db.Timestamptz(6)
-  investors  investors[]
+  investors  investors[] @ignore
   startups   startups?
 
   @@index([deleted_at])
   @@schema("neon_auth")
 }
 
-model funding_requests {
-  funding_request_id Int                 @id @default(autoincrement())
-  funding_stage      funding_stage_enum?
-  amount_sought      Int?
-  use_of_funds       String?
-  decision_timeline  Int?
-  startup_id         Int?
-  is_open            Boolean
-  startups           startups?           @relation(fields: [startup_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@schema("public")
-}
-
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model investors {
-  id                        Int                     @id @default(autoincrement())
   organization              String?                 @db.VarChar
   position                  String?                 @db.VarChar
   city                      String?                 @db.VarChar
@@ -45,7 +32,6 @@ model investors {
   investor_linkedin         String?                 @db.VarChar
   decision_period_in_weeks  Int?
   typical_check_size_in_php BigInt?
-  investor_type             investor_type_enum?
   preferred_industries      String[]
   excluded_industries       String[]
   preferred_business_models String[]
@@ -59,44 +45,70 @@ model investors {
   key_contact_linkedin      String?                 @db.VarChar
   key_contact_number        String?                 @db.VarChar
   user_id                   String?
-  users_sync                users_sync?             @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  matches                   matches[]
+  govt_id_image_url         String                  @db.VarChar(255)
+  selfie_image_url          String?                 @db.VarChar(255)
+  proof_of_bank_image_url   String?                 @db.VarChar(255)
+  tin                       Int?
+  id                        String?                 @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  users_sync                users_sync?             @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  profile_matches           profile_matches[]
+  video_pitches             video_pitches[]
 
-  @@schema("public")
-}
-
-model matches {
-  id          Int        @id @default(autoincrement())
-  percentage  Int
-  investor_id Int?
-  startup_id  Int?
-  investors   investors? @relation(fields: [investor_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  startups    startups?  @relation(fields: [startup_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
+  @@ignore
   @@schema("public")
 }
 
 model startups {
-  id                    Int                     @id @default(autoincrement())
-  name                  String?                 @db.VarChar
-  description           String?
-  valuation             Int?
-  target_market         String[]
-  city                  String?                 @db.VarChar
-  date_founded          DateTime?               @db.Date
-  industry              String?                 @db.VarChar
-  website               String?                 @db.VarChar
-  keywords              String[]
-  intellectual_property Json[]
-  product_demo_url      String?                 @db.VarChar
-  key_metrics           Json[]
-  team_members          Json[]
-  advisors              Json[]
-  development_stage     development_stage_enum?
-  user_id               String?                 @unique
-  funding_requests      funding_requests[]
-  matches               matches[]
-  users_sync            users_sync?             @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  name                    String?                 @db.VarChar
+  description             String?
+  target_market           String[]
+  city                    String?                 @db.VarChar
+  date_founded            DateTime?               @db.Date
+  industry                String?                 @db.VarChar
+  website_url             String?                 @db.VarChar
+  keywords                String[]
+  product_demo_url        String?                 @db.VarChar
+  key_metrics             Json[]
+  team_members            Json[]
+  advisors                Json[]
+  development_stage       development_stage_enum?
+  user_id                 String?                 @unique
+  govt_id_image_url       String                  @db.VarChar(255)
+  bir_cor_image_url       String                  @db.VarChar(255)
+  proof_of_bank_image_url String                  @db.VarChar(255)
+  documents               Json[]
+  id                      String                  @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile_matches         profile_matches[]
+  users_sync              users_sync?             @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  video_pitches           video_pitches[]
+
+  @@schema("public")
+}
+
+model profile_matches {
+  id               Int       @id(map: "matches_pkey") @default(autoincrement())
+  match_percentage Int
+  investor_id      String    @db.Uuid
+  startup_id       String    @db.Uuid
+  investors        investors @relation(fields: [investor_id], references: [id], onDelete: Cascade, map: "investor_id") @ignore
+  startups         startups  @relation(fields: [startup_id], references: [id], onDelete: Cascade, map: "startup_id")
+
+  @@schema("public")
+}
+
+model video_pitches {
+  id                  Int               @id @default(autoincrement())
+  title               String            @db.VarChar(255)
+  duration_in_seconds Int
+  pitch_status        video_status_enum
+  video_url           String            @db.VarChar(255)
+  attachment_links    Json[]
+  date_sent           DateTime?         @db.Timestamptz(6)
+  description         String
+  startup_id          String            @db.Uuid
+  investor_id         String            @db.Uuid
+  investors           investors         @relation(fields: [investor_id], references: [id], onDelete: Cascade, map: "investor_id") @ignore
+  startups            startups          @relation(fields: [startup_id], references: [id], onDelete: Cascade, map: "startup_id")
 
   @@schema("public")
 }
@@ -111,32 +123,18 @@ enum development_stage_enum {
   @@schema("public")
 }
 
-enum funding_stage_enum {
-  Pre_Seed  @map("Pre-Seed")
-  Seed
-  Series_A  @map("Series A")
-  Series_B  @map("Series B")
-  Series_C_ @map("Series C+")
-
-  @@schema("public")
-}
-
-enum investor_type_enum {
-  Angel_investor        @map("Angel investor")
-  Crowdfunding_investor @map("Crowdfunding investor")
-  Venture_capital       @map("Venture capital")
-  Corporate_investor    @map("Corporate investor")
-  Private_equity        @map("Private equity")
-  Impact_investor       @map("Impact investor")
-
-  @@schema("public")
-}
-
 enum involvement_level_enum {
   Hands_off   @map("Hands off")
   Advisor
   Active
   Controlling
+
+  @@schema("public")
+}
+
+enum video_status_enum {
+  Sent
+  Viewed
 
   @@schema("public")
 }
