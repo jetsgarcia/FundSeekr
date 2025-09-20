@@ -5,28 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { User, Building2, Phone, Linkedin } from "lucide-react";
-
-interface InvestorData {
-  firstName: string;
-  lastName: string;
-  organization: string;
-  linkedinURL: string;
-}
-
-interface StartupData {
-  firstName: string;
-  lastName: string;
-  position: string;
-  contactNumber: string;
-  linkedinLink: string;
-  name: string;
-  website: string;
-  description: string;
-  city: string;
-  dateFounded: string;
-  keywords: string;
-  industry: string;
-}
+import { InvestorData, StartupData } from "@/app/onboarding/page";
 
 interface Step2Props {
   userType: "investor" | "startup";
@@ -36,7 +15,6 @@ interface Step2Props {
   handleStartupChange: (field: keyof StartupData, value: string) => void;
   setStep: (step: number) => void;
   isFormValid: () => boolean;
-  handleSubmit: () => void;
 }
 
 export function Step2({
@@ -47,7 +25,6 @@ export function Step2({
   handleStartupChange,
   setStep,
   isFormValid,
-  handleSubmit,
 }: Step2Props) {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
@@ -297,7 +274,7 @@ export function Step2({
                 Back
               </Button>
               <Button
-                onClick={handleSubmit}
+                onClick={() => setStep(3)}
                 disabled={!isFormValid()}
                 className="px-6 bg-blue-600 hover:bg-blue-700 transition-colors shadow-lg"
               >
