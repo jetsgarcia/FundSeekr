@@ -247,7 +247,7 @@ export function Step3({ onSubmit, onCancel }: Step3Props) {
 
             <div className="flex justify-end gap-3 pt-6">
               <Button variant="outline" className="px-6" onClick={onCancel}>
-                Cancel
+                Back
               </Button>
               <Button
                 className="px-6"
