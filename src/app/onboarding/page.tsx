@@ -123,6 +123,57 @@ export default function OnboardingPage() {
       return;
     }
 
+    if (step === 3) {
+      // Handle step 3 submission
+      setIsSubmitted(true);
+      // Add step 3 data to submission
+      const data = {
+        step,
+        userType,
+        ...(userType === "investor" ? investorData : startupData),
+        // Add step 3 data here when ready
+      };
+
+      try {
+        const response = await fetch("/api/onboarding", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        });
+
+        if (!response.ok) {
+          let errorMessage = "An error occurred";
+          try {
+            const errorData = await response.json();
+            errorMessage = errorData.message || errorMessage;
+          } catch {
+            const errorText = await response.text();
+            errorMessage = errorText || errorMessage;
+          }
+          console.error("Server error:", response.status, errorMessage);
+          setIsSubmitted(false);
+
+          toast.error(errorMessage);
+          return;
+        }
+
+        // Success case
+        toast.success("Onboarding completed successfully!");
+        router.push("/home");
+      } catch (error) {
+        console.error("Network error:", error);
+        if (error instanceof Error) {
+          toast.error(error.message);
+        } else {
+          toast.error("An unknown error occurred");
+        }
+        setIsSubmitted(false);
+      }
+      return;
+    }
+
     setIsSubmitted(true); // Prevent warning from unload
 
     const data = {
@@ -183,24 +234,7 @@ export default function OnboardingPage() {
         );
       }
     } else if (step === 3) {
-      if (userType === "investor") {
-        return !!(
-          investorData.investorType &&
-          investorData.city &&
-          investorData.keyContactPersonName &&
-          investorData.keyContactNumber.length > 3 &&
-          investorData.decisionPeriodInWeeks > 0 &&
-          investorData.typicalCheckSizeInPhp > 0
-        );
-      } else {
-        return !!(
-          startupData.name &&
-          startupData.description &&
-          startupData.city &&
-          startupData.dateFounded &&
-          startupData.industry
-        );
-      }
+      return true; // Validation handled in Step3 component
     }
     return false;
   };
@@ -227,17 +261,7 @@ export default function OnboardingPage() {
         />
       )}
       {step === 3 && userType && (
-        <Step3
-          userType={userType}
-          investorData={investorData}
-          startupData={startupData}
-          handleInvestorChange={handleInvestorChange}
-          handleStartupChange={handleStartupChange}
-          handleSubmit={handleSubmit}
-          isFormValid={isFormValid}
-          setStep={setStep}
-          isSubmitting={isSubmitted}
-        />
+        <Step3 onSubmit={handleSubmit} onCancel={() => setStep(2)} />
       )}
     </>
   );
