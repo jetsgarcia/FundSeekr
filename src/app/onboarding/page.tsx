@@ -11,16 +11,7 @@ interface InvestorData {
   firstName: string;
   lastName: string;
   organization: string;
-  position: string;
-  organizationWebsite: string;
-  investorLinkedin: string;
-  investorType: string;
-  city: string;
-  keyContactPersonName: string;
-  keyContactNumber: string;
-  keyContactLinkedin: string;
-  decisionPeriodInWeeks: number;
-  typicalCheckSizeInPhp: number;
+  linkedinURL: string;
 }
 
 interface StartupData {
@@ -48,16 +39,7 @@ export default function OnboardingPage() {
     firstName: "",
     lastName: "",
     organization: "",
-    position: "",
-    organizationWebsite: "",
-    investorLinkedin: "",
-    investorType: "",
-    city: "",
-    keyContactPersonName: "",
-    keyContactNumber: "+63",
-    keyContactLinkedin: "",
-    decisionPeriodInWeeks: 0,
-    typicalCheckSizeInPhp: 0,
+    linkedinURL: "",
   });
 
   const [startupData, setStartupData] = useState<StartupData>({
@@ -75,7 +57,7 @@ export default function OnboardingPage() {
     industry: "",
   });
 
-  // Add beforeunload warning
+  // Before unload warning
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       // Check if user has started filling the form
@@ -102,15 +84,7 @@ export default function OnboardingPage() {
   }, [userType, investorData, startupData, isSubmitted]);
 
   const handleInvestorChange = (field: keyof InvestorData, value: string) => {
-    if (
-      field === "typicalCheckSizeInPhp" ||
-      field === "decisionPeriodInWeeks"
-    ) {
-      const numericValue = value === "" ? 0 : parseFloat(value) || 0;
-      setInvestorData((prev) => ({ ...prev, [field]: numericValue }));
-    } else {
-      setInvestorData((prev) => ({ ...prev, [field]: value }));
-    }
+    setInvestorData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleStartupChange = (field: keyof StartupData, value: string) => {
@@ -234,7 +208,19 @@ export default function OnboardingPage() {
         );
       }
     } else if (step === 3) {
-      return true; // Validation handled in Step3 component
+      if (userType === "investor") {
+        // For investors, step 3 is just document upload, so always return true
+        // The actual validation will be handled by Step3 component
+        return true;
+      } else {
+        return !!(
+          startupData.name &&
+          startupData.description &&
+          startupData.city &&
+          startupData.dateFounded &&
+          startupData.industry
+        );
+      }
     }
     return false;
   };

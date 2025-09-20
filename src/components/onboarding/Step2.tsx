@@ -4,22 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { User, Building2, Globe, Phone, Linkedin } from "lucide-react";
+import { User, Building2, Phone, Linkedin } from "lucide-react";
 
 interface InvestorData {
   firstName: string;
   lastName: string;
   organization: string;
-  position: string;
-  organizationWebsite: string;
-  investorLinkedin: string;
-  investorType: string;
-  city: string;
-  keyContactPersonName: string;
-  keyContactNumber: string;
-  keyContactLinkedin: string;
-  decisionPeriodInWeeks: number;
-  typicalCheckSizeInPhp: number;
+  linkedinURL: string;
 }
 
 interface StartupData {
@@ -146,56 +137,6 @@ export function Step2({
                   </div>
                 </div>
 
-                {/* Position and Website (only if organization is filled) */}
-                {investorData.organization && (
-                  <>
-                    <div className="flex flex-col gap-2">
-                      <Label
-                        htmlFor="position"
-                        className="text-sm font-medium text-slate-700 dark:text-slate-300"
-                      >
-                        Position
-                      </Label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
-                        <Input
-                          id="position"
-                          value={investorData.position}
-                          onChange={(e) =>
-                            handleInvestorChange("position", e.target.value)
-                          }
-                          className="pl-10 border-slate-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-700 dark:text-slate-100"
-                          placeholder="Senior Partner"
-                        />
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <Label
-                        htmlFor="website"
-                        className="text-sm font-medium text-slate-700 dark:text-slate-300"
-                      >
-                        Website URL
-                      </Label>
-                      <div className="relative">
-                        <Globe className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
-                        <Input
-                          id="website"
-                          type="url"
-                          value={investorData.organizationWebsite}
-                          onChange={(e) =>
-                            handleInvestorChange(
-                              "organizationWebsite",
-                              e.target.value
-                            )
-                          }
-                          className="pl-10 border-slate-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-700 dark:text-slate-100"
-                          placeholder="https://abcventures.com"
-                        />
-                      </div>
-                    </div>
-                  </>
-                )}
-
                 {/* LinkedIn Profile */}
                 <div className="flex flex-col gap-2">
                   <Label
@@ -209,9 +150,9 @@ export function Step2({
                     <Input
                       id="linkedinProfile"
                       type="url"
-                      value={investorData.investorLinkedin}
+                      value={investorData.linkedinURL}
                       onChange={(e) =>
-                        handleInvestorChange("investorLinkedin", e.target.value)
+                        handleInvestorChange("linkedinURL", e.target.value)
                       }
                       className="pl-10 border-slate-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-700 dark:text-slate-100"
                       placeholder="https://linkedin.com/in/johnsmith"
