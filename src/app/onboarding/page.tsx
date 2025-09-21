@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import { Step1 } from "@/components/onboarding/Step1";
 import { Step2 } from "@/components/onboarding/Step2";
 import { Step3 } from "@/components/onboarding/Step3";
 import { toast } from "sonner";
+import { submitOnboarding } from "@/actions/onboarding";
 
 // User type definitions
 export type UserType = "investor" | "startup";
@@ -53,8 +53,6 @@ export interface OnboardingFormData {
 }
 
 export default function OnboardingPage() {
-  const router = useRouter();
-
   // Main form state
   const [formData, setFormData] = useState<OnboardingFormData>({
     step: 1,
@@ -87,6 +85,14 @@ export default function OnboardingPage() {
   });
 
   const [isSubmitted, setIsSubmitted] = useState(false);
+
+  // Track uploaded file URLs from Step3
+  const [fileUrls, setFileUrls] = useState({
+    validIdUrl: "",
+    proofOfBankUrl: "",
+    selfieUrl: "",
+    birCorUrl: "",
+  });
 
   // Utility functions for form data management
   const updateFormData = (updates: Partial<OnboardingFormData>) => {
@@ -189,13 +195,11 @@ export default function OnboardingPage() {
     return false;
   }
 
-  // TODO: Change to server action
+  // Server action for form submission
   async function handleSubmit() {
-    // Handle step 3 submission
     setIsSubmitted(true);
 
     const {
-      step,
       userType,
       businessStructure,
       investorData,
@@ -203,47 +207,48 @@ export default function OnboardingPage() {
       step3Data,
     } = formData;
 
-    const userData = {
-      step,
-      userType,
-      businessStructure,
-      ...(userType === "investor" ? investorData : startupData),
-      // Step 3 data
-      files: step3Data.files,
-      tin: userType === "investor" ? step3Data.tin : undefined,
-      businessName: userType === "startup" ? step3Data.businessName : undefined,
-    };
-
     try {
-      const response = await fetch("/api/onboarding", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(userData),
-      });
+      // Create FormData object for server action
+      const formDataObj = new FormData();
 
-      if (!response.ok) {
-        let errorMessage = "An error occurred";
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.message || errorMessage;
-        } catch {
-          const errorText = await response.text();
-          errorMessage = errorText || errorMessage;
-        }
-        console.error("Server error:", response.status, errorMessage);
-        setIsSubmitted(false);
+      // Add basic form data
+      formDataObj.append("userType", userType || "");
+      formDataObj.append("businessStructure", businessStructure || "");
 
-        toast.error(errorMessage);
+      // Add user-specific data
+      if (userType === "investor") {
+        formDataObj.append("organization", investorData.organization);
+        formDataObj.append("linkedinURL", investorData.linkedinURL);
+        formDataObj.append("position", ""); // investors don't have position in step 2
+      } else if (userType === "startup") {
+        formDataObj.append("name", startupData.name);
+        formDataObj.append("position", startupData.position);
+      }
+
+      // Add step 3 data
+      formDataObj.append("tin", step3Data.tin);
+      formDataObj.append("businessName", step3Data.businessName);
+
+      // Add file URLs (instead of files)
+      formDataObj.append("validIdUrl", fileUrls.validIdUrl);
+      formDataObj.append("proofOfBankUrl", fileUrls.proofOfBankUrl);
+      formDataObj.append("selfieUrl", fileUrls.selfieUrl);
+      formDataObj.append("birCorUrl", fileUrls.birCorUrl);
+
+      // Call server action
+      await submitOnboarding(formDataObj);
+
+      // If we reach here, redirect didn't happen - something might be wrong
+      // But don't show success toast since redirect should happen
+    } catch (error) {
+      console.error("Onboarding error:", error);
+
+      // Don't show toast for redirect errors (NEXT_REDIRECT)
+      if (error instanceof Error && error.message.includes("NEXT_REDIRECT")) {
+        // This is a redirect, not an actual error - let it happen silently
         return;
       }
 
-      // Success case
-      toast.success("Onboarding completed successfully!");
-      router.push("/home");
-    } catch (error) {
-      console.error("Network error:", error);
       if (error instanceof Error) {
         toast.error(error.message);
       } else {
@@ -289,6 +294,9 @@ export default function OnboardingPage() {
           setBusinessName={(businessName) => updateStep3Data({ businessName })}
           onSubmit={handleSubmit}
           onCancel={() => updateFormData({ step: 2 })}
+          onFileUpload={(fileType, url) => {
+            setFileUrls((prev) => ({ ...prev, [`${fileType}Url`]: url }));
+          }}
         />
       )}
     </>

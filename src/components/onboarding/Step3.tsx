@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Upload, Check } from "lucide-react";
+import { Upload, Check, Loader2 } from "lucide-react";
+import { uploadFile } from "@/actions/onboarding";
 import {
   DocumentFiles,
   UserType,
@@ -23,6 +24,15 @@ interface Step3Props {
   setBusinessName: (businessName: string) => void;
   onSubmit?: () => void;
   onCancel?: () => void;
+  onFileUpload?: (fileType: string, url: string) => void;
+}
+
+// Add new interface for file upload states
+interface FileUploadState {
+  isUploading: boolean;
+  isUploaded: boolean;
+  url: string | null;
+  error: string | null;
 }
 
 export function Step3({
@@ -36,8 +46,25 @@ export function Step3({
   setBusinessName,
   onSubmit,
   onCancel,
+  onFileUpload,
 }: Step3Props) {
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Track upload states for each file
+  const [uploadStates, setUploadStates] = useState<
+    Record<string, FileUploadState>
+  >({
+    validId: { isUploading: false, isUploaded: false, url: null, error: null },
+    proofOfBank: {
+      isUploading: false,
+      isUploaded: false,
+      url: null,
+      error: null,
+    },
+    selfie: { isUploading: false, isUploaded: false, url: null, error: null },
+    birCor: { isUploading: false, isUploaded: false, url: null, error: null },
+  });
 
   const validateFile = (file: File | null, field: string): string => {
     if (!file) return `${field} is required`;
@@ -52,7 +79,7 @@ export function Step3({
       return "Must be an image (JPEG, PNG) or PDF file";
     }
 
-    if (file.size > 5 * 1024 * 1024) return "File size must be less than 5MB";
+    if (file.size > 4 * 1024 * 1024) return "File size must be less than 4MB";
     return "";
   };
 
@@ -71,14 +98,81 @@ export function Step3({
 
   const handleFileChange =
     (field: keyof DocumentFiles) =>
-    (e: React.ChangeEvent<HTMLInputElement>) => {
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0] || null;
-      setFiles({ ...files, [field]: file });
+      if (!file) return;
+
+      // Client-side validation
       const error = validateFile(
         file,
         field.replace(/([A-Z])/g, " $1").toLowerCase()
       );
-      setErrors((prev) => ({ ...prev, [field]: error }));
+      if (error) {
+        setErrors((prev) => ({ ...prev, [field]: error }));
+        return;
+      }
+
+      // Clear any previous errors
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+
+      // Set uploading state
+      setUploadStates((prev) => ({
+        ...prev,
+        [field]: {
+          isUploading: true,
+          isUploaded: false,
+          url: null,
+          error: null,
+        },
+      }));
+
+      try {
+        // Create FormData for individual file upload
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("fileType", field);
+
+        // Upload file
+        const result = await uploadFile(formData);
+
+        if (result.success && result.url) {
+          // Update file state and upload state
+          setFiles({ ...files, [field]: file });
+          setUploadStates((prev) => ({
+            ...prev,
+            [field]: {
+              isUploading: false,
+              isUploaded: true,
+              url: result.url,
+              error: null,
+            },
+          }));
+
+          // Notify parent component about the uploaded file URL
+          onFileUpload?.(field, result.url);
+        } else {
+          // Handle upload error
+          setUploadStates((prev) => ({
+            ...prev,
+            [field]: {
+              isUploading: false,
+              isUploaded: false,
+              url: null,
+              error: result.error || "Upload failed",
+            },
+          }));
+        }
+      } catch {
+        setUploadStates((prev) => ({
+          ...prev,
+          [field]: {
+            isUploading: false,
+            isUploaded: false,
+            url: null,
+            error: "Upload failed",
+          },
+        }));
+      }
     };
 
   const handleTinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -96,40 +190,38 @@ export function Step3({
   };
 
   const isValid = () => {
-    // Common documents for both investors and startups
-    const commonFiles: (keyof DocumentFiles)[] = ["validId", "proofOfBank"];
-    const commonErrors = commonFiles.map((key) =>
-      validateFile(files[key], key)
-    );
+    // Check that required files are uploaded successfully
+    const requiredFiles: string[] = ["validId", "proofOfBank"];
 
-    // For investors, also validate TIN and selfie
     if (userType === "investor") {
-      commonErrors.push(validateFile(files.selfie, "selfie"));
+      requiredFiles.push("selfie");
+      // Also validate TIN for investors
       const tinError = validateTin(tin);
-      if (tinError) commonErrors.push(tinError);
+      if (tinError) return false;
     }
 
-    // Additional validation for startups
     if (userType === "startup") {
-      const startupErrors = [];
-
-      // Business name is required for startups
+      requiredFiles.push("birCor");
+      // Also validate business name for startups
       const businessNameError = validateBusinessName(businessName);
-      if (businessNameError) startupErrors.push(businessNameError);
-
-      // BIR COR is required for all startups
-      startupErrors.push(validateFile(files.birCor, "BIR COR"));
-
-      return !commonErrors.some((e) => e) && !startupErrors.some((e) => e);
+      if (businessNameError) return false;
     }
 
-    // For investors, validate common files plus TIN and selfie
-    return !commonErrors.some((e) => e);
+    // Check if all required files are uploaded
+    return requiredFiles.every((field) => uploadStates[field]?.isUploaded);
   };
 
-  const handleSubmit = () => {
-    if (isValid()) {
-      onSubmit?.();
+  const handleSubmit = async () => {
+    if (!isValid()) return;
+
+    setIsSubmitting(true);
+    try {
+      // Call the parent submit function
+      await onSubmit?.();
+    } catch (error) {
+      console.error("Submission error:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -200,21 +292,33 @@ export function Step3({
                   className="hidden"
                   id="validId"
                   onChange={handleFileChange("validId")}
+                  disabled={uploadStates.validId.isUploading}
                 />
                 <label
                   htmlFor="validId"
                   className={`flex items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
-                    files.validId
+                    uploadStates.validId.isUploaded
                       ? "border-green-500 bg-green-50 dark:bg-green-900/20"
+                      : uploadStates.validId.isUploading
+                      ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
                       : "border-slate-300 dark:border-slate-600 hover:border-blue-500"
+                  } ${
+                    uploadStates.validId.isUploading ? "cursor-not-allowed" : ""
                   }`}
                 >
                   <div className="text-center">
-                    {files.validId ? (
+                    {uploadStates.validId.isUploading ? (
+                      <>
+                        <Loader2 className="w-8 h-8 text-blue-600 mx-auto mb-2 animate-spin" />
+                        <span className="text-blue-700 dark:text-blue-300 text-sm">
+                          Uploading...
+                        </span>
+                      </>
+                    ) : uploadStates.validId.isUploaded ? (
                       <>
                         <Check className="w-8 h-8 text-green-600 mx-auto mb-2" />
                         <span className="text-green-700 dark:text-green-300 text-sm">
-                          {files.validId.name}
+                          Valid ID uploaded successfully
                         </span>
                       </>
                     ) : (
@@ -229,6 +333,11 @@ export function Step3({
                 </label>
                 {errors.validId && (
                   <p className="text-red-500 text-sm">{errors.validId}</p>
+                )}
+                {uploadStates.validId.error && (
+                  <p className="text-red-500 text-sm">
+                    {uploadStates.validId.error}
+                  </p>
                 )}
               </div>
             </div>
@@ -406,15 +515,27 @@ export function Step3({
             )}
 
             <div className="flex justify-end gap-3 pt-6">
-              <Button variant="outline" className="px-6" onClick={onCancel}>
+              <Button
+                variant="outline"
+                className="px-6"
+                onClick={onCancel}
+                disabled={isSubmitting}
+              >
                 Back
               </Button>
               <Button
                 className="px-6"
                 onClick={handleSubmit}
-                disabled={!isValid()}
+                disabled={!isValid() || isSubmitting}
               >
-                Submit
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  "Submit"
+                )}
               </Button>
             </div>
           </CardContent>
