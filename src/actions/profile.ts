@@ -5,7 +5,6 @@ import type {
   investors as InvestorProfile,
   startups as StartupProfile,
   development_stage_enum,
-  investor_type_enum,
   involvement_level_enum,
 } from "@prisma/client";
 
@@ -80,14 +79,6 @@ type KeyMetric = {
   description?: string;
 };
 
-type IntellectualProperty = {
-  type: string;
-  title: string;
-  status?: string;
-  description?: string;
-  filing_date?: string;
-};
-
 type NotableExit = {
   company_name: string;
   exit_type: string;
@@ -102,7 +93,6 @@ export async function updateStartupProfile(data: {
   industry?: string;
   city?: string;
   website?: string;
-  valuation?: number | null;
   date_founded?: Date | null;
   product_demo_url?: string;
   development_stage?: development_stage_enum | null;
@@ -111,7 +101,6 @@ export async function updateStartupProfile(data: {
   team_members?: TeamMember[];
   advisors?: Advisor[];
   key_metrics?: KeyMetric[];
-  intellectual_property?: IntellectualProperty[];
 }): Promise<updateProfileType> {
   const user = await stackServerApp.getUser();
 
@@ -141,8 +130,7 @@ export async function updateStartupProfile(data: {
         description: data.description,
         industry: data.industry,
         city: data.city,
-        website: data.website,
-        valuation: data.valuation,
+        website_url: data.website,
         date_founded: data.date_founded,
         product_demo_url: data.product_demo_url,
         development_stage: data.development_stage,
@@ -151,7 +139,6 @@ export async function updateStartupProfile(data: {
         team_members: data.team_members,
         advisors: data.advisors,
         key_metrics: data.key_metrics,
-        intellectual_property: data.intellectual_property,
       },
     });
 
@@ -174,7 +161,6 @@ export async function updateInvestorProfile(data: {
   investor_linkedin?: string;
   typical_check_size_in_php?: bigint | null;
   decision_period_in_weeks?: number | null;
-  investor_type?: investor_type_enum | null;
   involvement_level?: involvement_level_enum | null;
   key_contact_person_name?: string;
   key_contact_linkedin?: string;
@@ -219,7 +205,6 @@ export async function updateInvestorProfile(data: {
         investor_linkedin: data.investor_linkedin,
         typical_check_size_in_php: data.typical_check_size_in_php,
         decision_period_in_weeks: data.decision_period_in_weeks,
-        investor_type: data.investor_type,
         involvement_level: data.involvement_level,
         key_contact_person_name: data.key_contact_person_name,
         key_contact_linkedin: data.key_contact_linkedin,

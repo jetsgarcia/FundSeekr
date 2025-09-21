@@ -1,558 +1,594 @@
 "use client";
 
-import * as React from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Upload, Check, Loader2 } from "lucide-react";
+import { uploadFile } from "@/actions/onboarding";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  User,
-  MapPin,
-  Phone,
-  Linkedin,
-  Clock,
-  Building,
-  Globe,
-  Calendar,
-  Tag,
-  Loader2,
-} from "lucide-react";
-import { format, parse, startOfDay } from "date-fns";
-
-interface InvestorData {
-  firstName: string;
-  lastName: string;
-  organization: string;
-  position: string;
-  organizationWebsite: string;
-  investorLinkedin: string;
-  investorType: string;
-  city: string;
-  keyContactPersonName: string;
-  keyContactNumber: string;
-  keyContactLinkedin: string;
-  decisionPeriodInWeeks: number;
-  typicalCheckSizeInPhp: number;
-}
-
-interface StartupData {
-  firstName: string;
-  lastName: string;
-  position: string;
-  contactNumber: string;
-  linkedinLink: string;
-  name: string;
-  website: string;
-  description: string;
-  city: string;
-  dateFounded: string;
-  keywords: string;
-  industry: string;
-}
+  DocumentFiles,
+  UserType,
+  BusinessStructure,
+} from "@/app/onboarding/page";
 
 interface Step3Props {
-  userType: "investor" | "startup";
-  investorData: InvestorData;
-  startupData: StartupData;
-  handleInvestorChange: (field: keyof InvestorData, value: string) => void;
-  handleStartupChange: (field: keyof StartupData, value: string) => void;
-  setStep: (step: number) => void;
-  isFormValid: () => boolean;
-  handleSubmit: () => void;
-  isSubmitting?: boolean;
+  userType: UserType;
+  businessStructure?: BusinessStructure | null;
+  files: DocumentFiles;
+  setFiles: (files: DocumentFiles) => void;
+  tin: string;
+  setTin: (tin: string) => void;
+  businessName: string;
+  setBusinessName: (businessName: string) => void;
+  onSubmit?: () => void;
+  onCancel?: () => void;
+  onFileUpload?: (fileType: string, url: string) => void;
+}
+
+// Add new interface for file upload states
+interface FileUploadState {
+  isUploading: boolean;
+  isUploaded: boolean;
+  url: string | null;
+  error: string | null;
 }
 
 export function Step3({
   userType,
-  investorData,
-  startupData,
-  handleInvestorChange,
-  handleStartupChange,
-  setStep,
-  isFormValid,
-  handleSubmit,
-  isSubmitting,
+  businessStructure,
+  files,
+  setFiles,
+  tin,
+  setTin,
+  businessName,
+  setBusinessName,
+  onSubmit,
+  onCancel,
+  onFileUpload,
 }: Step3Props) {
-  // State for calendar date
-  const [calendarDate, setCalendarDate] = React.useState<Date | undefined>(
-    startupData.dateFounded
-      ? parse(startupData.dateFounded, "yyyy-MM-dd", new Date())
-      : undefined
-  );
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Handle calendar date selection
-  const handleDateSelect = (date: Date | undefined) => {
-    setCalendarDate(date);
-    if (date) {
-      // Format date as YYYY-MM-DD for form submission using local date
-      const normalizedDate = startOfDay(date);
-      const formattedDate = format(normalizedDate, "yyyy-MM-dd");
-      handleStartupChange("dateFounded", formattedDate);
-    } else {
-      handleStartupChange("dateFounded", "");
+  // Track upload states for each file
+  const [uploadStates, setUploadStates] = useState<
+    Record<string, FileUploadState>
+  >({
+    validId: { isUploading: false, isUploaded: false, url: null, error: null },
+    proofOfBank: {
+      isUploading: false,
+      isUploaded: false,
+      url: null,
+      error: null,
+    },
+    selfie: { isUploading: false, isUploaded: false, url: null, error: null },
+    birCor: { isUploading: false, isUploaded: false, url: null, error: null },
+  });
+
+  const validateFile = (file: File | null, field: string): string => {
+    if (!file) return `${field} is required`;
+
+    const allowedTypes = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "application/pdf",
+    ];
+    if (!allowedTypes.includes(file.type)) {
+      return "Must be an image (JPEG, PNG) or PDF file";
+    }
+
+    if (file.size > 4 * 1024 * 1024) return "File size must be less than 4MB";
+    return "";
+  };
+
+  const validateTin = (value: string): string => {
+    if (!value) return "TIN is required";
+    if (!/^\d{9}$/.test(value)) return "TIN must be exactly 9 digits";
+    return "";
+  };
+
+  const validateBusinessName = (value: string): string => {
+    if (!value.trim()) return "Business name is required";
+    if (value.trim().length < 2)
+      return "Business name must be at least 2 characters";
+    return "";
+  };
+
+  const handleFileChange =
+    (field: keyof DocumentFiles) =>
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0] || null;
+      if (!file) return;
+
+      // Client-side validation
+      const error = validateFile(
+        file,
+        field.replace(/([A-Z])/g, " $1").toLowerCase()
+      );
+      if (error) {
+        setErrors((prev) => ({ ...prev, [field]: error }));
+        return;
+      }
+
+      // Clear any previous errors
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+
+      // Set uploading state
+      setUploadStates((prev) => ({
+        ...prev,
+        [field]: {
+          isUploading: true,
+          isUploaded: false,
+          url: null,
+          error: null,
+        },
+      }));
+
+      try {
+        // Create FormData for individual file upload
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("fileType", field);
+
+        // Upload file
+        const result = await uploadFile(formData);
+
+        if (result.success && result.url) {
+          // Update file state and upload state
+          setFiles({ ...files, [field]: file });
+          setUploadStates((prev) => ({
+            ...prev,
+            [field]: {
+              isUploading: false,
+              isUploaded: true,
+              url: result.url,
+              error: null,
+            },
+          }));
+
+          // Notify parent component about the uploaded file URL
+          onFileUpload?.(field, result.url);
+        } else {
+          // Handle upload error
+          setUploadStates((prev) => ({
+            ...prev,
+            [field]: {
+              isUploading: false,
+              isUploaded: false,
+              url: null,
+              error: result.error || "Upload failed",
+            },
+          }));
+        }
+      } catch {
+        setUploadStates((prev) => ({
+          ...prev,
+          [field]: {
+            isUploading: false,
+            isUploaded: false,
+            url: null,
+            error: "Upload failed",
+          },
+        }));
+      }
+    };
+
+  const handleTinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, "").slice(0, 9);
+    setTin(value);
+    const error = validateTin(value);
+    setErrors((prev) => ({ ...prev, tin: error }));
+  };
+
+  const handleBusinessNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setBusinessName(value);
+    const error = validateBusinessName(value);
+    setErrors((prev) => ({ ...prev, businessName: error }));
+  };
+
+  const isValid = () => {
+    // Check that required files are uploaded successfully
+    const requiredFiles: string[] = ["validId", "proofOfBank"];
+
+    if (userType === "investor") {
+      requiredFiles.push("selfie");
+      // Also validate TIN for investors
+      const tinError = validateTin(tin);
+      if (tinError) return false;
+    }
+
+    if (userType === "startup") {
+      requiredFiles.push("birCor");
+      // Also validate business name for startups
+      const businessNameError = validateBusinessName(businessName);
+      if (businessNameError) return false;
+    }
+
+    // Check if all required files are uploaded
+    return requiredFiles.every((field) => uploadStates[field]?.isUploaded);
+  };
+
+  const handleSubmit = async () => {
+    if (!isValid()) return;
+
+    setIsSubmitting(true);
+    try {
+      // Call the parent submit function
+      await onSubmit?.();
+    } catch (error) {
+      console.error("Submission error:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
       <div className="w-full max-w-5xl mx-auto space-y-8">
-        <Card className="w-full shadow-xl border-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
+        <Card className="w-full shadow-xl border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
           <CardHeader className="space-y-6 pt-8 pb-8">
             <div className="text-center space-y-2">
               <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">
-                {userType === "investor"
-                  ? "Investor Profile"
-                  : "Startup Profile"}
+                Verification Documents
               </h1>
               <p className="text-slate-600 dark:text-slate-300 text-lg">
-                {userType === "investor"
-                  ? "Tell us more about your investment profile"
-                  : "Tell us more about your startup"}
+                {userType === "startup"
+                  ? `Please upload the required documents for ${businessStructure?.toLowerCase()} verification`
+                  : "Please upload the required documents for verification"}
               </p>
             </div>
           </CardHeader>
 
           <CardContent className="space-y-4">
-            {userType === "investor" ? (
+            {/* Business Name - Only for startups */}
+            {userType === "startup" && (
+              <div className="flex flex-col gap-2">
+                <Label
+                  htmlFor="businessName"
+                  className="text-sm font-medium text-slate-700 dark:text-slate-300"
+                >
+                  {businessStructure === "Sole"
+                    ? "DTI Registered Business Name"
+                    : "SEC Registered Business Name"}{" "}
+                  <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="businessName"
+                  type="text"
+                  value={businessName}
+                  onChange={handleBusinessNameChange}
+                  className={`border-slate-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-700 dark:text-slate-100 ${
+                    errors.businessName
+                      ? "border-red-500"
+                      : businessName && !errors.businessName
+                      ? "border-green-500"
+                      : ""
+                  }`}
+                  placeholder={
+                    businessStructure === "Sole"
+                      ? "Enter your DTI registered business name"
+                      : "Enter your SEC registered business name"
+                  }
+                />
+                {errors.businessName && (
+                  <p className="text-red-500 text-sm">{errors.businessName}</p>
+                )}
+              </div>
+            )}
+
+            {/* Valid ID */}
+            <div className="flex flex-col gap-2">
+              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                Non-expired Government-issued ID with Specimen Signature{" "}
+                <span className="text-red-500">*</span>
+              </Label>
+              <div className="relative">
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  id="validId"
+                  onChange={handleFileChange("validId")}
+                  disabled={uploadStates.validId.isUploading}
+                />
+                <label
+                  htmlFor="validId"
+                  className={`flex items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
+                    uploadStates.validId.isUploaded
+                      ? "border-green-500 bg-green-50 dark:bg-green-900/20"
+                      : uploadStates.validId.isUploading
+                      ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                      : "border-slate-300 dark:border-slate-600 hover:border-blue-500"
+                  } ${
+                    uploadStates.validId.isUploading ? "cursor-not-allowed" : ""
+                  }`}
+                >
+                  <div className="text-center">
+                    {uploadStates.validId.isUploading ? (
+                      <>
+                        <Loader2 className="w-8 h-8 text-blue-600 mx-auto mb-2 animate-spin" />
+                        <span className="text-blue-700 dark:text-blue-300 text-sm">
+                          Uploading...
+                        </span>
+                      </>
+                    ) : uploadStates.validId.isUploaded ? (
+                      <>
+                        <Check className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                        <span className="text-green-700 dark:text-green-300 text-sm">
+                          Valid ID uploaded successfully
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-8 h-8 text-slate-400 mx-auto mb-2" />
+                        <span className="text-slate-600 dark:text-slate-400">
+                          Click to upload Valid ID
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </label>
+                {errors.validId && (
+                  <p className="text-red-500 text-sm">{errors.validId}</p>
+                )}
+                {uploadStates.validId.error && (
+                  <p className="text-red-500 text-sm">
+                    {uploadStates.validId.error}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Proof of Bank */}
+            <div className="flex flex-col gap-2">
+              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                Proof of Bank <span className="text-red-500">*</span>
+              </Label>
+              <div className="relative">
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  id="proofOfBank"
+                  onChange={handleFileChange("proofOfBank")}
+                  disabled={uploadStates.proofOfBank.isUploading}
+                />
+                <label
+                  htmlFor="proofOfBank"
+                  className={`flex items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
+                    uploadStates.proofOfBank.isUploaded
+                      ? "border-green-500 bg-green-50 dark:bg-green-900/20"
+                      : uploadStates.proofOfBank.isUploading
+                      ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                      : "border-slate-300 dark:border-slate-600 hover:border-blue-500"
+                  } ${
+                    uploadStates.proofOfBank.isUploading
+                      ? "cursor-not-allowed"
+                      : ""
+                  }`}
+                >
+                  <div className="text-center">
+                    {uploadStates.proofOfBank.isUploading ? (
+                      <>
+                        <Loader2 className="w-8 h-8 text-blue-600 mx-auto mb-2 animate-spin" />
+                        <span className="text-blue-700 dark:text-blue-300 text-sm">
+                          Uploading...
+                        </span>
+                      </>
+                    ) : uploadStates.proofOfBank.isUploaded ? (
+                      <>
+                        <Check className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                        <span className="text-green-700 dark:text-green-300 text-sm">
+                          Proof of Bank uploaded successfully
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-8 h-8 text-slate-400 mx-auto mb-2" />
+                        <span className="text-slate-600 dark:text-slate-400">
+                          Click to upload Proof of Bank
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </label>
+                {errors.proofOfBank && (
+                  <p className="text-red-500 text-sm">{errors.proofOfBank}</p>
+                )}
+                {uploadStates.proofOfBank.error && (
+                  <p className="text-red-500 text-sm">
+                    {uploadStates.proofOfBank.error}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* TIN - Only for investors */}
+            {userType === "investor" && (
+              <div className="flex flex-col gap-2">
+                <Label
+                  htmlFor="tin"
+                  className="text-sm font-medium text-slate-700 dark:text-slate-300"
+                >
+                  TIN <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="tin"
+                  type="text"
+                  value={tin}
+                  onChange={handleTinChange}
+                  className={`border-slate-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-700 dark:text-slate-100 ${
+                    errors.tin
+                      ? "border-red-500"
+                      : tin && !errors.tin
+                      ? "border-green-500"
+                      : ""
+                  }`}
+                  placeholder="123456789"
+                  maxLength={9}
+                />
+                {errors.tin && (
+                  <p className="text-red-500 text-sm">{errors.tin}</p>
+                )}
+              </div>
+            )}
+
+            {/* Selfie - Only for investors */}
+            {userType === "investor" && (
+              <div className="flex flex-col gap-2">
+                <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Selfie <span className="text-red-500">*</span>
+                </Label>
+                <div className="relative">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    id="selfie"
+                    onChange={handleFileChange("selfie")}
+                    disabled={uploadStates.selfie.isUploading}
+                  />
+                  <label
+                    htmlFor="selfie"
+                    className={`flex items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
+                      uploadStates.selfie.isUploaded
+                        ? "border-green-500 bg-green-50 dark:bg-green-900/20"
+                        : uploadStates.selfie.isUploading
+                        ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                        : "border-slate-300 dark:border-slate-600 hover:border-blue-500"
+                    } ${
+                      uploadStates.selfie.isUploading
+                        ? "cursor-not-allowed"
+                        : ""
+                    }`}
+                  >
+                    <div className="text-center">
+                      {uploadStates.selfie.isUploading ? (
+                        <>
+                          <Loader2 className="w-8 h-8 text-blue-600 mx-auto mb-2 animate-spin" />
+                          <span className="text-blue-700 dark:text-blue-300 text-sm">
+                            Uploading...
+                          </span>
+                        </>
+                      ) : uploadStates.selfie.isUploaded ? (
+                        <>
+                          <Check className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                          <span className="text-green-700 dark:text-green-300 text-sm">
+                            Selfie uploaded successfully
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-8 h-8 text-slate-400 mx-auto mb-2" />
+                          <span className="text-slate-600 dark:text-slate-400">
+                            Click to upload Selfie
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  </label>
+                  {errors.selfie && (
+                    <p className="text-red-500 text-sm">{errors.selfie}</p>
+                  )}
+                  {uploadStates.selfie.error && (
+                    <p className="text-red-500 text-sm">
+                      {uploadStates.selfie.error}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Startup-specific documents */}
+            {userType === "startup" && (
               <>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  {/* Investor Type */}
-                  <div className="flex flex-col gap-2">
-                    <Label
-                      htmlFor="investorType"
-                      className="text-sm font-medium text-slate-700 dark:text-slate-300"
-                    >
-                      Investor Type <span className="text-red-500">*</span>
-                    </Label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500 z-10" />
-                      <Select
-                        value={investorData.investorType}
-                        onValueChange={(value) =>
-                          handleInvestorChange("investorType", value)
-                        }
-                      >
-                        <SelectTrigger className="pl-10">
-                          <SelectValue placeholder="Select investor type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Angel investor">
-                            Angel Investor
-                          </SelectItem>
-                          <SelectItem value="Crowdfunding investor">
-                            Crowdfunding Investor
-                          </SelectItem>
-                          <SelectItem value="Venture capital">
-                            Venture Capital
-                          </SelectItem>
-                          <SelectItem value="Corporate investor">
-                            Corporate Investor
-                          </SelectItem>
-                          <SelectItem value="Private equity">
-                            Private Equity
-                          </SelectItem>
-                          <SelectItem value="Impact investor">
-                            Impact Investor
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  {/* Typical Check Size */}
-                  <div className="flex flex-col gap-2">
-                    <Label
-                      htmlFor="checkSize"
-                      className="text-sm font-medium text-slate-700 dark:text-slate-300"
-                    >
-                      Typical Check Size (PHP){" "}
-                      <span className="text-red-500">*</span>
-                    </Label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-2.5 text-xs font-medium text-slate-400 dark:text-slate-500">
-                        PHP
-                      </span>
-                      <Input
-                        id="checkSize"
-                        type="number"
-                        value={
-                          investorData.typicalCheckSizeInPhp === 0
-                            ? ""
-                            : investorData.typicalCheckSizeInPhp.toString()
-                        }
-                        onChange={(e) =>
-                          handleInvestorChange(
-                            "typicalCheckSizeInPhp",
-                            e.target.value
-                          )
-                        }
-                        className="pl-12 border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:ring-blue-500"
-                        placeholder="1000000"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Location */}
+                {/* BIR COR (Form 2303) - Required for all startups */}
                 <div className="flex flex-col gap-2">
-                  <Label
-                    htmlFor="location"
-                    className="text-sm font-medium text-slate-700 dark:text-slate-300"
-                  >
-                    Location (City) <span className="text-red-500">*</span>
+                  <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                    BIR COR (Form 2303) <span className="text-red-500">*</span>
                   </Label>
                   <div className="relative">
-                    <MapPin className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
-                    <Input
-                      id="location"
-                      value={investorData.city}
-                      onChange={(e) =>
-                        handleInvestorChange("city", e.target.value)
-                      }
-                      className="pl-10 border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:ring-blue-500"
-                      placeholder="Manila"
+                    <input
+                      type="file"
+                      accept="image/*,.pdf"
+                      className="hidden"
+                      id="birCor"
+                      onChange={handleFileChange("birCor")}
+                      disabled={uploadStates.birCor.isUploading}
                     />
-                  </div>
-                </div>
-
-                {/* Key Contact Person */}
-                <div className="flex flex-col gap-2">
-                  <Label
-                    htmlFor="keyContact"
-                    className="text-sm font-medium text-slate-700 dark:text-slate-300"
-                  >
-                    Key Contact Person <span className="text-red-500">*</span>
-                  </Label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
-                    <Input
-                      id="keyContact"
-                      value={investorData.keyContactPersonName}
-                      onChange={(e) =>
-                        handleInvestorChange(
-                          "keyContactPersonName",
-                          e.target.value
-                        )
-                      }
-                      className="pl-10 border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:ring-blue-500"
-                      placeholder="John Smith"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  {/* Contact Number */}
-                  <div className="flex flex-col gap-2">
-                    <Label
-                      htmlFor="contactNumber"
-                      className="text-sm font-medium text-slate-700 dark:text-slate-300"
+                    <label
+                      htmlFor="birCor"
+                      className={`flex items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
+                        uploadStates.birCor.isUploaded
+                          ? "border-green-500 bg-green-50 dark:bg-green-900/20"
+                          : uploadStates.birCor.isUploading
+                          ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                          : "border-slate-300 dark:border-slate-600 hover:border-blue-500"
+                      } ${
+                        uploadStates.birCor.isUploading
+                          ? "cursor-not-allowed"
+                          : ""
+                      }`}
                     >
-                      Contact Number <span className="text-red-500">*</span>
-                    </Label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
-                      <Input
-                        id="contactNumber"
-                        type="tel"
-                        value={investorData.keyContactNumber}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          // Accept empty input (reset to +63) or valid Philippine phone pattern
-                          if (value === "") {
-                            handleInvestorChange("keyContactNumber", "+63");
-                          } else if (
-                            value.startsWith("+63") &&
-                            /^\+63[0-9]{0,10}$/.test(value)
-                          ) {
-                            // Only allow +63 followed by up to 10 digits
-                            handleInvestorChange("keyContactNumber", value);
-                          }
-                          // Ignore all other inputs (incomplete prefixes like "+" or "+6")
-                        }}
-                        className="pl-10 border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:ring-blue-500"
-                        placeholder="+639123456789"
-                        maxLength={13}
-                      />
-                    </div>
-                  </div>
-
-                  {/* LinkedIn Profile */}
-                  <div className="flex flex-col gap-2">
-                    <Label
-                      htmlFor="linkedinProfile"
-                      className="text-sm font-medium text-slate-700 dark:text-slate-300"
-                    >
-                      LinkedIn Profile
-                    </Label>
-                    <div className="relative">
-                      <Linkedin className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
-                      <Input
-                        id="linkedinProfile"
-                        value={investorData.keyContactLinkedin}
-                        onChange={(e) =>
-                          handleInvestorChange(
-                            "keyContactLinkedin",
-                            e.target.value
-                          )
-                        }
-                        className="pl-10 border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:ring-blue-500"
-                        placeholder="https://linkedin.com/in/johnsmith"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Decision Timeline */}
-                <div className="flex flex-col gap-2">
-                  <Label
-                    htmlFor="decisionTimeline"
-                    className="text-sm font-medium text-slate-700 dark:text-slate-300"
-                  >
-                    Typical Decision-Making Timeline (in weeks){" "}
-                    <span className="text-red-500">*</span>
-                  </Label>
-                  <div className="relative">
-                    <Clock className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
-                    <Input
-                      id="decisionTimeline"
-                      type="number"
-                      value={
-                        investorData.decisionPeriodInWeeks === 0
-                          ? ""
-                          : investorData.decisionPeriodInWeeks.toString()
-                      }
-                      onChange={(e) =>
-                        handleInvestorChange(
-                          "decisionPeriodInWeeks",
-                          e.target.value
-                        )
-                      }
-                      className="pl-10 border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:ring-blue-500"
-                      placeholder="2"
-                    />
-                  </div>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  {/* Startup Name */}
-                  <div className="flex flex-col gap-2">
-                    <Label
-                      htmlFor="startupName"
-                      className="text-sm font-medium text-slate-700 dark:text-slate-300"
-                    >
-                      Startup Name <span className="text-red-500">*</span>
-                    </Label>
-                    <div className="relative">
-                      <Building className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
-                      <Input
-                        id="startupName"
-                        value={startupData.name}
-                        onChange={(e) =>
-                          handleStartupChange("name", e.target.value)
-                        }
-                        className="pl-10 border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:ring-blue-500"
-                        placeholder="FundSeekr"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Website URL */}
-                  <div className="flex flex-col gap-2">
-                    <Label
-                      htmlFor="website"
-                      className="text-sm font-medium text-slate-700 dark:text-slate-300"
-                    >
-                      Website URL
-                    </Label>
-                    <div className="relative">
-                      <Globe className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
-                      <Input
-                        id="website"
-                        value={startupData.website}
-                        onChange={(e) =>
-                          handleStartupChange("website", e.target.value)
-                        }
-                        className="pl-10 border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:ring-blue-500"
-                        placeholder="https://fundseekr.com"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Industry */}
-                <div className="flex flex-col gap-2">
-                  <Label
-                    htmlFor="industry"
-                    className="text-sm font-medium text-slate-700 dark:text-slate-300"
-                  >
-                    Industry <span className="text-red-500">*</span>
-                  </Label>
-                  <div className="relative">
-                    <Tag className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
-                    <Input
-                      id="industry"
-                      value={startupData.industry}
-                      onChange={(e) =>
-                        handleStartupChange("industry", e.target.value)
-                      }
-                      className="pl-10 border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:ring-blue-500"
-                      placeholder="Fintech"
-                    />
-                  </div>
-                </div>
-
-                {/* Company Description */}
-                <div className="flex flex-col gap-2">
-                  <Label
-                    htmlFor="description"
-                    className="text-sm font-medium text-slate-700 dark:text-slate-300"
-                  >
-                    Detailed Company Description{" "}
-                    <span className="text-red-500">*</span>
-                  </Label>
-                  <div className="relative">
-                    <textarea
-                      id="description"
-                      placeholder="Accelerate fundraising with AI-powered pitch generation and smart matchmaking that connects the right startups with the right investors."
-                      value={startupData.description}
-                      onChange={(e) =>
-                        handleStartupChange("description", e.target.value)
-                      }
-                      className="w-full min-h-[100px] px-3 py-3 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-md text-sm resize-y focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  {/* Location */}
-                  <div className="flex flex-col gap-2">
-                    <Label
-                      htmlFor="startupLocation"
-                      className="text-sm font-medium text-slate-700 dark:text-slate-300"
-                    >
-                      Location (City) <span className="text-red-500">*</span>
-                    </Label>
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
-                      <Input
-                        id="startupLocation"
-                        value={startupData.city}
-                        onChange={(e) =>
-                          handleStartupChange("city", e.target.value)
-                        }
-                        className="pl-10 border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:ring-blue-500"
-                        placeholder="Manila"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Date Founded */}
-                  <div className="flex flex-col gap-2">
-                    <Label
-                      htmlFor="dateFounded"
-                      className="text-sm font-medium text-slate-700 dark:text-slate-300"
-                    >
-                      Date Founded <span className="text-red-500">*</span>
-                    </Label>
-                    <div className="relative">
-                      <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500 z-10" />
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className="w-full justify-start text-left font-normal border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:ring-blue-500 h-9 pl-10"
-                          >
-                            {calendarDate ? (
-                              format(calendarDate, "PPP")
-                            ) : (
-                              <span className="text-slate-400 dark:text-slate-500">
-                                Pick a date
-                              </span>
-                            )}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <div className="p-3 border-b">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleDateSelect(new Date())}
-                              className="w-full"
-                            >
-                              Today
-                            </Button>
-                          </div>
-                          <CalendarComponent
-                            mode="single"
-                            selected={calendarDate}
-                            onSelect={handleDateSelect}
-                            initialFocus
-                            captionLayout="dropdown"
-                            fromYear={1900}
-                            toYear={new Date().getFullYear()}
-                            className="rounded-lg"
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Keywords/Tags */}
-                <div className="flex flex-col gap-2">
-                  <Label
-                    htmlFor="keywords"
-                    className="text-sm font-medium text-slate-700 dark:text-slate-300"
-                  >
-                    Keywords/Tags
-                  </Label>
-                  <div className="relative">
-                    <Tag className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
-                    <Input
-                      id="keywords"
-                      value={startupData.keywords}
-                      onChange={(e) =>
-                        handleStartupChange("keywords", e.target.value)
-                      }
-                      className="pl-10 border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:ring-blue-500"
-                      placeholder="AI, SaaS, Healthcare, Fintech"
-                    />
+                      <div className="text-center">
+                        {uploadStates.birCor.isUploading ? (
+                          <>
+                            <Loader2 className="w-8 h-8 text-blue-600 mx-auto mb-2 animate-spin" />
+                            <span className="text-blue-700 dark:text-blue-300 text-sm">
+                              Uploading...
+                            </span>
+                          </>
+                        ) : uploadStates.birCor.isUploaded ? (
+                          <>
+                            <Check className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                            <span className="text-green-700 dark:text-green-300 text-sm">
+                              BIR COR uploaded successfully
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="w-8 h-8 text-slate-400 mx-auto mb-2" />
+                            <span className="text-slate-600 dark:text-slate-400">
+                              Click to upload BIR COR (Form 2303)
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </label>
+                    {errors.birCor && (
+                      <p className="text-red-500 text-sm">{errors.birCor}</p>
+                    )}
+                    {uploadStates.birCor.error && (
+                      <p className="text-red-500 text-sm">
+                        {uploadStates.birCor.error}
+                      </p>
+                    )}
                   </div>
                 </div>
               </>
             )}
 
-            <div className="flex justify-end gap-3 pt-4">
+            <div className="flex justify-end gap-3 pt-6">
               <Button
                 variant="outline"
-                onClick={() => setStep(2)}
-                className="px-6 border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors bg-transparent"
+                className="px-6"
+                onClick={onCancel}
                 disabled={isSubmitting}
               >
                 Back
               </Button>
               <Button
+                className="px-6"
                 onClick={handleSubmit}
-                disabled={!isFormValid() || isSubmitting}
-                className="px-6 bg-blue-600 hover:bg-blue-700 transition-colors shadow-lg"
+                disabled={!isValid() || isSubmitting}
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="animate-spin h-4 w-4" />
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Submitting...
                   </>
                 ) : (
                   "Submit"

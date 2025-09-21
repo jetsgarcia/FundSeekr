@@ -62,12 +62,6 @@ export function InvestorProfile({ investor }: { investor: InvestorProfile }) {
           </div>
           <div className="flex items-start space-x-3">
             <Target className="h-4 w-4 mt-1 text-muted-foreground" />
-            <div>
-              <p className="text-sm text-muted-foreground">Investor Type</p>
-              <p className="font-medium">
-                {investor.investor_type?.replace(/_/g, " ") || "Not specified"}
-              </p>
-            </div>
           </div>
           {investor.organization_website && (
             <div className="flex items-start space-x-3">

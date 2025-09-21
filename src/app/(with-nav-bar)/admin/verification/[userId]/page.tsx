@@ -38,24 +38,12 @@ type KeyMetric = Prisma.JsonObject & {
   description?: string | null;
 };
 
-type IntellectualProperty = Prisma.JsonObject & {
-  type?: string | null;
-  title?: string | null;
-  description?: string | null;
-  status?: string | null;
-  application_number?: string | null;
-};
-
 async function getUserData(userId: string) {
   // First, get the user from users_sync table
   const user = await prisma.users_sync.findUnique({
     where: { id: userId },
     include: {
-      startups: {
-        include: {
-          funding_requests: true,
-        },
-      },
+      startups: true,
       investors: true,
     },
   });
@@ -86,12 +74,11 @@ export default async function UserVerificationPage({ params }: PageProps) {
         id: userData.startups.id,
         name: userData.startups.name,
         description: userData.startups.description,
-        valuation: userData.startups.valuation,
         target_market: userData.startups.target_market,
         city: userData.startups.city,
         date_founded: userData.startups.date_founded,
         industry: userData.startups.industry,
-        website: userData.startups.website,
+        website_url: userData.startups.website_url,
         keywords: userData.startups.keywords,
         product_demo_url: userData.startups.product_demo_url,
         development_stage: userData.startups.development_stage,
@@ -99,10 +86,6 @@ export default async function UserVerificationPage({ params }: PageProps) {
         team_members: (userData.startups.team_members as TeamMember[]) || [],
         advisors: (userData.startups.advisors as Advisor[]) || [],
         key_metrics: (userData.startups.key_metrics as KeyMetric[]) || [],
-        intellectual_property:
-          (userData.startups.intellectual_property as IntellectualProperty[]) ||
-          [],
-        funding_requests: userData.startups.funding_requests,
       }
     : null;
 

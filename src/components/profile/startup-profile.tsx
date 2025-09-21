@@ -1,9 +1,5 @@
-import type {
-  startups as StartupProfile,
-  funding_requests as FundingRequest,
-} from "@prisma/client";
+import type { startups as StartupProfile } from "@prisma/client";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { formatCurrencyAbbreviation } from "@/lib/format-number";
 import {
   Building2,
   Briefcase,
@@ -15,11 +11,9 @@ import {
   Users,
   User,
   Linkedin,
-  PhilippinePeso,
   FileText,
   Video,
   Tag,
-  Shield,
   Play,
 } from "lucide-react";
 import { Button } from "../ui/button";
@@ -46,25 +40,15 @@ interface KeyMetric {
   [key: string]: unknown;
 }
 
-interface IntellectualProperty {
-  type?: string | null;
-  title?: string | null;
-  description?: string | null;
-  status?: string | null;
-  application_number?: string | null;
-  [key: string]: unknown;
-}
-
 export interface ExtendedStartupProfile {
-  id: number;
+  id: string;
   name: string | null;
   description: string | null;
-  valuation: number | null;
   target_market: string[];
   city: string | null;
   date_founded: Date | null;
   industry: string | null;
-  website: string | null;
+  website_url: string | null;
   keywords: string[];
   product_demo_url: string | null;
   development_stage: string | null;
@@ -74,10 +58,6 @@ export interface ExtendedStartupProfile {
   team_members: TeamMember[];
   advisors: Advisor[];
   key_metrics: KeyMetric[];
-  intellectual_property: IntellectualProperty[];
-
-  // Related data
-  funding_requests?: FundingRequest[];
 }
 
 export function StartupProfile({
@@ -145,13 +125,13 @@ export function StartupProfile({
               </p>
             </div>
           </div>
-          {startup.website && (
+          {startup.website_url && (
             <div className="flex items-start space-x-3">
               <Globe className="h-4 w-4 mt-1 text-muted-foreground" />
               <div>
                 <p className="text-sm text-muted-foreground">Website</p>
                 <a
-                  href={startup.website}
+                  href={startup.website_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-medium text-primary hover:text-primary/80 transition-colors"
@@ -161,26 +141,6 @@ export function StartupProfile({
               </div>
             </div>
           )}
-        </CardContent>
-      </Card>
-
-      {/* Valuation */}
-      <Card className="shadow-lg border-0 bg-card/80 backdrop-blur-sm">
-        <CardHeader className="bg-secondary/50 rounded-t-lg">
-          <CardTitle className="flex items-center space-x-2 text-primary">
-            <PhilippinePeso className="h-5 w-5" />
-            <span>Valuation</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-6">
-          <div className="text-center">
-            <div className="text-3xl font-bold text-primary mb-2">
-              {startup.valuation
-                ? formatCurrencyAbbreviation(startup.valuation)
-                : "Not disclosed"}
-            </div>
-            <p className="text-sm text-muted-foreground">Current Valuation</p>
-          </div>
         </CardContent>
       </Card>
 
@@ -405,65 +365,6 @@ export function StartupProfile({
           ) : (
             <p className="text-muted-foreground italic">
               No key metrics reported
-            </p>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Intellectual Property */}
-      <Card className="lg:col-span-3 shadow-lg border-0 bg-card/80 backdrop-blur-sm">
-        <CardHeader className="bg-secondary/50 rounded-t-lg">
-          <CardTitle className="flex items-center space-x-2 text-primary">
-            <Shield className="h-5 w-5" />
-            <span>Intellectual Property</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-6">
-          {startup.intellectual_property &&
-          startup.intellectual_property.length > 0 ? (
-            <div className="space-y-4">
-              {startup.intellectual_property.map(
-                (ip: IntellectualProperty, index: number) => (
-                  <div
-                    key={index}
-                    className="border border-border p-4 rounded-lg bg-secondary/50"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h4 className="font-medium">
-                          {String(ip.type || "IP Asset")}
-                        </h4>
-                        {ip.title !== undefined && ip.title !== null && (
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {String(ip.title)}
-                          </p>
-                        )}
-                        {ip.description !== undefined &&
-                          ip.description !== null && (
-                            <p className="text-sm text-muted-foreground mt-2">
-                              {String(ip.description)}
-                            </p>
-                          )}
-                      </div>
-                      {ip.status !== undefined && ip.status !== null && (
-                        <span className="px-2 py-1 rounded text-xs font-medium bg-secondary text-primary border border-border">
-                          {String(ip.status)}
-                        </span>
-                      )}
-                    </div>
-                    {ip.application_number !== undefined &&
-                      ip.application_number !== null && (
-                        <p className="text-xs text-muted-foreground mt-2">
-                          Application: {String(ip.application_number)}
-                        </p>
-                      )}
-                  </div>
-                )
-              )}
-            </div>
-          ) : (
-            <p className="text-muted-foreground italic">
-              No intellectual property registered
             </p>
           )}
         </CardContent>

@@ -4,38 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { User, Building2, Globe, Phone, Linkedin } from "lucide-react";
-
-interface InvestorData {
-  firstName: string;
-  lastName: string;
-  organization: string;
-  position: string;
-  organizationWebsite: string;
-  investorLinkedin: string;
-  investorType: string;
-  city: string;
-  keyContactPersonName: string;
-  keyContactNumber: string;
-  keyContactLinkedin: string;
-  decisionPeriodInWeeks: number;
-  typicalCheckSizeInPhp: number;
-}
-
-interface StartupData {
-  firstName: string;
-  lastName: string;
-  position: string;
-  contactNumber: string;
-  linkedinLink: string;
-  name: string;
-  website: string;
-  description: string;
-  city: string;
-  dateFounded: string;
-  keywords: string;
-  industry: string;
-}
+import { User, Building2, Phone, Linkedin } from "lucide-react";
+import { InvestorData, StartupData } from "@/app/onboarding/page";
 
 interface Step2Props {
   userType: "investor" | "startup";
@@ -45,7 +15,6 @@ interface Step2Props {
   handleStartupChange: (field: keyof StartupData, value: string) => void;
   setStep: (step: number) => void;
   isFormValid: () => boolean;
-  handleSubmit: () => void;
 }
 
 export function Step2({
@@ -56,7 +25,6 @@ export function Step2({
   handleStartupChange,
   setStep,
   isFormValid,
-  handleSubmit,
 }: Step2Props) {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
@@ -68,9 +36,7 @@ export function Step2({
                 Basic Information
               </h1>
               <p className="text-slate-600 dark:text-slate-300 text-lg">
-                {userType === "investor"
-                  ? "Tell us about yourself as an investor"
-                  : "Tell us about yourself and your startup"}
+                Tell us about yourself
               </p>
             </div>
           </CardHeader>
@@ -146,56 +112,6 @@ export function Step2({
                   </div>
                 </div>
 
-                {/* Position and Website (only if organization is filled) */}
-                {investorData.organization && (
-                  <>
-                    <div className="flex flex-col gap-2">
-                      <Label
-                        htmlFor="position"
-                        className="text-sm font-medium text-slate-700 dark:text-slate-300"
-                      >
-                        Position
-                      </Label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
-                        <Input
-                          id="position"
-                          value={investorData.position}
-                          onChange={(e) =>
-                            handleInvestorChange("position", e.target.value)
-                          }
-                          className="pl-10 border-slate-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-700 dark:text-slate-100"
-                          placeholder="Senior Partner"
-                        />
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <Label
-                        htmlFor="website"
-                        className="text-sm font-medium text-slate-700 dark:text-slate-300"
-                      >
-                        Website URL
-                      </Label>
-                      <div className="relative">
-                        <Globe className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
-                        <Input
-                          id="website"
-                          type="url"
-                          value={investorData.organizationWebsite}
-                          onChange={(e) =>
-                            handleInvestorChange(
-                              "organizationWebsite",
-                              e.target.value
-                            )
-                          }
-                          className="pl-10 border-slate-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-700 dark:text-slate-100"
-                          placeholder="https://abcventures.com"
-                        />
-                      </div>
-                    </div>
-                  </>
-                )}
-
                 {/* LinkedIn Profile */}
                 <div className="flex flex-col gap-2">
                   <Label
@@ -209,9 +125,9 @@ export function Step2({
                     <Input
                       id="linkedinProfile"
                       type="url"
-                      value={investorData.investorLinkedin}
+                      value={investorData.linkedinURL}
                       onChange={(e) =>
-                        handleInvestorChange("investorLinkedin", e.target.value)
+                        handleInvestorChange("linkedinURL", e.target.value)
                       }
                       className="pl-10 border-slate-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-700 dark:text-slate-100"
                       placeholder="https://linkedin.com/in/johnsmith"
@@ -358,7 +274,7 @@ export function Step2({
                 Back
               </Button>
               <Button
-                onClick={handleSubmit}
+                onClick={() => setStep(3)}
                 disabled={!isFormValid()}
                 className="px-6 bg-blue-600 hover:bg-blue-700 transition-colors shadow-lg"
               >

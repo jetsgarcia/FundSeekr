@@ -21,7 +21,6 @@ import {
   Building,
   Target,
   TrendingUp,
-  Shield,
   Tags,
 } from "lucide-react";
 import type { ExtendedStartupProfile } from "@/components/profile/startup-profile";
@@ -47,14 +46,6 @@ interface KeyMetric {
   description: string;
 }
 
-interface IntellectualProperty {
-  type: string;
-  title: string;
-  description: string;
-  status: string;
-  application_number: string;
-}
-
 interface EditStartupProfileProps {
   startup: ExtendedStartupProfile;
   onSave?: (data: Record<string, unknown>) => Promise<{
@@ -75,10 +66,7 @@ export function EditStartupProfile({
   const [description, setDescription] = useState(startup.description || "");
   const [industry, setIndustry] = useState(startup.industry || "");
   const [city, setCity] = useState(startup.city || "");
-  const [website, setWebsite] = useState(startup.website || "");
-  const [valuation, setValuation] = useState(
-    startup.valuation?.toString() || ""
-  );
+  const [website, setWebsite] = useState(startup.website_url || "");
   const [dateFounded, setDateFounded] = useState(
     startup.date_founded
       ? new Date(startup.date_founded).toISOString().split("T")[0]
@@ -125,18 +113,6 @@ export function EditStartupProfile({
     })) || []
   );
 
-  const [intellectualProperty, setIntellectualProperty] = useState<
-    IntellectualProperty[]
-  >(
-    startup.intellectual_property?.map((ip) => ({
-      type: String(ip.type || ""),
-      title: String(ip.title || ""),
-      description: String(ip.description || ""),
-      status: String(ip.status || ""),
-      application_number: String(ip.application_number || ""),
-    })) || []
-  );
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!onSave) {
@@ -152,7 +128,6 @@ export function EditStartupProfile({
           industry,
           city,
           website,
-          valuation: valuation ? parseInt(valuation) : null,
           date_founded: dateFounded ? new Date(dateFounded) : null,
           product_demo_url: productDemoUrl,
           development_stage: developmentStage || null,
@@ -167,9 +142,6 @@ export function EditStartupProfile({
           team_members: teamMembers.filter((member) => member.name.trim()),
           advisors: advisors.filter((advisor) => advisor.name.trim()),
           key_metrics: keyMetrics.filter((metric) => metric.name.trim()),
-          intellectual_property: intellectualProperty.filter((ip) =>
-            ip.type.trim()
-          ),
         };
 
         const result = await onSave(formData);
@@ -260,33 +232,6 @@ export function EditStartupProfile({
     setKeyMetrics(updated);
   };
 
-  const addIntellectualProperty = () => {
-    setIntellectualProperty([
-      ...intellectualProperty,
-      {
-        type: "",
-        title: "",
-        description: "",
-        status: "",
-        application_number: "",
-      },
-    ]);
-  };
-
-  const removeIntellectualProperty = (index: number) => {
-    setIntellectualProperty(intellectualProperty.filter((_, i) => i !== index));
-  };
-
-  const updateIntellectualProperty = (
-    index: number,
-    field: keyof IntellectualProperty,
-    value: string
-  ) => {
-    const updated = [...intellectualProperty];
-    updated[index] = { ...updated[index], [field]: value };
-    setIntellectualProperty(updated);
-  };
-
   return (
     <div className="space-y-6">
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -353,17 +298,7 @@ export function EditStartupProfile({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="valuation">Valuation (PHP)</Label>
-                <Input
-                  id="valuation"
-                  type="number"
-                  value={valuation}
-                  onChange={(e) => setValuation(e.target.value)}
-                  placeholder="Enter valuation amount"
-                />
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="dateFounded">Date Founded</Label>
                 <Input
@@ -643,94 +578,6 @@ export function EditStartupProfile({
                   value={metric.description}
                   onChange={(e) =>
                     updateKeyMetric(index, "description", e.target.value)
-                  }
-                />
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        {/* Intellectual Property */}
-        <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Shield className="h-5 w-5" />
-                <span>Intellectual Property</span>
-              </div>
-              <Button
-                type="button"
-                onClick={addIntellectualProperty}
-                size="sm"
-                variant="outline"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add IP
-              </Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {intellectualProperty.map((ip, index) => (
-              <div key={index} className="border rounded-lg p-4 space-y-3">
-                <div className="flex justify-between items-center">
-                  <h4 className="font-medium">IP Asset {index + 1}</h4>
-                  <Button
-                    type="button"
-                    onClick={() => removeIntellectualProperty(index)}
-                    size="sm"
-                    variant="destructive"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <Input
-                    placeholder="Type (e.g., Patent, Trademark)"
-                    value={ip.type}
-                    onChange={(e) =>
-                      updateIntellectualProperty(index, "type", e.target.value)
-                    }
-                  />
-                  <Input
-                    placeholder="Title"
-                    value={ip.title}
-                    onChange={(e) =>
-                      updateIntellectualProperty(index, "title", e.target.value)
-                    }
-                  />
-                  <Input
-                    placeholder="Status"
-                    value={ip.status}
-                    onChange={(e) =>
-                      updateIntellectualProperty(
-                        index,
-                        "status",
-                        e.target.value
-                      )
-                    }
-                  />
-                </div>
-                <Input
-                  placeholder="Application Number"
-                  value={ip.application_number}
-                  onChange={(e) =>
-                    updateIntellectualProperty(
-                      index,
-                      "application_number",
-                      e.target.value
-                    )
-                  }
-                />
-                <textarea
-                  className="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  placeholder="Description"
-                  value={ip.description}
-                  onChange={(e) =>
-                    updateIntellectualProperty(
-                      index,
-                      "description",
-                      e.target.value
-                    )
                   }
                 />
               </div>
