@@ -6,10 +6,21 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Upload, Check } from "lucide-react";
+import {
+  DocumentFiles,
+  UserType,
+  BusinessStructure,
+} from "@/app/onboarding/page";
 
 interface Step3Props {
-  userType: "investor" | "startup";
-  businessStructure?: "Sole" | "Partnership" | "Corporation" | null;
+  userType: UserType;
+  businessStructure?: BusinessStructure | null;
+  files: DocumentFiles;
+  setFiles: (files: DocumentFiles) => void;
+  tin: string;
+  setTin: (tin: string) => void;
+  businessName: string;
+  setBusinessName: (businessName: string) => void;
   onSubmit?: () => void;
   onCancel?: () => void;
 }
@@ -17,18 +28,15 @@ interface Step3Props {
 export function Step3({
   userType,
   businessStructure,
+  files,
+  setFiles,
+  tin,
+  setTin,
+  businessName,
+  setBusinessName,
   onSubmit,
   onCancel,
 }: Step3Props) {
-  const [files, setFiles] = useState({
-    validId: null as File | null,
-    proofOfBank: null as File | null,
-    selfie: null as File | null,
-    // Startup-specific documents
-    birCor: null as File | null,
-  });
-  const [tin, setTin] = useState("");
-  const [businessName, setBusinessName] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validateFile = (file: File | null, field: string): string => {
@@ -62,9 +70,10 @@ export function Step3({
   };
 
   const handleFileChange =
-    (field: keyof typeof files) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    (field: keyof DocumentFiles) =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0] || null;
-      setFiles((prev) => ({ ...prev, [field]: file }));
+      setFiles({ ...files, [field]: file });
       const error = validateFile(
         file,
         field.replace(/([A-Z])/g, " $1").toLowerCase()
@@ -88,9 +97,9 @@ export function Step3({
 
   const isValid = () => {
     // Common documents for both investors and startups
-    const commonFiles = ["validId", "proofOfBank"];
+    const commonFiles: (keyof DocumentFiles)[] = ["validId", "proofOfBank"];
     const commonErrors = commonFiles.map((key) =>
-      validateFile(files[key as keyof typeof files], key)
+      validateFile(files[key], key)
     );
 
     // For investors, also validate TIN and selfie

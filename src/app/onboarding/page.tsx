@@ -1,12 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Step1 } from "@/components/onboarding/Step1";
 import { Step2 } from "@/components/onboarding/Step2";
 import { Step3 } from "@/components/onboarding/Step3";
 import { toast } from "sonner";
 
+// User type definitions
+export type UserType = "investor" | "startup";
+export type BusinessStructure = "Sole" | "Partnership" | "Corporation";
+
+// Step 2 data interfaces
 export interface InvestorData {
   firstName: string;
   lastName: string;
@@ -23,45 +28,121 @@ export interface StartupData {
   name: string;
 }
 
+// Step 3 data interfaces
+export interface DocumentFiles {
+  validId: File | null;
+  proofOfBank: File | null;
+  selfie: File | null;
+  birCor: File | null;
+}
+
+export interface Step3Data {
+  files: DocumentFiles;
+  tin: string;
+  businessName: string;
+}
+
+// Complete form data interface
+export interface OnboardingFormData {
+  step: number;
+  userType: UserType | null;
+  businessStructure: BusinessStructure | null;
+  investorData: InvestorData;
+  startupData: StartupData;
+  step3Data: Step3Data;
+}
+
 export default function OnboardingPage() {
   const router = useRouter();
-  const [step, setStep] = useState(1);
+
+  // Main form state
+  const [formData, setFormData] = useState<OnboardingFormData>({
+    step: 1,
+    userType: null,
+    businessStructure: null,
+    investorData: {
+      firstName: "",
+      lastName: "",
+      organization: "",
+      linkedinURL: "",
+    },
+    startupData: {
+      firstName: "",
+      lastName: "",
+      position: "",
+      contactNumber: "+63",
+      linkedinLink: "",
+      name: "",
+    },
+    step3Data: {
+      files: {
+        validId: null,
+        proofOfBank: null,
+        selfie: null,
+        birCor: null,
+      },
+      tin: "",
+      businessName: "",
+    },
+  });
+
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const [userType, setUserType] = useState<null | "investor" | "startup">(null);
-  const [businessStructure, setBusinessStructure] = useState<
-    "Sole" | "Partnership" | "Corporation" | null
-  >(null);
-  const [investorData, setInvestorData] = useState<InvestorData>({
-    firstName: "",
-    lastName: "",
-    organization: "",
-    linkedinURL: "",
-  });
-  const [startupData, setStartupData] = useState<StartupData>({
-    firstName: "",
-    lastName: "",
-    position: "",
-    contactNumber: "+63",
-    linkedinLink: "",
-    name: "",
-  });
+  // Utility functions for form data management
+  const updateFormData = (updates: Partial<OnboardingFormData>) => {
+    setFormData((prev) => ({ ...prev, ...updates }));
+  };
+
+  const updateInvestorData = (updates: Partial<InvestorData>) => {
+    setFormData((prev) => ({
+      ...prev,
+      investorData: { ...prev.investorData, ...updates },
+    }));
+  };
+
+  const updateStartupData = (updates: Partial<StartupData>) => {
+    setFormData((prev) => ({
+      ...prev,
+      startupData: { ...prev.startupData, ...updates },
+    }));
+  };
+
+  const updateStep3Data = (updates: Partial<Step3Data>) => {
+    setFormData((prev) => ({
+      ...prev,
+      step3Data: { ...prev.step3Data, ...updates },
+    }));
+  };
+
+  // Check if form has any data
+  const hasFormData = useCallback((): boolean => {
+    const {
+      userType,
+      businessStructure,
+      investorData,
+      startupData,
+      step3Data,
+    } = formData;
+
+    return (
+      userType !== null ||
+      businessStructure !== null ||
+      Object.values(investorData).some(
+        (value) => value !== "" && value !== "+63"
+      ) ||
+      Object.values(startupData).some(
+        (value) => value !== "" && value !== "+63"
+      ) ||
+      Object.values(step3Data.files).some((file) => file !== null) ||
+      step3Data.tin !== "" ||
+      step3Data.businessName !== ""
+    );
+  }, [formData]);
 
   // Before unload warning
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      // Check if user has started filling the form
-      const hasData =
-        userType !== null ||
-        businessStructure !== null ||
-        Object.values(investorData).some(
-          (value) => value !== "" && value !== "+63"
-        ) ||
-        Object.values(startupData).some(
-          (value) => value !== "" && value !== "+63"
-        );
-
-      if (hasData && !isSubmitted) {
+      if (hasFormData() && !isSubmitted) {
         e.preventDefault();
         return "You have unsaved changes. Are you sure you want to leave?";
       }
@@ -72,17 +153,19 @@ export default function OnboardingPage() {
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
-  }, [userType, businessStructure, investorData, startupData, isSubmitted]);
+  }, [isSubmitted, hasFormData]);
 
   function handleInvestorChange(field: keyof InvestorData, value: string) {
-    setInvestorData((prev) => ({ ...prev, [field]: value }));
+    updateInvestorData({ [field]: value });
   }
 
   function handleStartupChange(field: keyof StartupData, value: string) {
-    setStartupData((prev) => ({ ...prev, [field]: value }));
+    updateStartupData({ [field]: value });
   }
 
   function isFormValid(): boolean {
+    const { step, userType, investorData, startupData } = formData;
+
     if (step === 2) {
       if (userType === "investor") {
         return !!(investorData.firstName && investorData.lastName);
@@ -111,11 +194,24 @@ export default function OnboardingPage() {
     // Handle step 3 submission
     setIsSubmitted(true);
 
+    const {
+      step,
+      userType,
+      businessStructure,
+      investorData,
+      startupData,
+      step3Data,
+    } = formData;
+
     const userData = {
       step,
       userType,
       businessStructure,
       ...(userType === "investor" ? investorData : startupData),
+      // Step 3 data
+      files: step3Data.files,
+      tin: userType === "investor" ? step3Data.tin : undefined,
+      businessName: userType === "startup" ? step3Data.businessName : undefined,
     };
 
     try {
@@ -159,32 +255,40 @@ export default function OnboardingPage() {
 
   return (
     <>
-      {step === 1 && (
+      {formData.step === 1 && (
         <Step1
-          userType={userType}
-          setUserType={setUserType}
-          setStep={setStep}
-          businessStructure={businessStructure}
-          setBusinessStructure={setBusinessStructure}
+          userType={formData.userType}
+          setUserType={(userType) => updateFormData({ userType })}
+          setStep={(step) => updateFormData({ step })}
+          businessStructure={formData.businessStructure}
+          setBusinessStructure={(businessStructure) =>
+            updateFormData({ businessStructure })
+          }
         />
       )}
-      {step === 2 && userType && (
+      {formData.step === 2 && formData.userType && (
         <Step2
-          userType={userType}
-          investorData={investorData}
-          startupData={startupData}
+          userType={formData.userType}
+          investorData={formData.investorData}
+          startupData={formData.startupData}
           handleInvestorChange={handleInvestorChange}
           handleStartupChange={handleStartupChange}
           isFormValid={isFormValid}
-          setStep={setStep}
+          setStep={(step) => updateFormData({ step })}
         />
       )}
-      {step === 3 && userType && (
+      {formData.step === 3 && formData.userType && (
         <Step3
-          userType={userType}
-          businessStructure={businessStructure}
+          userType={formData.userType}
+          businessStructure={formData.businessStructure}
+          files={formData.step3Data.files}
+          setFiles={(files) => updateStep3Data({ files })}
+          tin={formData.step3Data.tin}
+          setTin={(tin) => updateStep3Data({ tin })}
+          businessName={formData.step3Data.businessName}
+          setBusinessName={(businessName) => updateStep3Data({ businessName })}
           onSubmit={handleSubmit}
-          onCancel={() => setStep(2)}
+          onCancel={() => updateFormData({ step: 2 })}
         />
       )}
     </>
