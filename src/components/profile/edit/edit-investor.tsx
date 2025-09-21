@@ -48,7 +48,6 @@ interface InvestorFormData {
   investor_linkedin: string;
   typical_check_size_in_php: bigint | null;
   decision_period_in_weeks: number | null;
-  investor_type: string | null;
   involvement_level: string | null;
   key_contact_person_name: string;
   key_contact_linkedin: string;
@@ -96,9 +95,6 @@ export function EditInvestorProfile({
   );
   const [decisionPeriod, setDecisionPeriod] = useState(
     investor.decision_period_in_weeks?.toString() || ""
-  );
-  const [investorType, setInvestorType] = useState(
-    investor.investor_type || ""
   );
   const [involvementLevel, setInvolvementLevel] = useState(
     investor.involvement_level || ""
@@ -168,7 +164,6 @@ export function EditInvestorProfile({
           decision_period_in_weeks: decisionPeriod
             ? parseInt(decisionPeriod)
             : null,
-          investor_type: investorType || null,
           involvement_level: involvementLevel || null,
           key_contact_person_name: keyContactName,
           key_contact_linkedin: keyContactLinkedin,
@@ -323,34 +318,6 @@ export function EditInvestorProfile({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="investorType">Investor Type</Label>
-                <Select value={investorType} onValueChange={setInvestorType}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select investor type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Angel_investor">
-                      Angel investor
-                    </SelectItem>
-                    <SelectItem value="Crowdfunding_investor">
-                      Crowdfunding investor
-                    </SelectItem>
-                    <SelectItem value="Venture_capital">
-                      Venture capital
-                    </SelectItem>
-                    <SelectItem value="Corporate_investor">
-                      Corporate investor
-                    </SelectItem>
-                    <SelectItem value="Private_equity">
-                      Private equity
-                    </SelectItem>
-                    <SelectItem value="Impact_investor">
-                      Impact investor
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
               <div className="space-y-2">
                 <Label htmlFor="involvementLevel">Involvement Level</Label>
                 <Select

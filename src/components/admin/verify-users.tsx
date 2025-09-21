@@ -18,16 +18,10 @@ import {
   Mail,
   Filter,
 } from "lucide-react";
-import type {
-  startups,
-  investors,
-  users_sync,
-  funding_requests,
-} from "@prisma/client";
+import type { startups, investors, users_sync } from "@prisma/client";
 
 type StartupWithUser = startups & {
   users_sync: users_sync | null;
-  funding_requests: funding_requests[];
 };
 
 type InvestorWithUser = investors & {
@@ -43,7 +37,7 @@ export function VerifyUsers({ startups, investors }: VerifyUsersProps) {
   const [filter, setFilter] = useState<"startups" | "investors">("startups");
   const router = useRouter();
 
-  const handleCardClick = (userId: string, type: "startup" | "investor") => {
+  const handleCardClick = (userId: string) => {
     router.push(`/admin/verification/${userId}`);
   };
 
@@ -93,7 +87,7 @@ export function VerifyUsers({ startups, investors }: VerifyUsersProps) {
                 <Card
                   key={startup.id}
                   className="shadow-lg border-0 bg-card/80 backdrop-blur-sm cursor-pointer hover:shadow-xl transition-shadow"
-                  onClick={() => handleCardClick(startup.user_id!, "startup")}
+                  onClick={() => handleCardClick(startup.user_id!)}
                 >
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
@@ -171,7 +165,7 @@ export function VerifyUsers({ startups, investors }: VerifyUsersProps) {
                 <Card
                   key={investor.id}
                   className="shadow-lg border-0 bg-card/80 backdrop-blur-sm cursor-pointer hover:shadow-xl transition-shadow"
-                  onClick={() => handleCardClick(investor.user_id!, "investor")}
+                  onClick={() => handleCardClick(investor.user_id!)}
                 >
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
@@ -199,13 +193,6 @@ export function VerifyUsers({ startups, investors }: VerifyUsersProps) {
                                     investor.users_sync.created_at
                                   ).toLocaleDateString()
                                 : "Unknown"}
-                            </span>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Users className="h-4 w-4" />
-                            <span>
-                              {investor.investor_type?.replace(/_/g, " ") ||
-                                "No type"}
                             </span>
                           </div>
                         </div>

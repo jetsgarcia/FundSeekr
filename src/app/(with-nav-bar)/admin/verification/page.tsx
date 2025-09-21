@@ -9,7 +9,6 @@ async function getPendingUsers() {
     const startups = await prisma.startups.findMany({
       include: {
         users_sync: true,
-        funding_requests: true,
       },
     });
 
