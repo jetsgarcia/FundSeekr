@@ -24,6 +24,7 @@
     "@react-three/drei": "^10.6.1",
     "@react-three/fiber": "^9.0.0",
     "@stackframe/stack": "^2.8.28",
+    "@vercel/blob": "^2.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
