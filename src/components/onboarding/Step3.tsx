@@ -354,21 +354,35 @@ export function Step3({
                   className="hidden"
                   id="proofOfBank"
                   onChange={handleFileChange("proofOfBank")}
+                  disabled={uploadStates.proofOfBank.isUploading}
                 />
                 <label
                   htmlFor="proofOfBank"
                   className={`flex items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
-                    files.proofOfBank
+                    uploadStates.proofOfBank.isUploaded
                       ? "border-green-500 bg-green-50 dark:bg-green-900/20"
+                      : uploadStates.proofOfBank.isUploading
+                      ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
                       : "border-slate-300 dark:border-slate-600 hover:border-blue-500"
+                  } ${
+                    uploadStates.proofOfBank.isUploading
+                      ? "cursor-not-allowed"
+                      : ""
                   }`}
                 >
                   <div className="text-center">
-                    {files.proofOfBank ? (
+                    {uploadStates.proofOfBank.isUploading ? (
+                      <>
+                        <Loader2 className="w-8 h-8 text-blue-600 mx-auto mb-2 animate-spin" />
+                        <span className="text-blue-700 dark:text-blue-300 text-sm">
+                          Uploading...
+                        </span>
+                      </>
+                    ) : uploadStates.proofOfBank.isUploaded ? (
                       <>
                         <Check className="w-8 h-8 text-green-600 mx-auto mb-2" />
                         <span className="text-green-700 dark:text-green-300 text-sm">
-                          {files.proofOfBank.name}
+                          Proof of Bank uploaded successfully
                         </span>
                       </>
                     ) : (
@@ -383,6 +397,11 @@ export function Step3({
                 </label>
                 {errors.proofOfBank && (
                   <p className="text-red-500 text-sm">{errors.proofOfBank}</p>
+                )}
+                {uploadStates.proofOfBank.error && (
+                  <p className="text-red-500 text-sm">
+                    {uploadStates.proofOfBank.error}
+                  </p>
                 )}
               </div>
             </div>
@@ -430,21 +449,35 @@ export function Step3({
                     className="hidden"
                     id="selfie"
                     onChange={handleFileChange("selfie")}
+                    disabled={uploadStates.selfie.isUploading}
                   />
                   <label
                     htmlFor="selfie"
                     className={`flex items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
-                      files.selfie
+                      uploadStates.selfie.isUploaded
                         ? "border-green-500 bg-green-50 dark:bg-green-900/20"
+                        : uploadStates.selfie.isUploading
+                        ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
                         : "border-slate-300 dark:border-slate-600 hover:border-blue-500"
+                    } ${
+                      uploadStates.selfie.isUploading
+                        ? "cursor-not-allowed"
+                        : ""
                     }`}
                   >
                     <div className="text-center">
-                      {files.selfie ? (
+                      {uploadStates.selfie.isUploading ? (
+                        <>
+                          <Loader2 className="w-8 h-8 text-blue-600 mx-auto mb-2 animate-spin" />
+                          <span className="text-blue-700 dark:text-blue-300 text-sm">
+                            Uploading...
+                          </span>
+                        </>
+                      ) : uploadStates.selfie.isUploaded ? (
                         <>
                           <Check className="w-8 h-8 text-green-600 mx-auto mb-2" />
                           <span className="text-green-700 dark:text-green-300 text-sm">
-                            {files.selfie.name}
+                            Selfie uploaded successfully
                           </span>
                         </>
                       ) : (
@@ -459,6 +492,11 @@ export function Step3({
                   </label>
                   {errors.selfie && (
                     <p className="text-red-500 text-sm">{errors.selfie}</p>
+                  )}
+                  {uploadStates.selfie.error && (
+                    <p className="text-red-500 text-sm">
+                      {uploadStates.selfie.error}
+                    </p>
                   )}
                 </div>
               </div>
@@ -479,21 +517,35 @@ export function Step3({
                       className="hidden"
                       id="birCor"
                       onChange={handleFileChange("birCor")}
+                      disabled={uploadStates.birCor.isUploading}
                     />
                     <label
                       htmlFor="birCor"
                       className={`flex items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
-                        files.birCor
+                        uploadStates.birCor.isUploaded
                           ? "border-green-500 bg-green-50 dark:bg-green-900/20"
+                          : uploadStates.birCor.isUploading
+                          ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
                           : "border-slate-300 dark:border-slate-600 hover:border-blue-500"
+                      } ${
+                        uploadStates.birCor.isUploading
+                          ? "cursor-not-allowed"
+                          : ""
                       }`}
                     >
                       <div className="text-center">
-                        {files.birCor ? (
+                        {uploadStates.birCor.isUploading ? (
+                          <>
+                            <Loader2 className="w-8 h-8 text-blue-600 mx-auto mb-2 animate-spin" />
+                            <span className="text-blue-700 dark:text-blue-300 text-sm">
+                              Uploading...
+                            </span>
+                          </>
+                        ) : uploadStates.birCor.isUploaded ? (
                           <>
                             <Check className="w-8 h-8 text-green-600 mx-auto mb-2" />
                             <span className="text-green-700 dark:text-green-300 text-sm">
-                              {files.birCor.name}
+                              BIR COR uploaded successfully
                             </span>
                           </>
                         ) : (
@@ -508,6 +560,11 @@ export function Step3({
                     </label>
                     {errors.birCor && (
                       <p className="text-red-500 text-sm">{errors.birCor}</p>
+                    )}
+                    {uploadStates.birCor.error && (
+                      <p className="text-red-500 text-sm">
+                        {uploadStates.birCor.error}
+                      </p>
                     )}
                   </div>
                 </div>
