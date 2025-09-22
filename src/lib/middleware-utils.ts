@@ -6,6 +6,7 @@ export const EXCLUDED_ROUTES = {
   onboarding: ["/onboarding"],
   auth: ["/sign-in", "/sign-up", "/login"],
   publicAccess: ["/", "/handler", "/sign-up", "/sign-in", "/terms"],
+  verification: ["/home", "/profile"],
 } as const;
 export type ExcludeType = keyof typeof EXCLUDED_ROUTES;
 export const isExcludedRoute = (pathname: string, excludeType: ExcludeType) =>
@@ -56,5 +57,28 @@ export async function checkAdminAccess(request: NextRequest) {
 
 export async function checkRoleAccess(request: NextRequest) {
   void request;
+  return { redirect: null };
+}
+
+export async function checkVerificationStatus(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+  const user = await stackServerApp.getUser();
+
+  if (!user) return { redirect: null };
+
+  // Admin users are exempt from verification requirements
+  if (user.serverMetadata?.userType === "Admin") {
+    return { redirect: null };
+  }
+
+  const legalVerified = user.serverMetadata?.legalVerified;
+
+  // If user is not verified and trying to access protected routes
+  if (!legalVerified && !isExcludedRoute(pathname, "verification")) {
+    return {
+      redirect: NextResponse.redirect(new URL("/home", request.url)),
+    };
+  }
+
   return { redirect: null };
 }
