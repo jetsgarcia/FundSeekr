@@ -12,6 +12,7 @@ export default async function WithNavLayout({
 }>) {
   const user = await stackServerApp.getUser();
   const userType = user?.serverMetadata?.userType;
+  const legalVerified = user?.serverMetadata?.legalVerified;
 
   return (
     <div>
@@ -21,7 +22,9 @@ export default async function WithNavLayout({
           {/* Left: Logo and navigation links */}
           <div className="flex items-center gap-10">
             <NavLogo />
-            {userType && <NavLinks userType={userType} />}
+            {userType && (
+              <NavLinks userType={userType} legalVerified={legalVerified} />
+            )}
           </div>
 
           {/* Right: Controls */}

@@ -6,9 +6,10 @@ import { cn } from "@/lib/utils";
 
 interface NavLinksProps {
   userType?: string;
+  legalVerified?: boolean;
 }
 
-export function NavLinks({ userType }: NavLinksProps) {
+export function NavLinks({ userType, legalVerified }: NavLinksProps) {
   const pathname = usePathname();
 
   const linkStyles =
@@ -23,7 +24,7 @@ export function NavLinks({ userType }: NavLinksProps) {
 
   return (
     <div className="flex gap-6">
-      {userType === "Investor" && (
+      {userType === "Investor" && legalVerified && (
         <>
           <Link href="/home" className={getLinkClassName("/home")}>
             Home
@@ -33,19 +34,13 @@ export function NavLinks({ userType }: NavLinksProps) {
           </Link>
         </>
       )}
-      {userType === "Startup" && (
+      {userType === "Startup" && legalVerified && (
         <>
           <Link href="/home" className={getLinkClassName("/home")}>
             Home
           </Link>
           <Link href="/search" className={getLinkClassName("/search")}>
             Search Investors
-          </Link>
-          <Link
-            href="/funding-requests"
-            className={getLinkClassName("/funding-requests")}
-          >
-            Funding Requests
           </Link>
         </>
       )}
