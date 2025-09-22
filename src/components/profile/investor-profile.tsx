@@ -11,6 +11,12 @@ import {
   TrendingUp,
   User,
   Users,
+  Shield,
+  CreditCard,
+  FileText,
+  ExternalLink,
+  Camera,
+  Hash,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { formatCurrencyAbbreviation } from "@/lib/format-number";
@@ -61,7 +67,11 @@ export function InvestorProfile({ investor }: { investor: InvestorProfile }) {
             </div>
           </div>
           <div className="flex items-start space-x-3">
-            <Target className="h-4 w-4 mt-1 text-muted-foreground" />
+            <Hash className="h-4 w-4 mt-1 text-muted-foreground" />
+            <div>
+              <p className="text-sm text-muted-foreground">TIN</p>
+              <p className="font-medium">{investor.tin || "Not specified"}</p>
+            </div>
           </div>
           {investor.organization_website && (
             <div className="flex items-start space-x-3">
@@ -173,6 +183,95 @@ export function InvestorProfile({ investor }: { investor: InvestorProfile }) {
               </div>
             </div>
           )}
+          {investor.key_contact_linkedin && (
+            <div className="flex items-start space-x-3">
+              <Linkedin className="h-4 w-4 mt-1 text-muted-foreground" />
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  Key Contact LinkedIn
+                </p>
+                <a
+                  href={investor.key_contact_linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-primary hover:text-primary/80 transition-colors"
+                >
+                  View Profile
+                </a>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Verification Documents */}
+      <Card className="shadow-lg border-0 bg-card/80 backdrop-blur-sm">
+        <CardHeader className="bg-secondary/50 rounded-t-lg">
+          <CardTitle className="flex items-center space-x-2 text-primary">
+            <Shield className="h-5 w-5" />
+            <span>Verification Documents</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6 space-y-4">
+          <div className="flex items-start space-x-3">
+            <CreditCard className="h-4 w-4 mt-1 text-muted-foreground" />
+            <div className="flex-1">
+              <p className="text-sm text-muted-foreground">Government ID</p>
+              {investor.govt_id_image_url ? (
+                <a
+                  href={investor.govt_id_image_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center space-x-1 text-primary hover:text-primary/80 font-medium"
+                >
+                  <span>View Document</span>
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              ) : (
+                <p className="text-sm text-destructive">Not uploaded</p>
+              )}
+            </div>
+          </div>
+          <div className="flex items-start space-x-3">
+            <Camera className="h-4 w-4 mt-1 text-muted-foreground" />
+            <div className="flex-1">
+              <p className="text-sm text-muted-foreground">
+                Selfie Verification
+              </p>
+              {investor.selfie_image_url ? (
+                <a
+                  href={investor.selfie_image_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center space-x-1 text-primary hover:text-primary/80 font-medium"
+                >
+                  <span>View Image</span>
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              ) : (
+                <p className="text-sm text-destructive">Not uploaded</p>
+              )}
+            </div>
+          </div>
+          <div className="flex items-start space-x-3">
+            <FileText className="h-4 w-4 mt-1 text-muted-foreground" />
+            <div className="flex-1">
+              <p className="text-sm text-muted-foreground">Bank Verification</p>
+              {investor.proof_of_bank_image_url ? (
+                <a
+                  href={investor.proof_of_bank_image_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center space-x-1 text-primary hover:text-primary/80 font-medium"
+                >
+                  <span>View Document</span>
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              ) : (
+                <p className="text-sm text-destructive">Not uploaded</p>
+              )}
+            </div>
+          </div>
         </CardContent>
       </Card>
 

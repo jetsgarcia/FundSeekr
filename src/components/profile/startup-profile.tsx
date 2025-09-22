@@ -15,6 +15,11 @@ import {
   Video,
   Tag,
   Play,
+  Shield,
+  CreditCard,
+  File,
+  Download,
+  ExternalLink,
 } from "lucide-react";
 import { Button } from "../ui/button";
 
@@ -40,6 +45,13 @@ interface KeyMetric {
   [key: string]: unknown;
 }
 
+interface Document {
+  name?: string | null;
+  url?: string | null;
+  type?: string | null;
+  [key: string]: unknown;
+}
+
 export interface ExtendedStartupProfile {
   id: string;
   name: string | null;
@@ -53,6 +65,11 @@ export interface ExtendedStartupProfile {
   product_demo_url: string | null;
   development_stage: string | null;
   user_id: string | null;
+  govt_id_image_url: string;
+  bir_cor_image_url: string;
+  proof_of_bank_image_url: string | null;
+  business_structure: string | null;
+  documents: Document[];
 
   // The complex JSON fields with our custom types
   team_members: TeamMember[];
@@ -115,6 +132,23 @@ export function StartupProfile({
             </div>
           </div>
           <div className="flex items-start space-x-3">
+            <Building2 className="h-4 w-4 mt-1 text-muted-foreground" />
+            <div>
+              <p className="text-sm text-muted-foreground">
+                Business Structure
+              </p>
+              <span
+                className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
+                  startup.business_structure
+                    ? "bg-secondary text-secondary-foreground"
+                    : "bg-muted text-muted-foreground"
+                }`}
+              >
+                {startup.business_structure || "Not specified"}
+              </span>
+            </div>
+          </div>
+          <div className="flex items-start space-x-3">
             <Calendar className="h-4 w-4 mt-1 text-muted-foreground" />
             <div>
               <p className="text-sm text-muted-foreground">Founded</p>
@@ -141,6 +175,79 @@ export function StartupProfile({
               </div>
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Verification Documents */}
+      <Card className="shadow-lg border-0 bg-card/80 backdrop-blur-sm">
+        <CardHeader className="bg-secondary/50 rounded-t-lg">
+          <CardTitle className="flex items-center space-x-2 text-primary">
+            <Shield className="h-5 w-5" />
+            <span>Verification Documents</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6 space-y-4">
+          <div className="flex items-start space-x-3">
+            <CreditCard className="h-4 w-4 mt-1 text-muted-foreground" />
+            <div className="flex-1">
+              <p className="text-sm text-muted-foreground">Government ID</p>
+              {startup.govt_id_image_url ? (
+                <a
+                  href={startup.govt_id_image_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center space-x-1 text-primary hover:text-primary/80 font-medium"
+                >
+                  <span>View Document</span>
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              ) : (
+                <p className="text-sm text-destructive">Not uploaded</p>
+              )}
+            </div>
+          </div>
+          <div className="flex items-start space-x-3">
+            <FileText className="h-4 w-4 mt-1 text-muted-foreground" />
+            <div className="flex-1">
+              <p className="text-sm text-muted-foreground">
+                BIR Certificate of Registration
+              </p>
+              {startup.bir_cor_image_url ? (
+                <a
+                  href={startup.bir_cor_image_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center space-x-1 text-primary hover:text-primary/80 font-medium"
+                >
+                  <span>View Document</span>
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              ) : (
+                <p className="text-sm text-destructive">Not uploaded</p>
+              )}
+            </div>
+          </div>
+          <div className="flex items-start space-x-3">
+            <CreditCard className="h-4 w-4 mt-1 text-muted-foreground" />
+            <div className="flex-1">
+              <p className="text-sm text-muted-foreground">Bank Verification</p>
+              {startup.proof_of_bank_image_url ? (
+                <a
+                  href={startup.proof_of_bank_image_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center space-x-1 text-primary hover:text-primary/80 font-medium"
+                >
+                  <span>View Document</span>
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Optional - Not uploaded
+                </p>
+              )}
+            </div>
+          </div>
         </CardContent>
       </Card>
 
@@ -330,6 +437,52 @@ export function StartupProfile({
           )}
         </CardContent>
       </Card>
+
+      {/* Additional Documents */}
+      {startup.documents && startup.documents.length > 0 && (
+        <Card className="lg:col-span-1 shadow-lg border-0 bg-card/80 backdrop-blur-sm">
+          <CardHeader className="bg-secondary/50 rounded-t-lg">
+            <CardTitle className="flex items-center space-x-2 text-primary">
+              <File className="h-5 w-5" />
+              <span>Additional Documents</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="space-y-3">
+              {startup.documents.map((document: Document, index: number) => (
+                <div
+                  key={index}
+                  className="border border-border p-3 rounded-lg bg-secondary/50 flex items-center justify-between"
+                >
+                  <div className="flex items-center space-x-2">
+                    <File className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <div className="font-medium text-sm">
+                        {String(document.name || `Document ${index + 1}`)}
+                      </div>
+                      {document.type && (
+                        <div className="text-xs text-muted-foreground">
+                          {String(document.type)}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  {document.url && (
+                    <a
+                      href={String(document.url)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:text-primary/80"
+                    >
+                      <Download className="h-4 w-4" />
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Key Metrics */}
       <Card className="lg:col-span-3 shadow-lg border-0 bg-card/80 backdrop-blur-sm">
