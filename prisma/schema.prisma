@@ -85,7 +85,7 @@ model startups {
   id                      String                   @id @unique @db.Uuid
   govt_id_image_url       String                   @db.VarChar(255)
   bir_cor_image_url       String                   @db.VarChar(255)
-  proof_of_bank_image_url String                   @db.VarChar(255)
+  proof_of_bank_image_url String?                  @db.VarChar(255)
   documents               Json[]
   business_structure      business_structure_enum?
   profile_matches         profile_matches[]

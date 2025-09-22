@@ -66,8 +66,15 @@ export function Step3({
     birCor: { isUploading: false, isUploaded: false, url: null, error: null },
   });
 
-  const validateFile = (file: File | null, field: string): string => {
-    if (!file) return `${field} is required`;
+  const validateFile = (
+    file: File | null,
+    field: string,
+    isOptional = false
+  ): string => {
+    if (!file) {
+      if (isOptional) return "";
+      return `${field} is required`;
+    }
 
     const allowedTypes = [
       "image/jpeg",
@@ -103,9 +110,11 @@ export function Step3({
       if (!file) return;
 
       // Client-side validation
+      const isOptional = field === "proofOfBank" && userType === "startup";
       const error = validateFile(
         file,
-        field.replace(/([A-Z])/g, " $1").toLowerCase()
+        field.replace(/([A-Z])/g, " $1").toLowerCase(),
+        isOptional
       );
       if (error) {
         setErrors((prev) => ({ ...prev, [field]: error }));
@@ -191,10 +200,10 @@ export function Step3({
 
   const isValid = () => {
     // Check that required files are uploaded successfully
-    const requiredFiles: string[] = ["validId", "proofOfBank"];
+    const requiredFiles: string[] = ["validId"];
 
     if (userType === "investor") {
-      requiredFiles.push("selfie");
+      requiredFiles.push("proofOfBank", "selfie");
       // Also validate TIN for investors
       const tinError = validateTin(tin);
       if (tinError) return false;
@@ -202,6 +211,7 @@ export function Step3({
 
     if (userType === "startup") {
       requiredFiles.push("birCor");
+      // Note: proofOfBank is optional for startups, so not added to requiredFiles
       // Also validate business name for startups
       const businessNameError = validateBusinessName(businessName);
       if (businessNameError) return false;
@@ -345,7 +355,13 @@ export function Step3({
             {/* Proof of Bank */}
             <div className="flex flex-col gap-2">
               <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                Proof of Bank <span className="text-red-500">*</span>
+                Proof of Bank{" "}
+                {userType === "investor" && (
+                  <span className="text-red-500">*</span>
+                )}
+                {userType === "startup" && (
+                  <span className="text-slate-500">(Optional)</span>
+                )}
               </Label>
               <div className="relative">
                 <input
