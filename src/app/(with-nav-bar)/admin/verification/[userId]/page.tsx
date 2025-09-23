@@ -167,6 +167,7 @@ export default async function UserVerificationPage({ params }: PageProps) {
         <VerificationActions
           userName={userData.name || "Unknown User"}
           userType={userType}
+          userId={userId}
         />
       </div>
     </div>
