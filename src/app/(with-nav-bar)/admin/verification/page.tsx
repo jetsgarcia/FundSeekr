@@ -1,9 +1,19 @@
 import prisma from "@/lib/prisma";
 import { VerifyUsers } from "@/components/admin/verify-users";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Building2, UserCheck } from "lucide-react";
 
-async function getPendingUsers() {
+// Type for the user metadata from Stack Auth
+interface UserMetadata {
+  server_metadata?: {
+    userType?: string;
+    onboarded?: boolean;
+    legalVerified?: boolean;
+    rejectedAt?: string;
+    rejectionReason?: string;
+    verifiedAt?: string;
+  };
+}
+
+async function getUsers() {
   try {
     // Fetch startups with their user information
     const startups = await prisma.startups.findMany({
@@ -19,17 +29,81 @@ async function getPendingUsers() {
       },
     });
 
-    return { startups, investors };
+    // Separate users into pending, approved, and rejected based on server_metadata
+    const pendingStartups = startups.filter((startup) => {
+      const metadata = startup.users_sync?.raw_json as UserMetadata;
+      return (
+        metadata?.server_metadata?.legalVerified === undefined ||
+        (metadata?.server_metadata?.legalVerified === false &&
+          !metadata?.server_metadata?.rejectedAt)
+      );
+    });
+
+    const approvedStartups = startups.filter((startup) => {
+      const metadata = startup.users_sync?.raw_json as UserMetadata;
+      return metadata?.server_metadata?.legalVerified === true;
+    });
+
+    const rejectedStartups = startups.filter((startup) => {
+      const metadata = startup.users_sync?.raw_json as UserMetadata;
+      return (
+        metadata?.server_metadata?.legalVerified === false &&
+        metadata?.server_metadata?.rejectedAt
+      );
+    });
+
+    const pendingInvestors = investors.filter((investor) => {
+      const metadata = investor.users_sync?.raw_json as UserMetadata;
+      return (
+        metadata?.server_metadata?.legalVerified === undefined ||
+        (metadata?.server_metadata?.legalVerified === false &&
+          !metadata?.server_metadata?.rejectedAt)
+      );
+    });
+
+    const approvedInvestors = investors.filter((investor) => {
+      const metadata = investor.users_sync?.raw_json as UserMetadata;
+      return metadata?.server_metadata?.legalVerified === true;
+    });
+
+    const rejectedInvestors = investors.filter((investor) => {
+      const metadata = investor.users_sync?.raw_json as UserMetadata;
+      return (
+        metadata?.server_metadata?.legalVerified === false &&
+        metadata?.server_metadata?.rejectedAt
+      );
+    });
+
+    return {
+      pendingStartups,
+      approvedStartups,
+      rejectedStartups,
+      pendingInvestors,
+      approvedInvestors,
+      rejectedInvestors,
+    };
   } catch (error) {
-    console.error("Error fetching pending users:", error);
-    return { startups: [], investors: [] };
+    console.error("Error fetching users:", error);
+    return {
+      pendingStartups: [],
+      approvedStartups: [],
+      rejectedStartups: [],
+      pendingInvestors: [],
+      approvedInvestors: [],
+      rejectedInvestors: [],
+    };
   }
 }
 
 export default async function AdminVerificationPage() {
-  const { startups, investors } = await getPendingUsers();
-
-  const totalPending = startups.length + investors.length;
+  const {
+    pendingStartups,
+    approvedStartups,
+    rejectedStartups,
+    pendingInvestors,
+    approvedInvestors,
+    rejectedInvestors,
+  } = await getUsers();
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -43,7 +117,14 @@ export default async function AdminVerificationPage() {
       </div>
 
       {/* User Verification Component */}
-      <VerifyUsers startups={startups} investors={investors} />
+      <VerifyUsers
+        pendingStartups={pendingStartups}
+        approvedStartups={approvedStartups}
+        rejectedStartups={rejectedStartups}
+        pendingInvestors={pendingInvestors}
+        approvedInvestors={approvedInvestors}
+        rejectedInvestors={rejectedInvestors}
+      />
     </div>
   );
 }

@@ -217,10 +217,14 @@ export default function OnboardingPage() {
 
       // Add user-specific data
       if (userType === "investor") {
+        formDataObj.append("firstName", investorData.firstName);
+        formDataObj.append("lastName", investorData.lastName);
         formDataObj.append("organization", investorData.organization);
         formDataObj.append("linkedinURL", investorData.linkedinURL);
         formDataObj.append("position", ""); // investors don't have position in step 2
       } else if (userType === "startup") {
+        formDataObj.append("firstName", startupData.firstName);
+        formDataObj.append("lastName", startupData.lastName);
         formDataObj.append("name", startupData.name);
         formDataObj.append("position", startupData.position);
       }

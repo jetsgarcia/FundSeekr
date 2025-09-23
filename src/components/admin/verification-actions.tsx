@@ -13,15 +13,19 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { approveUser, rejectUser } from "@/actions/user-verification";
+import { toast } from "sonner";
 
 interface VerificationActionsProps {
   userName: string;
   userType: string;
+  userId: string;
 }
 
 export function VerificationActions({
   userName,
   userType,
+  userId,
 }: VerificationActionsProps) {
   const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
@@ -31,12 +35,43 @@ export function VerificationActions({
 
   const handleApprove = async () => {
     setIsApproving(true);
-    // TODO: Call server action to approve user
+    try {
+      const result = await approveUser(userId);
+      if (result.success) {
+        toast.success(result.message);
+        setIsApproveDialogOpen(false);
+        // Optionally refresh the page or redirect
+        window.location.reload();
+      } else {
+        toast.error(result.message);
+      }
+    } catch (error) {
+      toast.error("An unexpected error occurred");
+      console.error("Approval error:", error);
+    } finally {
+      setIsApproving(false);
+    }
   };
 
   const handleReject = async () => {
     setIsRejecting(true);
-    // TODO: Call server action to reject user with rejectionReason
+    try {
+      const result = await rejectUser(userId, rejectionReason);
+      if (result.success) {
+        toast.success(result.message);
+        setIsRejectDialogOpen(false);
+        setRejectionReason("");
+        // Optionally refresh the page or redirect
+        window.location.reload();
+      } else {
+        toast.error(result.message);
+      }
+    } catch (error) {
+      toast.error("An unexpected error occurred");
+      console.error("Rejection error:", error);
+    } finally {
+      setIsRejecting(false);
+    }
   };
 
   return (

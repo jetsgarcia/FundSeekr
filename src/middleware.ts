@@ -5,6 +5,7 @@ import {
   checkOnboardingStatus,
   checkAuthStatus,
   checkAdminAccess,
+  checkVerificationStatus,
 } from "@/lib/middleware-utils";
 import { stackServerApp } from "@/stack";
 
@@ -25,6 +26,13 @@ export async function middleware(request: NextRequest) {
   }
   const { redirect: adminRedirect } = await checkAdminAccess(request);
   if (adminRedirect) return adminRedirect;
+
+  // Check verification status for non-admin users
+  const { redirect: verificationRedirect } = await checkVerificationStatus(
+    request
+  );
+  if (verificationRedirect) return verificationRedirect;
+
   if (effectiveUser) {
     const isAdmin = effectiveUser.serverMetadata?.userType === "Admin";
     if (!isAdmin) {

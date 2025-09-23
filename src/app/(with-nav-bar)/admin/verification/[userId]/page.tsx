@@ -38,6 +38,12 @@ type KeyMetric = Prisma.JsonObject & {
   description?: string | null;
 };
 
+type Document = Prisma.JsonObject & {
+  name?: string | null;
+  url?: string | null;
+  type?: string | null;
+};
+
 async function getUserData(userId: string) {
   // First, get the user from users_sync table
   const user = await prisma.users_sync.findUnique({
@@ -83,6 +89,11 @@ export default async function UserVerificationPage({ params }: PageProps) {
         product_demo_url: userData.startups.product_demo_url,
         development_stage: userData.startups.development_stage,
         user_id: userData.startups.user_id,
+        govt_id_image_url: userData.startups.govt_id_image_url,
+        bir_cor_image_url: userData.startups.bir_cor_image_url,
+        proof_of_bank_image_url: userData.startups.proof_of_bank_image_url,
+        business_structure: userData.startups.business_structure,
+        documents: (userData.startups.documents as Document[]) || [],
         team_members: (userData.startups.team_members as TeamMember[]) || [],
         advisors: (userData.startups.advisors as Advisor[]) || [],
         key_metrics: (userData.startups.key_metrics as KeyMetric[]) || [],
@@ -156,6 +167,7 @@ export default async function UserVerificationPage({ params }: PageProps) {
         <VerificationActions
           userName={userData.name || "Unknown User"}
           userType={userType}
+          userId={userId}
         />
       </div>
     </div>

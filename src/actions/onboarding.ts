@@ -69,6 +69,10 @@ export async function submitOnboarding(formData: FormData) {
       | null;
 
     // Extract user info
+    const firstName = formData.get("firstName") as string;
+    const lastName = formData.get("lastName") as string;
+    const fullName =
+      firstName && lastName ? `${firstName} ${lastName}`.trim() : "";
     const organization = formData.get("organization") as string;
     const linkedinURL = formData.get("linkedinURL") as string;
     const position = formData.get("position") as string;
@@ -131,6 +135,7 @@ export async function submitOnboarding(formData: FormData) {
 
       // Set user metadata
       await user.update({
+        displayName: fullName,
         serverMetadata: {
           userType: "Investor",
           onboarded: true,
@@ -163,6 +168,7 @@ export async function submitOnboarding(formData: FormData) {
 
       // Set user metadata
       await user.update({
+        displayName: fullName,
         serverMetadata: {
           userType: "Startup",
           onboarded: true,
