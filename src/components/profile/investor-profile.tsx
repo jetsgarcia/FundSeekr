@@ -19,9 +19,6 @@ export function InvestorProfile({ investor }: { investor: InvestorProfile }) {
             <h2 className="text-xl font-semibold text-primary">
               Verification Documents
             </h2>
-            <div className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full">
-              Priority Review
-            </div>
           </div>
           <VerificationDocumentsCard investor={investor} />
         </div>
