@@ -255,7 +255,7 @@ function renderUsersList(
                           {isStartup
                             ? (item as StartupWithUser).name ||
                               "Unnamed Startup"
-                            : (item as InvestorWithUser).organization ||
+                            : (item as InvestorWithUser).users_sync?.name ||
                               "Unnamed Investor"}
                         </h3>
                         {status === "approved" && (
