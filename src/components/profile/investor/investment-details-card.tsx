@@ -1,4 +1,4 @@
-import { DollarSign, Calendar, TrendingUp } from "lucide-react";
+import { Calendar, TrendingUp, Banknote } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../../ui/card";
 import { formatCurrencyAbbreviation } from "@/lib/format-number";
 import type { investors as InvestorProfile } from "@prisma/client";
@@ -24,7 +24,7 @@ export function InvestmentDetailsCard({
     <Card className="shadow-lg border-0 bg-gradient-to-br from-card/80 to-card/60 backdrop-blur-sm hover:shadow-xl transition-all duration-300">
       <CardHeader className="bg-secondary/50 rounded-t-lg border-b border-border/50">
         <CardTitle className="flex items-center space-x-2 text-primary">
-          <DollarSign className="h-5 w-5" />
+          <Banknote className="h-5 w-5" />
           <span>Investment Details</span>
         </CardTitle>
       </CardHeader>
@@ -35,7 +35,7 @@ export function InvestmentDetailsCard({
           </p>
           <p className="text-3xl font-bold text-primary">
             {investor.typical_check_size_in_php
-              ? `₱${formatCurrencyAbbreviation(
+              ? `${formatCurrencyAbbreviation(
                   Number(investor.typical_check_size_in_php)
                 )}`
               : "Not specified"}
