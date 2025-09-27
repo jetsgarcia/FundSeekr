@@ -1,6 +1,10 @@
 import { stackServerApp } from "@/stack";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import {
+  triggerMatching,
+  isProfileCompleteForMatching,
+} from "@/lib/matching-algorithm";
 import type {
   investors as InvestorProfile,
   startups as StartupProfile,
@@ -146,6 +150,20 @@ export async function updateStartupProfile(data: {
     revalidatePath("/profile");
     revalidatePath("/profile/edit");
 
+    // Trigger matching algorithm if profile is complete enough
+    try {
+      if (isProfileCompleteForMatching(updatedProfile, "Startup")) {
+        await triggerMatching(updatedProfile.id, "Startup");
+        console.log(
+          "Matching algorithm triggered for startup:",
+          updatedProfile.id
+        );
+      }
+    } catch (error) {
+      console.error("Error triggering matching algorithm:", error);
+      // Don't fail the profile update if matching fails
+    }
+
     return { ok: true, profile: updatedProfile };
   } catch (error) {
     console.error("Error updating startup profile:", error);
@@ -223,6 +241,20 @@ export async function updateInvestorProfile(data: {
     // Revalidate the profile page to ensure fresh data
     revalidatePath("/profile");
     revalidatePath("/profile/edit");
+
+    // Trigger matching algorithm if profile is complete enough
+    try {
+      if (isProfileCompleteForMatching(updatedProfile, "Investor")) {
+        await triggerMatching(updatedProfile.id, "Investor");
+        console.log(
+          "Matching algorithm triggered for investor:",
+          updatedProfile.id
+        );
+      }
+    } catch (error) {
+      console.error("Error triggering matching algorithm:", error);
+      // Don't fail the profile update if matching fails
+    }
 
     return { ok: true, profile: updatedProfile };
   } catch (error) {
