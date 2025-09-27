@@ -71,9 +71,6 @@ export function StartupProfile({
           <h2 className="text-xl font-semibold text-primary">
             Verification Documents
           </h2>
-          <div className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full">
-            Priority Review
-          </div>
         </div>
         <VerificationDocuments
           govt_id_image_url={startup.govt_id_image_url}
