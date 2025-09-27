@@ -448,9 +448,8 @@ export default function HomePage() {
             Effortlessly
           </h1>
           <p className="text-lg text-muted-foreground">
-            Accelerate fundraising with AI-powered pitch generation and smart
-            matchmaking that connects the right startups with the right
-            investors.
+            Accelerate fundraising with smart matchmaking that connects the
+            right startups with the right investors.
           </p>
           {!user && (
             <div className="w-full">
