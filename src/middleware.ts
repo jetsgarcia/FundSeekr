@@ -7,42 +7,56 @@ import {
   checkAdminAccess,
   checkVerificationStatus,
 } from "@/lib/middleware-utils";
-import { stackServerApp } from "@/stack";
 
 export async function middleware(request: NextRequest) {
   const currentPath = request.nextUrl.pathname;
+
+  // First check auth status
   const { redirect: authRedirect, user } = await checkAuthStatus(request);
   if (authRedirect) return authRedirect;
-  // Resolve user even on public routes to enforce onboarding gating when userType is missing
-  const effectiveUser = user ?? (await stackServerApp.getUser());
-  // If the user is authenticated but does not have a userType yet, force them to onboarding everywhere except the onboarding flow itself
-  if (effectiveUser && !effectiveUser.serverMetadata?.userType) {
+
+  // If no user, continue (public routes)
+  if (!user) {
+    return NextResponse.next();
+  }
+
+  // If user is authenticated but does not have a userType yet, force them to onboarding
+  if (!user.serverMetadata?.userType) {
     const isOnboarding = isExcludedRoute(currentPath, "onboarding");
     const isHandler =
       currentPath === "/handler" || currentPath.startsWith("/handler/");
-    if (!isOnboarding && !isHandler) {
+    const isAuth = isExcludedRoute(currentPath, "auth");
+    if (!isOnboarding && !isHandler && !isAuth) {
       return NextResponse.redirect(new URL("/onboarding", request.url));
     }
+    return NextResponse.next();
   }
-  const { redirect: adminRedirect } = await checkAdminAccess(request);
+
+  // Check admin access
+  const { redirect: adminRedirect } = await checkAdminAccess(request, user);
   if (adminRedirect) return adminRedirect;
 
   // Check verification status for non-admin users
   const { redirect: verificationRedirect } = await checkVerificationStatus(
-    request
+    request,
+    user
   );
   if (verificationRedirect) return verificationRedirect;
 
-  if (effectiveUser) {
-    const isAdmin = effectiveUser.serverMetadata?.userType === "Admin";
-    if (!isAdmin) {
-      const { redirect: onboardingRedirect } = await checkOnboardingStatus(
-        request
-      );
-      if (onboardingRedirect) return onboardingRedirect;
-    } else if (["/home", "/onboarding"].includes(currentPath))
-      return NextResponse.redirect(new URL("/admin", request.url));
+  // Handle admin vs non-admin routing
+  const isAdmin = user.serverMetadata?.userType === "Admin";
+  if (isAdmin && ["/home", "/onboarding"].includes(currentPath)) {
+    return NextResponse.redirect(new URL("/admin", request.url));
   }
+
+  if (!isAdmin) {
+    const { redirect: onboardingRedirect } = await checkOnboardingStatus(
+      request,
+      user
+    );
+    if (onboardingRedirect) return onboardingRedirect;
+  }
+
   return NextResponse.next();
 }
 
