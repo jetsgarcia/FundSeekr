@@ -7,7 +7,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 
 interface Startup {
-  id: number;
+  id: string;
   name: string;
   industry: string;
   location: string;
@@ -18,7 +18,7 @@ interface Startup {
 }
 
 interface Investor {
-  id: number;
+  id: string;
   name: string;
   position: string;
   organization: string;
