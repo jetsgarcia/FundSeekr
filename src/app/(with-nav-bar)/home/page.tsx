@@ -1,7 +1,13 @@
 import { stackServerApp } from "@/stack";
 import PendingVerification from "@/components/home/pending-verification";
 import RejectedVerification from "@/components/home/rejected-verification";
+import RecommendationsList from "@/components/recommendations-list";
 import prisma from "@/lib/prisma";
+import {
+  getRecommendations,
+  type StartupRecommendation,
+  type InvestorRecommendation,
+} from "@/actions/recommendations";
 
 export default async function HomePage() {
   const user = await stackServerApp.getUser();
@@ -95,11 +101,77 @@ export default async function HomePage() {
   const rejectionReason =
     dbRejectionReason ?? user?.serverMetadata?.rejectionReason;
 
+  // Extract user type from metadata
+  const userType = user?.serverMetadata?.userType as
+    | "Startup"
+    | "Investor"
+    | undefined;
+  const isStartup = userType === "Startup";
+
+  // Fetch recommendations if user is verified
+  let recommendationsData = null;
+  if (legalVerified) {
+    const result = await getRecommendations();
+    if (result.ok) {
+      recommendationsData = result.recommendations;
+    } else {
+      console.error("Failed to fetch recommendations:", result.error);
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-6">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
+      <div className="max-w-6xl mx-auto">
         {legalVerified ? (
-          <div></div>
+          <div className="space-y-3">
+            {/* Header Section */}
+            <div className="border-b bg-card rounded-lg p-6">
+              <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <h1 className="text-2xl font-bold text-foreground text-balance">
+                    {isStartup
+                      ? "Recommended Investors Matched to Your Profile"
+                      : "Recommended Startups Matched to Your Profile"}
+                  </h1>
+                  <p className="text-muted-foreground text-sm text-pretty">
+                    {isStartup
+                      ? "Discover promising investors tailored to your funding needs and business strategy"
+                      : "Discover promising startups tailored to your investment preferences and portfolio strategy"}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Cards Grid */}
+            {recommendationsData && recommendationsData.length > 0 ? (
+              <RecommendationsList
+                isStartup={isStartup}
+                startups={
+                  isStartup
+                    ? []
+                    : (recommendationsData as StartupRecommendation[]) || []
+                }
+                investors={
+                  isStartup
+                    ? (recommendationsData as InvestorRecommendation[]) || []
+                    : []
+                }
+              />
+            ) : (
+              <div className="text-center py-12">
+                <div className="bg-card rounded-lg p-8">
+                  <h3 className="text-lg font-semibold text-foreground mb-2">
+                    No recommendations available yet
+                  </h3>
+                  <p className="text-muted-foreground">
+                    {isStartup
+                      ? "We're working on finding the perfect investors for your startup. Please check back soon!"
+                      : "We're working on finding the perfect startups for your investment profile. Please check back soon!"}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
         ) : rejectedAt ? (
           <RejectedVerification
             rejectionReason={rejectionReason}
