@@ -4,6 +4,7 @@ module.exports = {
       name: "nextjs-app",
       script: "node_modules/next/dist/bin/next",
       args: "start -H 0.0.0.0 -p 3000",
+      cwd: "/var/lib/jenkins/workspace/fundseekr",
       env: {
         NEXT_PUBLIC_STACK_PROJECT_ID: process.env.NEXT_PUBLIC_STACK_PROJECT_ID,
         NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY: process.env.NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY,
