@@ -5,6 +5,7 @@ import { formatCurrencyAbbreviation } from "@/lib/format-number";
 // Types matching the component interfaces
 export interface StartupRecommendation {
   id: string;
+  user_id: string;
   name: string;
   industry: string;
   location: string;
@@ -16,6 +17,7 @@ export interface StartupRecommendation {
 
 export interface InvestorRecommendation {
   id: string;
+  user_id: string;
   name: string;
   position: string;
   organization: string;
@@ -83,6 +85,7 @@ export async function getRecommendations(): Promise<RecommendationsResult> {
 
         return {
           id: investor.id,
+          user_id: investor.user_id || "",
           name: userData?.name || "Unknown",
           position: investor.position || "Not specified",
           organization: investor.organization || "Not specified",
@@ -158,6 +161,7 @@ export async function getRecommendations(): Promise<RecommendationsResult> {
 
         return {
           id: startup.id,
+          user_id: startup.user_id || "",
           name: startup.name || "Unknown Startup",
           industry: startup.industry || "Not specified",
           location: startup.city || "Not specified",

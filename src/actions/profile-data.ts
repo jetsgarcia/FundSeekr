@@ -6,6 +6,7 @@ import prisma from "@/lib/prisma";
 // Define types for the profile data
 export interface StartupProfile {
   id: string;
+  user_id: string | null;
   name: string | null;
   description: string | null;
   target_market: string[];
@@ -28,6 +29,7 @@ export interface StartupProfile {
 
 export interface InvestorProfile {
   id: string;
+  user_id: string | null;
   organization: string | null;
   position: string | null;
   city: string | null;
@@ -96,19 +98,19 @@ type ProfileDataResult =
       ok: true;
       data: StartupProfile | InvestorProfile;
     }
-  | { 
-      ok: false; 
-      error: string; 
+  | {
+      ok: false;
+      error: string;
     };
 
 export async function getProfileData(
-  profileId: string, 
+  profileId: string,
   profileType: "startup" | "investor"
 ): Promise<ProfileDataResult> {
   try {
     // Get current user for authorization
     const user = await stackServerApp.getUser();
-    
+
     if (!user) {
       return { ok: false, error: "Not authenticated" };
     }
@@ -130,7 +132,8 @@ export async function getProfileData(
         ? dbUser.raw_json.server_metadata.legalVerified
         : false;
 
-    const legalVerified = dbLegalVerified ?? user?.serverMetadata?.legalVerified;
+    const legalVerified =
+      dbLegalVerified ?? user?.serverMetadata?.legalVerified;
 
     if (!legalVerified) {
       return { ok: false, error: "User not verified" };
@@ -155,6 +158,7 @@ export async function getProfileData(
 
       const startupProfile: StartupProfile = {
         id: startup.id,
+        user_id: startup.user_id,
         name: startup.name,
         description: startup.description,
         target_market: startup.target_market,
@@ -164,12 +168,12 @@ export async function getProfileData(
         website_url: startup.website_url,
         keywords: startup.keywords,
         product_demo_url: startup.product_demo_url,
-        key_metrics: (startup.key_metrics as unknown) as KeyMetric[],
-        team_members: (startup.team_members as unknown) as TeamMember[],
-        advisors: (startup.advisors as unknown) as Advisor[],
+        key_metrics: startup.key_metrics as unknown as KeyMetric[],
+        team_members: startup.team_members as unknown as TeamMember[],
+        advisors: startup.advisors as unknown as Advisor[],
         development_stage: startup.development_stage,
         business_structure: startup.business_structure,
-        documents: (startup.documents as unknown) as Document[],
+        documents: startup.documents as unknown as Document[],
         govt_id_image_url: startup.govt_id_image_url,
         bir_cor_image_url: startup.bir_cor_image_url,
         proof_of_bank_image_url: startup.proof_of_bank_image_url,
@@ -195,6 +199,7 @@ export async function getProfileData(
 
       const investorProfile: InvestorProfile = {
         id: investor.id,
+        user_id: investor.user_id,
         organization: investor.organization,
         position: investor.position,
         city: investor.city,
@@ -210,7 +215,7 @@ export async function getProfileData(
         value_proposition: investor.value_proposition,
         involvement_level: investor.involvement_level,
         portfolio_companies: investor.portfolio_companies,
-        notable_exits: (investor.notable_exits as unknown) as NotableExit[],
+        notable_exits: investor.notable_exits as unknown as NotableExit[],
         key_contact_person_name: investor.key_contact_person_name,
         key_contact_linkedin: investor.key_contact_linkedin,
         key_contact_number: investor.key_contact_number,
