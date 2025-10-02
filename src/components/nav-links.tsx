@@ -18,7 +18,7 @@ export function NavLinks({ userType, legalVerified }: NavLinksProps) {
     "text-blue-500 dark:text-blue-400 font-medium font-semibold";
 
   const getLinkClassName = (href: string) => {
-    const isActive = pathname === href;
+    const isActive = pathname === href || pathname.startsWith(href + "/");
     return cn(linkStyles, isActive && activeLinkStyles);
   };
 
@@ -32,6 +32,9 @@ export function NavLinks({ userType, legalVerified }: NavLinksProps) {
           <Link href="/search" className={getLinkClassName("/search")}>
             Search Startups
           </Link>
+          <Link href="/chat" className={getLinkClassName("/chat")}>
+            Chat
+          </Link>
         </>
       )}
       {userType === "Startup" && legalVerified && (
@@ -41,6 +44,9 @@ export function NavLinks({ userType, legalVerified }: NavLinksProps) {
           </Link>
           <Link href="/search" className={getLinkClassName("/search")}>
             Search Investors
+          </Link>
+          <Link href="/chat" className={getLinkClassName("/chat")}>
+            Chat
           </Link>
         </>
       )}

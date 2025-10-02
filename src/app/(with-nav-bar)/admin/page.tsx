@@ -1,10 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Moon, Sun } from "lucide-react";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { UserOverview } from "@/components/admin/UserOverview";
 import { StartupVerification } from "@/components/admin/StartupVerification";
 import { InvestorVerification } from "@/components/admin/InvestorVerification";
@@ -12,12 +9,6 @@ import { EngagementMetrics } from "@/components/admin/EngagementMetrics";
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
-  const [isDark, setIsDark] = useState(false);
-
-  const toggleDarkMode = () => {
-    setIsDark(!isDark);
-    document.documentElement.classList.toggle("dark");
-  };
 
   return (
     <div className="min-h-screen bg-background">
