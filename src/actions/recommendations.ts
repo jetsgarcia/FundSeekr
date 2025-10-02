@@ -1,5 +1,6 @@
 import { stackServerApp } from "@/stack";
 import prisma from "@/lib/prisma";
+import { formatCurrencyAbbreviation } from "@/lib/format-number";
 
 // Types matching the component interfaces
 export interface StartupRecommendation {
@@ -75,7 +76,9 @@ export async function getRecommendations(): Promise<RecommendationsResult> {
 
         // Format typical check size
         const typicalCheck = investor.typical_check_size_in_php
-          ? `₱${(Number(investor.typical_check_size_in_php) / 1000000).toFixed(1)}M`
+          ? formatCurrencyAbbreviation(
+              Number(investor.typical_check_size_in_php)
+            )
           : "Not specified";
 
         return {
@@ -160,7 +163,8 @@ export async function getRecommendations(): Promise<RecommendationsResult> {
           location: startup.city || "Not specified",
           stage: getStageDisplay(startup.development_stage),
           description: startup.description || "No description available",
-          keyMetrics: keyMetrics.length > 0 ? keyMetrics : ["No metrics available"],
+          keyMetrics:
+            keyMetrics.length > 0 ? keyMetrics : ["No metrics available"],
           matchScore: match.match_percentage,
         };
       });
