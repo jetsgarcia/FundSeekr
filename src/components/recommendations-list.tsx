@@ -74,6 +74,50 @@ function getMatchScoreColor(score: number) {
   return "text-gray-600 dark:text-gray-400";
 }
 
+function formatTypicalCheck(typicalCheck: string): string {
+  // Extract numbers from the string (e.g., "$1,000,000" -> 1000000)
+  const numberMatch = typicalCheck.match(/[\d,]+/);
+  if (!numberMatch) return typicalCheck;
+
+  const numberStr = numberMatch[0].replace(/,/g, "");
+  const number = parseInt(numberStr, 10);
+
+  if (isNaN(number)) return typicalCheck;
+
+  // Custom formatting logic that prefers whole numbers
+  let formatted: string;
+
+  if (number >= 1000000000000) {
+    // Trillions
+    const val = number / 1000000000000;
+    formatted = val % 1 === 0 ? `${val}T` : `${val.toFixed(1)}T`;
+  } else if (number >= 1000000000) {
+    // Billions
+    const val = number / 1000000000;
+    formatted = val % 1 === 0 ? `${val}B` : `${val.toFixed(1)}B`;
+  } else if (number >= 1000000) {
+    // Millions - but prefer K if it results in a whole number
+    const millionVal = number / 1000000;
+    const thousandVal = number / 1000;
+
+    if (thousandVal % 1 === 0 && millionVal < 1) {
+      formatted = `${thousandVal}K`;
+    } else {
+      formatted =
+        millionVal % 1 === 0 ? `${millionVal}M` : `${millionVal.toFixed(1)}M`;
+    }
+  } else if (number >= 1000) {
+    // Thousands
+    const val = number / 1000;
+    formatted = val % 1 === 0 ? `${val}K` : `${val.toFixed(1)}K`;
+  } else {
+    formatted = number.toString();
+  }
+
+  // Replace the number in the original string with the formatted version
+  return typicalCheck.replace(/[\d,]+/, formatted);
+}
+
 export default function RecommendationsList({
   isStartup,
   startups,
@@ -136,7 +180,7 @@ export default function RecommendationsList({
                               Check:
                             </span>
                             <span className="text-sm text-foreground font-medium">
-                              {investor.typicalCheck}
+                              {formatTypicalCheck(investor.typicalCheck)}
                             </span>
                           </div>
 
