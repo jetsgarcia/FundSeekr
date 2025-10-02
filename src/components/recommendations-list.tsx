@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -192,8 +193,11 @@ export default function RecommendationsList({
                         variant="outline"
                         size="sm"
                         className="bg-transparent"
+                        asChild
                       >
-                        View Full Profile
+                        <Link href={`/profile/investor/${investor.id}`}>
+                          View Full Profile
+                        </Link>
                       </Button>
                       <Button size="sm">Connect with Investor</Button>
                     </div>
@@ -284,8 +288,11 @@ export default function RecommendationsList({
                         variant="outline"
                         size="sm"
                         className="bg-transparent"
+                        asChild
                       >
-                        View Full Profile
+                        <Link href={`/profile/startup/${startup.id}`}>
+                          View Full Profile
+                        </Link>
                       </Button>
                       <Button size="sm">Connect with Representative</Button>
                     </div>
