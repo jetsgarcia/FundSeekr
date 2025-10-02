@@ -32,6 +32,9 @@ export function NavLinks({ userType, legalVerified }: NavLinksProps) {
           <Link href="/search" className={getLinkClassName("/search")}>
             Search Startups
           </Link>
+          <Link href="/chat" className={getLinkClassName("/chat")}>
+            Chat
+          </Link>
         </>
       )}
       {userType === "Startup" && legalVerified && (
@@ -41,6 +44,9 @@ export function NavLinks({ userType, legalVerified }: NavLinksProps) {
           </Link>
           <Link href="/search" className={getLinkClassName("/search")}>
             Search Investors
+          </Link>
+          <Link href="/chat" className={getLinkClassName("/chat")}>
+            Chat
           </Link>
         </>
       )}
