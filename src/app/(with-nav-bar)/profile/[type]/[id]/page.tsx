@@ -82,6 +82,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   if (type === "startup") {
     const startup = profile as {
       id: string;
+      user_id: string | null;
       name: string | null;
       description: string | null;
       target_market: string[];
@@ -192,15 +193,8 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                 </div>
 
                 <div className="flex flex-col gap-3">
-                  <Button size="lg" className="w-full lg:w-auto">
-                    Connect with Startup
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="w-full lg:w-auto"
-                  >
-                    Send Message
+                  <Button size="lg" className="w-full lg:w-auto" asChild>
+                    <Link href={`/chat/${startup.user_id}`}>Send Message</Link>
                   </Button>
                 </div>
               </div>
@@ -456,6 +450,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     // Investor profile
     const investor = profile as {
       id: string;
+      user_id: string | null;
       organization: string | null;
       position: string | null;
       city: string | null;
@@ -552,15 +547,8 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                 </div>
 
                 <div className="flex flex-col gap-3">
-                  <Button size="lg" className="w-full lg:w-auto">
-                    Connect with Investor
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="w-full lg:w-auto"
-                  >
-                    Send Message
+                  <Button size="lg" className="w-full lg:w-auto" asChild>
+                    <Link href={`/chat/${investor.user_id}`}>Send Message</Link>
                   </Button>
                 </div>
               </div>

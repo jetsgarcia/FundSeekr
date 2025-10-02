@@ -9,6 +9,7 @@ import { useState } from "react";
 
 interface Startup {
   id: string;
+  user_id: string;
   name: string;
   industry: string;
   location: string;
@@ -20,6 +21,7 @@ interface Startup {
 
 interface Investor {
   id: string;
+  user_id: string;
   name: string;
   position: string;
   organization: string;
@@ -243,7 +245,11 @@ export default function RecommendationsList({
                           View Full Profile
                         </Link>
                       </Button>
-                      <Button size="sm">Connect with Investor</Button>
+                      <Button size="sm" asChild>
+                        <Link href={`/chat/${investor.user_id}`}>
+                          Chat with Investor
+                        </Link>
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
@@ -338,7 +344,11 @@ export default function RecommendationsList({
                           View Full Profile
                         </Link>
                       </Button>
-                      <Button size="sm">Connect with Representative</Button>
+                      <Button size="sm" asChild>
+                        <Link href={`/chat/${startup.user_id}`}>
+                          Chat with Representative
+                        </Link>
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
