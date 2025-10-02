@@ -15,6 +15,7 @@ interface ChatContact {
 export default function RecentChats() {
   const user = useUser();
   const [contacts, setContacts] = useState<ChatContact[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Function to fetch and cache user name
   const fetchUserName = async (userId: string): Promise<string> => {
@@ -38,6 +39,7 @@ export default function RecentChats() {
     if (!user) return;
 
     const loadContacts = async () => {
+      setIsLoading(true);
       try {
         const storedContacts = await chatStorage.getContacts();
         const contactsWithNames = await Promise.all(
@@ -54,6 +56,8 @@ export default function RecentChats() {
         setContacts(contactsWithNames);
       } catch (error) {
         console.error("Failed to load contacts:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -139,7 +143,14 @@ export default function RecentChats() {
 
       {/* Recent chats list */}
       <div>
-        {contacts.length === 0 ? (
+        {isLoading ? (
+          <div className="flex items-center justify-center p-8">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100 mx-auto mb-2"></div>
+              <p className="text-gray-500">Loading conversations...</p>
+            </div>
+          </div>
+        ) : contacts.length === 0 ? (
           <p className="text-gray-500">
             No recent chats. Start a conversation above!
           </p>
