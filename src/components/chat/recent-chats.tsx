@@ -151,9 +151,49 @@ export default function RecentChats() {
             </div>
           </div>
         ) : contacts.length === 0 ? (
-          <p className="text-gray-500">
-            No recent chats. Start a conversation above!
-          </p>
+          <div className="flex flex-col items-center justify-center p-12 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
+              <svg
+                className="w-8 h-8 text-gray-400 dark:text-gray-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+              No conversations yet
+            </h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-sm">
+              Start building your network! Visit profiles of investors or
+              startups you&apos;re interested in and send them a message.
+            </p>
+            <Link
+              href="/home"
+              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+            >
+              <svg
+                className="w-4 h-4 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+              Discover People
+            </Link>
+          </div>
         ) : (
           <div className="space-y-2">
             {contacts
