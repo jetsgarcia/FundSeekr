@@ -18,7 +18,7 @@ export function NavLinks({ userType, legalVerified }: NavLinksProps) {
     "text-blue-500 dark:text-blue-400 font-medium font-semibold";
 
   const getLinkClassName = (href: string) => {
-    const isActive = pathname === href;
+    const isActive = pathname === href || pathname.startsWith(href + "/");
     return cn(linkStyles, isActive && activeLinkStyles);
   };
 
