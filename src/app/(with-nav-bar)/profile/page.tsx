@@ -1,5 +1,5 @@
 import { stackServerApp } from "@/stack";
-import { readProfile } from "@/actions/profile";
+import { readProfile, readAllStartupProfiles } from "@/actions/profile";
 import ErrorPage from "@/components/error-page";
 import { InvestorProfile } from "@/components/profile/investor-profile";
 import {
@@ -15,6 +15,16 @@ export default async function ProfilePage() {
 
   if (!response.ok) {
     return <ErrorPage error={response.error} />;
+  }
+
+  // For startup users, fetch all their startup profiles
+  let allStartupProfiles: ExtendedStartupProfile[] = [];
+  if (user?.serverMetadata.userType === "Startup") {
+    const startupProfilesResponse = await readAllStartupProfiles();
+    if (startupProfilesResponse.ok) {
+      allStartupProfiles =
+        startupProfilesResponse.profiles as unknown as ExtendedStartupProfile[];
+    }
   }
 
   if (response.ok) {
@@ -36,7 +46,14 @@ export default async function ProfilePage() {
           )}
           {user?.serverMetadata.userType === "Startup" && (
             <StartupProfile
-              startup={response.profile as unknown as ExtendedStartupProfile}
+              startups={
+                allStartupProfiles.length > 0 ? allStartupProfiles : undefined
+              }
+              startup={
+                allStartupProfiles.length === 0
+                  ? (response.profile as unknown as ExtendedStartupProfile)
+                  : undefined
+              }
             />
           )}
         </div>
