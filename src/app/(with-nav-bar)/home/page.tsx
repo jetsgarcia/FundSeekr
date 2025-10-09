@@ -16,97 +16,134 @@ export default async function HomePage() {
     return <div>Not authenticated</div>;
   }
 
-  // Check database for legal verification status
-  const dbUser = await prisma.users_sync.findUnique({
-    where: { id: user.id },
-    select: { raw_json: true },
-  });
-
-  // Extract legal verification status from database
-  const dbLegalVerified =
-    dbUser?.raw_json &&
-    typeof dbUser.raw_json === "object" &&
-    dbUser.raw_json !== null &&
-    "server_metadata" in dbUser.raw_json &&
-    dbUser.raw_json.server_metadata &&
-    typeof dbUser.raw_json.server_metadata === "object" &&
-    "legalVerified" in dbUser.raw_json.server_metadata
-      ? dbUser.raw_json.server_metadata.legalVerified
-      : null;
-
-  // Extract rejection information from database
-  const dbRejectedAt =
-    dbUser?.raw_json &&
-    typeof dbUser.raw_json === "object" &&
-    dbUser.raw_json !== null &&
-    "server_metadata" in dbUser.raw_json &&
-    dbUser.raw_json.server_metadata &&
-    typeof dbUser.raw_json.server_metadata === "object" &&
-    "rejectedAt" in dbUser.raw_json.server_metadata
-      ? dbUser.raw_json.server_metadata.rejectedAt
-      : null;
-
-  const dbRejectionReason =
-    dbUser?.raw_json &&
-    typeof dbUser.raw_json === "object" &&
-    dbUser.raw_json !== null &&
-    "server_metadata" in dbUser.raw_json &&
-    dbUser.raw_json.server_metadata &&
-    typeof dbUser.raw_json.server_metadata === "object" &&
-    "rejectionReason" in dbUser.raw_json.server_metadata
-      ? dbUser.raw_json.server_metadata.rejectionReason
-      : null;
-
-  // If database has legal verification status but Stack user doesn't, update Stack user
-  if (
-    dbLegalVerified !== null &&
-    user.serverMetadata?.legalVerified !== dbLegalVerified
-  ) {
-    try {
-      await user.update({
-        serverMetadata: {
-          ...user.serverMetadata,
-          legalVerified: dbLegalVerified,
-        },
-      });
-    } catch (error) {
-      console.error("Failed to sync legal verification status:", error);
-    }
-  }
-
-  // Sync rejection information from database to Stack user if needed
-  if (
-    (dbRejectedAt !== null &&
-      user.serverMetadata?.rejectedAt !== dbRejectedAt) ||
-    (dbRejectionReason !== null &&
-      user.serverMetadata?.rejectionReason !== dbRejectionReason)
-  ) {
-    try {
-      await user.update({
-        serverMetadata: {
-          ...user.serverMetadata,
-          rejectedAt: dbRejectedAt || user.serverMetadata?.rejectedAt,
-          rejectionReason:
-            dbRejectionReason || user.serverMetadata?.rejectionReason,
-        },
-      });
-    } catch (error) {
-      console.error("Failed to sync rejection information:", error);
-    }
-  }
-
-  // Use the database values as the source of truth, fallback to Stack user metadata
-  const legalVerified = dbLegalVerified ?? user?.serverMetadata?.legalVerified;
-  const rejectedAt = dbRejectedAt ?? user?.serverMetadata?.rejectedAt;
-  const rejectionReason =
-    dbRejectionReason ?? user?.serverMetadata?.rejectionReason;
-
   // Extract user type from metadata
   const userType = user?.serverMetadata?.userType as
     | "Startup"
     | "Investor"
     | undefined;
   const isStartup = userType === "Startup";
+
+  let legalVerified = null;
+  let rejectedAt = null;
+  let rejectionReason = null;
+
+  if (isStartup) {
+    // For startups, check the legal_verified field in the startups table
+    const startupProfile = await prisma.startups.findFirst({
+      where: { user_id: user.id },
+      select: {
+        legal_verified: true,
+        users_sync: {
+          select: {
+            raw_json: true,
+          },
+        },
+      },
+    });
+
+    // Use the startup's legal_verified field as the primary source
+    legalVerified = startupProfile?.legal_verified;
+
+    // Get rejection info from users_sync metadata as fallback
+    if (
+      startupProfile?.users_sync?.raw_json &&
+      typeof startupProfile.users_sync.raw_json === "object" &&
+      startupProfile.users_sync.raw_json !== null &&
+      "server_metadata" in startupProfile.users_sync.raw_json &&
+      startupProfile.users_sync.raw_json.server_metadata &&
+      typeof startupProfile.users_sync.raw_json.server_metadata === "object"
+    ) {
+      const metadata = startupProfile.users_sync.raw_json.server_metadata;
+      rejectedAt = "rejectedAt" in metadata ? metadata.rejectedAt : null;
+      rejectionReason =
+        "rejectionReason" in metadata ? metadata.rejectionReason : null;
+    }
+  } else {
+    // For investors, use the existing logic with users_sync metadata
+    const dbUser = await prisma.users_sync.findUnique({
+      where: { id: user.id },
+      select: { raw_json: true },
+    });
+
+    // Extract legal verification status from database
+    const dbLegalVerified =
+      dbUser?.raw_json &&
+      typeof dbUser.raw_json === "object" &&
+      dbUser.raw_json !== null &&
+      "server_metadata" in dbUser.raw_json &&
+      dbUser.raw_json.server_metadata &&
+      typeof dbUser.raw_json.server_metadata === "object" &&
+      "legalVerified" in dbUser.raw_json.server_metadata
+        ? dbUser.raw_json.server_metadata.legalVerified
+        : null;
+
+    // Extract rejection information from database
+    const dbRejectedAt =
+      dbUser?.raw_json &&
+      typeof dbUser.raw_json === "object" &&
+      dbUser.raw_json !== null &&
+      "server_metadata" in dbUser.raw_json &&
+      dbUser.raw_json.server_metadata &&
+      typeof dbUser.raw_json.server_metadata === "object" &&
+      "rejectedAt" in dbUser.raw_json.server_metadata
+        ? dbUser.raw_json.server_metadata.rejectedAt
+        : null;
+
+    const dbRejectionReason =
+      dbUser?.raw_json &&
+      typeof dbUser.raw_json === "object" &&
+      dbUser.raw_json !== null &&
+      "server_metadata" in dbUser.raw_json &&
+      dbUser.raw_json.server_metadata &&
+      typeof dbUser.raw_json.server_metadata === "object" &&
+      "rejectionReason" in dbUser.raw_json.server_metadata
+        ? dbUser.raw_json.server_metadata.rejectionReason
+        : null;
+
+    // If database has legal verification status but Stack user doesn't, update Stack user
+    if (
+      dbLegalVerified !== null &&
+      user.serverMetadata?.legalVerified !== dbLegalVerified
+    ) {
+      try {
+        await user.update({
+          serverMetadata: {
+            ...user.serverMetadata,
+            legalVerified: dbLegalVerified,
+          },
+        });
+      } catch (error) {
+        console.error("Failed to sync legal verification status:", error);
+      }
+    }
+
+    // Sync rejection information from database to Stack user if needed
+    if (
+      (dbRejectedAt !== null &&
+        user.serverMetadata?.rejectedAt !== dbRejectedAt) ||
+      (dbRejectionReason !== null &&
+        user.serverMetadata?.rejectionReason !== dbRejectionReason)
+    ) {
+      try {
+        await user.update({
+          serverMetadata: {
+            ...user.serverMetadata,
+            rejectedAt: dbRejectedAt || user.serverMetadata?.rejectedAt,
+            rejectionReason:
+              dbRejectionReason || user.serverMetadata?.rejectionReason,
+          },
+        });
+      } catch (error) {
+        console.error("Failed to sync rejection information:", error);
+      }
+    }
+
+    // Use the database values as the source of truth, fallback to Stack user metadata
+    legalVerified = dbLegalVerified ?? user?.serverMetadata?.legalVerified;
+    rejectedAt = dbRejectedAt ?? user?.serverMetadata?.rejectedAt;
+    rejectionReason =
+      dbRejectionReason ?? user?.serverMetadata?.rejectionReason;
+  }
 
   // Fetch recommendations if user is verified
   let recommendationsData = null;

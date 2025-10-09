@@ -116,24 +116,36 @@ export async function getProfileData(
     }
 
     // Check if user is legally verified
-    const dbUser = await prisma.users_sync.findUnique({
-      where: { id: user.id },
-      select: { raw_json: true },
-    });
+    let legalVerified = false;
 
-    const dbLegalVerified =
-      dbUser?.raw_json &&
-      typeof dbUser.raw_json === "object" &&
-      dbUser.raw_json !== null &&
-      "server_metadata" in dbUser.raw_json &&
-      dbUser.raw_json.server_metadata &&
-      typeof dbUser.raw_json.server_metadata === "object" &&
-      "legalVerified" in dbUser.raw_json.server_metadata
-        ? dbUser.raw_json.server_metadata.legalVerified
-        : false;
+    // For startups, check the legal_verified field in the startups table
+    if (user.serverMetadata?.userType === "Startup") {
+      const startupProfile = await prisma.startups.findFirst({
+        where: { user_id: user.id },
+        select: { legal_verified: true },
+      });
+      legalVerified = startupProfile?.legal_verified === true;
+    } else {
+      // For investors, check the users_sync metadata
+      const dbUser = await prisma.users_sync.findUnique({
+        where: { id: user.id },
+        select: { raw_json: true },
+      });
 
-    const legalVerified =
-      dbLegalVerified ?? user?.serverMetadata?.legalVerified;
+      const dbLegalVerified =
+        dbUser?.raw_json &&
+        typeof dbUser.raw_json === "object" &&
+        dbUser.raw_json !== null &&
+        "server_metadata" in dbUser.raw_json &&
+        dbUser.raw_json.server_metadata &&
+        typeof dbUser.raw_json.server_metadata === "object" &&
+        "legalVerified" in dbUser.raw_json.server_metadata
+          ? dbUser.raw_json.server_metadata.legalVerified
+          : false;
+
+      legalVerified =
+        dbLegalVerified ?? user?.serverMetadata?.legalVerified ?? false;
+    }
 
     if (!legalVerified) {
       return { ok: false, error: "User not verified" };

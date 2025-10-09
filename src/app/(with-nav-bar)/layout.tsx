@@ -4,6 +4,7 @@ import { NavLinks } from "@/components/nav-links";
 import { NavLogo } from "@/components/nav-logo";
 import { UserButton } from "@/components/user-button";
 import { stackServerApp } from "@/stack";
+import prisma from "@/lib/prisma";
 
 export default async function WithNavLayout({
   children,
@@ -12,7 +13,17 @@ export default async function WithNavLayout({
 }>) {
   const user = await stackServerApp.getUser();
   const userType = user?.serverMetadata?.userType;
-  const legalVerified = user?.serverMetadata?.legalVerified;
+
+  let legalVerified = user?.serverMetadata?.legalVerified;
+
+  // For startups, check verification status from the startups table
+  if (user && userType === "Startup") {
+    const startupProfile = await prisma.startups.findFirst({
+      where: { user_id: user.id },
+      select: { legal_verified: true },
+    });
+    legalVerified = startupProfile?.legal_verified;
+  }
 
   return (
     <div>

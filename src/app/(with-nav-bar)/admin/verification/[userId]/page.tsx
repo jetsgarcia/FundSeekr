@@ -70,35 +70,37 @@ export default async function UserVerificationPage({ params }: PageProps) {
   }
 
   // Determine user type and profile data
-  const isStartup = !!userData.startups;
-  const isInvestor = !!userData.investors && userData.investors.length > 0;
+  const isStartup = userData.startups && userData.startups.length > 0;
+  const isInvestor = userData.investors && userData.investors.length > 0;
   const userType = isStartup ? "Startup" : isInvestor ? "Investor" : "User";
 
   // Transform startup data to match ExtendedStartupProfile interface
-  const startupProfile: ExtendedStartupProfile | null = userData.startups
-    ? {
-        id: userData.startups.id,
-        name: userData.startups.name,
-        description: userData.startups.description,
-        target_market: userData.startups.target_market,
-        city: userData.startups.city,
-        date_founded: userData.startups.date_founded,
-        industry: userData.startups.industry,
-        website_url: userData.startups.website_url,
-        keywords: userData.startups.keywords,
-        product_demo_url: userData.startups.product_demo_url,
-        development_stage: userData.startups.development_stage,
-        user_id: userData.startups.user_id,
-        govt_id_image_url: userData.startups.govt_id_image_url,
-        bir_cor_image_url: userData.startups.bir_cor_image_url,
-        proof_of_bank_image_url: userData.startups.proof_of_bank_image_url,
-        business_structure: userData.startups.business_structure,
-        documents: (userData.startups.documents as Document[]) || [],
-        team_members: (userData.startups.team_members as TeamMember[]) || [],
-        advisors: (userData.startups.advisors as Advisor[]) || [],
-        key_metrics: (userData.startups.key_metrics as KeyMetric[]) || [],
-      }
-    : null;
+  const startupProfile: ExtendedStartupProfile | null =
+    isStartup && userData.startups[0]
+      ? {
+          id: userData.startups[0].id,
+          name: userData.startups[0].name,
+          description: userData.startups[0].description,
+          target_market: userData.startups[0].target_market,
+          city: userData.startups[0].city,
+          date_founded: userData.startups[0].date_founded,
+          industry: userData.startups[0].industry,
+          website_url: userData.startups[0].website_url,
+          keywords: userData.startups[0].keywords,
+          product_demo_url: userData.startups[0].product_demo_url,
+          development_stage: userData.startups[0].development_stage,
+          user_id: userData.startups[0].user_id,
+          govt_id_image_url: userData.startups[0].govt_id_image_url,
+          bir_cor_image_url: userData.startups[0].bir_cor_image_url,
+          proof_of_bank_image_url: userData.startups[0].proof_of_bank_image_url,
+          business_structure: userData.startups[0].business_structure,
+          documents: (userData.startups[0].documents as Document[]) || [],
+          team_members:
+            (userData.startups[0].team_members as TeamMember[]) || [],
+          advisors: (userData.startups[0].advisors as Advisor[]) || [],
+          key_metrics: (userData.startups[0].key_metrics as KeyMetric[]) || [],
+        }
+      : null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-background/90">
