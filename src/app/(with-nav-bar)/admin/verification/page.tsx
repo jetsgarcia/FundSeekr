@@ -29,29 +29,23 @@ async function getUsers() {
       },
     });
 
-    // Separate users into pending, approved, and rejected based on server_metadata
+    // Separate startups based on the legal_verified field in the startups table
     const pendingStartups = startups.filter((startup) => {
-      const metadata = startup.users_sync?.raw_json as UserMetadata;
-      return (
-        metadata?.server_metadata?.legalVerified === undefined ||
-        (metadata?.server_metadata?.legalVerified === false &&
-          !metadata?.server_metadata?.rejectedAt)
-      );
+      // For startups, use the legal_verified field directly
+      return startup.legal_verified === null;
     });
 
     const approvedStartups = startups.filter((startup) => {
-      const metadata = startup.users_sync?.raw_json as UserMetadata;
-      return metadata?.server_metadata?.legalVerified === true;
+      // For startups, use the legal_verified field directly
+      return startup.legal_verified === true;
     });
 
     const rejectedStartups = startups.filter((startup) => {
-      const metadata = startup.users_sync?.raw_json as UserMetadata;
-      return (
-        metadata?.server_metadata?.legalVerified === false &&
-        metadata?.server_metadata?.rejectedAt
-      );
+      // For startups, use the legal_verified field directly
+      return startup.legal_verified === false;
     });
 
+    // Separate investors based on server_metadata (keep existing logic for investors)
     const pendingInvestors = investors.filter((investor) => {
       const metadata = investor.users_sync?.raw_json as UserMetadata;
       return (

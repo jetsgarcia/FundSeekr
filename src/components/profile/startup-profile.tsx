@@ -1,4 +1,7 @@
+"use client";
+
 import type { startups as StartupProfile } from "@prisma/client";
+import { useState } from "react";
 import { CompanyInfo } from "./startup/company-info";
 import { KeyMetrics } from "./startup/key-metrics";
 import { TeamMembers } from "./startup/team-members";
@@ -7,6 +10,18 @@ import { Documents } from "./startup/documents";
 import { MarketAndKeywords } from "./startup/market-and-keywords";
 import { DescriptionAndDemo } from "./startup/description-and-demo";
 import { VerificationDocuments } from "./startup/verification-documents";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import Link from "next/link";
+import { changeCurrentStartupClient } from "@/actions/client-profile";
+import { toast } from "sonner";
 
 interface TeamMember {
   name?: string | null;
@@ -59,11 +74,100 @@ export interface ExtendedStartupProfile {
 
 export function StartupProfile({
   startup,
+  startups,
+  initialStartupId,
 }: {
-  startup: ExtendedStartupProfile;
+  startup?: ExtendedStartupProfile;
+  startups?: ExtendedStartupProfile[];
+  initialStartupId?: string;
 }) {
+  // Handle backward compatibility - if startup is provided, convert to array
+  const startupsArray = startups || (startup ? [startup] : []);
+
+  const [selectedStartupId, setSelectedStartupId] = useState<string>(
+    initialStartupId || startupsArray[0]?.id || ""
+  );
+
+  const selectedStartup =
+    startupsArray.find((s) => s.id === selectedStartupId) || startupsArray[0];
+
+  // Handler for when startup selection changes
+  async function handleStartupChange(newStartupId: string) {
+    try {
+      // Update local state immediately for UI responsiveness
+      setSelectedStartupId(newStartupId);
+
+      // Update server metadata to persist the selection
+      const result = await changeCurrentStartupClient(newStartupId);
+
+      if (!result.ok) {
+        // If server update fails, show error but keep the UI updated
+        toast.error("Failed to save profile selection. Please try again.");
+        console.error("Failed to update current startup:", result.error);
+      } else {
+        toast.success("Startup profile updated successfully!");
+      }
+    } catch (error) {
+      console.error("Error changing startup profile:", error);
+      toast.error("Failed to save profile selection. Please try again.");
+    }
+  }
+
+  if (!selectedStartup) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="text-center text-muted-foreground">
+          No startup profiles found.
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto p-6 space-y-6">
+      {/* Startup Profile Selector and Add Button */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            {startupsArray.length > 1 && (
+              <>
+                <label htmlFor="startup-select" className="text-sm font-medium">
+                  Select Startup Profile:
+                </label>
+                <Select
+                  value={selectedStartupId}
+                  onValueChange={handleStartupChange}
+                >
+                  <SelectTrigger className="w-[300px]" id="startup-select">
+                    <SelectValue placeholder="Select a startup profile" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {startupsArray.map((startup) => (
+                      <SelectItem key={startup.id} value={startup.id}>
+                        {startup.name || `Startup ${startup.id.slice(0, 8)}`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </>
+            )}
+            {startupsArray.length === 1 && (
+              <h2 className="text-lg font-semibold">
+                {selectedStartup.name || "Startup Profile"}
+              </h2>
+            )}
+          </div>
+
+          {/* Add New Startup Profile Button */}
+          <Link href="/profile/startup/new">
+            <Button variant="outline" className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Add New Startup
+            </Button>
+          </Link>
+        </div>
+      </div>
+
       {/* Highlighted Verification Documents Section */}
       <div className="mb-8 p-6 border-2 border-primary/20 rounded-lg bg-primary/5 shadow-lg">
         <div className="flex items-center gap-2 mb-4">
@@ -73,9 +177,9 @@ export function StartupProfile({
           </h2>
         </div>
         <VerificationDocuments
-          govt_id_image_url={startup.govt_id_image_url}
-          bir_cor_image_url={startup.bir_cor_image_url}
-          proof_of_bank_image_url={startup.proof_of_bank_image_url}
+          govt_id_image_url={selectedStartup.govt_id_image_url}
+          bir_cor_image_url={selectedStartup.bir_cor_image_url}
+          proof_of_bank_image_url={selectedStartup.proof_of_bank_image_url}
         />
       </div>
 
@@ -84,38 +188,38 @@ export function StartupProfile({
         {/* Left Column */}
         <div className="lg:col-span-1 space-y-6">
           <CompanyInfo
-            name={startup.name}
-            industry={startup.industry}
-            city={startup.city}
-            development_stage={startup.development_stage}
-            business_structure={startup.business_structure}
-            date_founded={startup.date_founded}
-            website_url={startup.website_url}
+            name={selectedStartup.name}
+            industry={selectedStartup.industry}
+            city={selectedStartup.city}
+            development_stage={selectedStartup.development_stage}
+            business_structure={selectedStartup.business_structure}
+            date_founded={selectedStartup.date_founded}
+            website_url={selectedStartup.website_url}
           />
 
-          <TeamMembers members={startup.team_members} />
+          <TeamMembers members={selectedStartup.team_members} />
         </div>
 
         {/* Middle Column */}
         <div className="lg:col-span-1 space-y-6">
           <DescriptionAndDemo
-            description={startup.description}
-            product_demo_url={startup.product_demo_url}
+            description={selectedStartup.description}
+            product_demo_url={selectedStartup.product_demo_url}
           />
 
-          <Advisors advisors={startup.advisors} />
+          <Advisors advisors={selectedStartup.advisors} />
 
-          <KeyMetrics metrics={startup.key_metrics} />
+          <KeyMetrics metrics={selectedStartup.key_metrics} />
         </div>
 
         {/* Right Column */}
         <div className="lg:col-span-1 space-y-6">
           <MarketAndKeywords
-            target_market={startup.target_market}
-            keywords={startup.keywords}
+            target_market={selectedStartup.target_market}
+            keywords={selectedStartup.keywords}
           />
 
-          <Documents documents={startup.documents} />
+          <Documents documents={selectedStartup.documents} />
         </div>
       </div>
     </div>

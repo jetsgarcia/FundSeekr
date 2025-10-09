@@ -103,12 +103,19 @@ export async function checkVerificationStatus(
 
   const legalVerified = user.serverMetadata?.legalVerified;
 
-  // If user is not verified and trying to access protected routes
-  if (!legalVerified && !isExcludedRoute(pathname, "verification")) {
+  // For startups, we can't check the database verification status in middleware (edge runtime)
+  // So we'll let the individual pages handle startup verification checks
+  // Only redirect investors who are not verified
+  if (
+    user.serverMetadata?.userType === "Investor" &&
+    !legalVerified &&
+    !isExcludedRoute(pathname, "verification")
+  ) {
     return {
       redirect: NextResponse.redirect(new URL("/home", request.url)),
     };
   }
 
+  // For startups, allow access and let pages handle verification status
   return { redirect: null };
 }

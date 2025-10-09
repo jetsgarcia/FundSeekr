@@ -10,6 +10,12 @@ interface VerificationResult {
 
 export async function approveUser(userId: string): Promise<VerificationResult> {
   try {
+    // First, determine if this is a startup by checking the startups table
+    const startup = await prisma.startups.findFirst({
+      where: { user_id: userId },
+      select: { id: true },
+    });
+
     // Update the raw_json in the database using raw SQL to add legalVerified: true
     await prisma.$executeRaw`
       UPDATE neon_auth.users_sync 
@@ -24,6 +30,17 @@ export async function approveUser(userId: string): Promise<VerificationResult> {
       )
       WHERE id = ${userId}
     `;
+
+    // If it's a startup, also update the legal_verified field in the startups table
+    if (startup) {
+      await prisma.startups.updateMany({
+        where: { user_id: userId },
+        data: { legal_verified: true },
+      });
+    }
+
+    // Note: For investors, we only use the users_sync metadata approach
+    // as there's no legal_verified field in the investors table
 
     return {
       success: true,
@@ -44,6 +61,12 @@ export async function rejectUser(
   rejectionReason?: string
 ): Promise<VerificationResult> {
   try {
+    // First, determine if this is a startup by checking the startups table
+    const startup = await prisma.startups.findFirst({
+      where: { user_id: userId },
+      select: { id: true },
+    });
+
     // Update the raw_json in the database using raw SQL to add legalVerified: false
     await prisma.$executeRaw`
       UPDATE neon_auth.users_sync 
@@ -62,6 +85,17 @@ export async function rejectUser(
       )
       WHERE id = ${userId}
     `;
+
+    // If it's a startup, also update the legal_verified field in the startups table
+    if (startup) {
+      await prisma.startups.updateMany({
+        where: { user_id: userId },
+        data: { legal_verified: false },
+      });
+    }
+
+    // Note: For investors, we only use the users_sync metadata approach
+    // as there's no legal_verified field in the investors table
 
     return {
       success: true,
