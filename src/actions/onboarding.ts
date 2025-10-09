@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { stackServerApp } from "@/stack";
+import { randomUUID } from "crypto";
 
 // Individual file upload action
 export async function uploadFile(formData: FormData) {
@@ -102,6 +103,7 @@ export async function submitOnboarding(formData: FormData) {
     }
 
     const userId = user.id;
+    const profileId = randomUUID(); // Generate UUID for database record
 
     // Save to database based on user type
     if (userType === "investor") {
@@ -119,8 +121,8 @@ export async function submitOnboarding(formData: FormData) {
           tin: tin ? parseInt(tin) : 0,
         },
         create: {
-          id: userId,
-          user_id: user.id,
+          id: profileId,
+          user_id: userId,
           organization: organization || null,
           position: position || null,
           investor_linkedin: linkedinURL || null,
@@ -154,8 +156,8 @@ export async function submitOnboarding(formData: FormData) {
           documents: [],
         },
         create: {
-          id: userId,
-          user_id: user.id,
+          id: profileId,
+          user_id: userId,
           name: name || businessName || null,
           business_structure: businessStructure,
           // Document URLs
@@ -172,6 +174,7 @@ export async function submitOnboarding(formData: FormData) {
         serverMetadata: {
           userType: "Startup",
           onboarded: true,
+          currentProfileId: profileId,
         },
       });
     }
