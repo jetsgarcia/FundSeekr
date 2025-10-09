@@ -17,6 +17,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import Link from "next/link";
 
 interface TeamMember {
   name?: string | null;
@@ -98,31 +101,48 @@ export function StartupProfile({
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      {/* Startup Profile Selector */}
-      {startupsArray.length > 1 && (
-        <div className="mb-6">
+      {/* Startup Profile Selector and Add Button */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <label htmlFor="startup-select" className="text-sm font-medium">
-              Select Startup Profile:
-            </label>
-            <Select
-              value={selectedStartupId}
-              onValueChange={setSelectedStartupId}
-            >
-              <SelectTrigger className="w-[300px]" id="startup-select">
-                <SelectValue placeholder="Select a startup profile" />
-              </SelectTrigger>
-              <SelectContent>
-                {startupsArray.map((startup) => (
-                  <SelectItem key={startup.id} value={startup.id}>
-                    {startup.name || `Startup ${startup.id.slice(0, 8)}`}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {startupsArray.length > 1 && (
+              <>
+                <label htmlFor="startup-select" className="text-sm font-medium">
+                  Select Startup Profile:
+                </label>
+                <Select
+                  value={selectedStartupId}
+                  onValueChange={setSelectedStartupId}
+                >
+                  <SelectTrigger className="w-[300px]" id="startup-select">
+                    <SelectValue placeholder="Select a startup profile" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {startupsArray.map((startup) => (
+                      <SelectItem key={startup.id} value={startup.id}>
+                        {startup.name || `Startup ${startup.id.slice(0, 8)}`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </>
+            )}
+            {startupsArray.length === 1 && (
+              <h2 className="text-lg font-semibold">
+                {selectedStartup.name || "Startup Profile"}
+              </h2>
+            )}
           </div>
+
+          {/* Add New Startup Profile Button */}
+          <Link href="/profile/startup/new">
+            <Button variant="outline" className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Add New Startup
+            </Button>
+          </Link>
         </div>
-      )}
+      </div>
 
       {/* Highlighted Verification Documents Section */}
       <div className="mb-8 p-6 border-2 border-primary/20 rounded-lg bg-primary/5 shadow-lg">
