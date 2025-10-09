@@ -16,6 +16,10 @@ type readProfileType =
   | { ok: true; profile: InvestorProfile | StartupProfile }
   | { ok: false; error: string };
 
+type readAllStartupProfilesType =
+  | { ok: true; profiles: StartupProfile[] }
+  | { ok: false; error: string };
+
 type updateProfileType =
   | { ok: true; profile: StartupProfile | InvestorProfile }
   | { ok: false; error: string };
@@ -58,6 +62,32 @@ export async function readProfile(): Promise<readProfileType> {
   }
 
   return { ok: false, error: "An unexpected error occurred" };
+}
+
+export async function readAllStartupProfiles(): Promise<readAllStartupProfilesType> {
+  const user = await stackServerApp.getUser();
+
+  if (!user) {
+    return { ok: false, error: "No user found" };
+  }
+
+  if (user.serverMetadata.userType !== "Startup") {
+    return { ok: false, error: "User is not a startup" };
+  }
+
+  try {
+    const startupProfiles = await prisma.startups.findMany({
+      where: { user_id: user.id },
+      include: {
+        users_sync: true,
+      },
+    });
+
+    return { ok: true, profiles: startupProfiles };
+  } catch (error) {
+    console.error("Error fetching startup profiles:", error);
+    return { ok: false, error: "Failed to fetch startup profiles" };
+  }
 }
 
 // Define types for complex fields
