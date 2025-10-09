@@ -20,6 +20,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import Link from "next/link";
+import { changeCurrentStartupClient } from "@/actions/client-profile";
+import { toast } from "sonner";
 
 interface TeamMember {
   name?: string | null;
@@ -89,6 +91,28 @@ export function StartupProfile({
   const selectedStartup =
     startupsArray.find((s) => s.id === selectedStartupId) || startupsArray[0];
 
+  // Handler for when startup selection changes
+  async function handleStartupChange(newStartupId: string) {
+    try {
+      // Update local state immediately for UI responsiveness
+      setSelectedStartupId(newStartupId);
+
+      // Update server metadata to persist the selection
+      const result = await changeCurrentStartupClient(newStartupId);
+
+      if (!result.ok) {
+        // If server update fails, show error but keep the UI updated
+        toast.error("Failed to save profile selection. Please try again.");
+        console.error("Failed to update current startup:", result.error);
+      } else {
+        toast.success("Startup profile updated successfully!");
+      }
+    } catch (error) {
+      console.error("Error changing startup profile:", error);
+      toast.error("Failed to save profile selection. Please try again.");
+    }
+  }
+
   if (!selectedStartup) {
     return (
       <div className="container mx-auto p-6">
@@ -112,7 +136,7 @@ export function StartupProfile({
                 </label>
                 <Select
                   value={selectedStartupId}
-                  onValueChange={setSelectedStartupId}
+                  onValueChange={handleStartupChange}
                 >
                   <SelectTrigger className="w-[300px]" id="startup-select">
                     <SelectValue placeholder="Select a startup profile" />
