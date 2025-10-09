@@ -37,7 +37,9 @@ type RecommendationsResult =
     }
   | { ok: false; error: string };
 
-export async function getRecommendations(): Promise<RecommendationsResult> {
+export async function getRecommendations(
+  profileId?: string
+): Promise<RecommendationsResult> {
   const user = await stackServerApp.getUser();
 
   if (!user) {
@@ -52,13 +54,18 @@ export async function getRecommendations(): Promise<RecommendationsResult> {
 
   try {
     if (userType === "Startup") {
+      // For startups, use the provided profileId or fall back to user-based search
+      const whereClause = profileId
+        ? { startup_id: profileId }
+        : {
+            startups: {
+              user_id: user.id,
+            },
+          };
+
       // Fetch investor recommendations for startup
       const matches = await prisma.profile_matches.findMany({
-        where: {
-          startups: {
-            user_id: user.id,
-          },
-        },
+        where: whereClause,
         include: {
           investors: {
             include: {

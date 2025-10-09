@@ -9,7 +9,16 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import Link from "next/link";
 
-export default function PendingVerification() {
+interface PendingVerificationProps {
+  currentStartupProfile?: {
+    id: string;
+    name: string | null;
+  } | null;
+}
+
+export default function PendingVerification({
+  currentStartupProfile,
+}: PendingVerificationProps) {
   return (
     <div className="space-y-8">
       {/* Hero Section */}
@@ -37,6 +46,17 @@ export default function PendingVerification() {
           authenticity of our platform. This process typically takes 1-3
           business days.
         </p>
+        {/* Profile Context */}
+        {currentStartupProfile && (
+          <div className="bg-card rounded-lg p-3 border border-gray-200 dark:border-gray-700 mt-4 max-w-md mx-auto">
+            <div className="text-sm text-muted-foreground">
+              Startup:{" "}
+              <span className="font-medium text-foreground">
+                {currentStartupProfile.name || "Unnamed Startup"}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Progress Card */}

@@ -11,11 +11,16 @@ import Link from "next/link";
 interface RejectedVerificationProps {
   rejectionReason?: string;
   rejectedAt?: string;
+  currentStartupProfile?: {
+    id: string;
+    name: string | null;
+  } | null;
 }
 
 export default function RejectedVerification({
   rejectionReason,
   rejectedAt,
+  currentStartupProfile,
 }: RejectedVerificationProps) {
   function formatRejectionDate(dateString?: string) {
     if (!dateString) return "recently";
@@ -59,6 +64,17 @@ export default function RejectedVerification({
           reason below and take the necessary steps to resubmit your
           verification.
         </p>
+        {/* Profile Context */}
+        {currentStartupProfile && (
+          <div className="bg-card rounded-lg p-3 border border-gray-200 dark:border-gray-700 mt-4 max-w-md mx-auto">
+            <div className="text-sm text-muted-foreground">
+              Startup:{" "}
+              <span className="font-medium text-foreground">
+                {currentStartupProfile.name || "Unnamed Startup"}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Rejection Details Card */}
