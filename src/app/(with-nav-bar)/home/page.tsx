@@ -2,6 +2,7 @@ import { stackServerApp } from "@/stack";
 import PendingVerification from "@/components/home/pending-verification";
 import RejectedVerification from "@/components/home/rejected-verification";
 import RecommendationsList from "@/components/recommendations-list";
+import { StartupAnalyticsWidget } from "@/components/startup/analytics-widget";
 import prisma from "@/lib/prisma";
 import {
   getRecommendations,
@@ -192,19 +193,19 @@ export default async function HomePage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
       <div className="max-w-6xl mx-auto">
         {legalVerified ? (
-          <div className="space-y-3">
+          <div className="space-y-6">
             {/* Header Section */}
             <div className="border-b bg-card rounded-lg p-6">
               <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                 <div>
                   <h1 className="text-2xl font-bold text-foreground text-balance">
                     {isStartup
-                      ? `Recommended Investors for ${startupName}`
+                      ? `Dashboard for ${startupName}`
                       : "Recommended Startups Matched to Your Profile"}
                   </h1>
                   <p className="text-muted-foreground text-sm text-pretty">
                     {isStartup
-                      ? `Discover promising investors tailored to ${startupName}'s funding needs and business strategy`
+                      ? `Track your investor interactions and view recommended investors for ${startupName}`
                       : "Discover promising startups tailored to your investment preferences and portfolio strategy"}
                   </p>
                   {isStartup && currentStartupProfile && (
@@ -217,35 +218,50 @@ export default async function HomePage() {
               </div>
             </div>
 
-            {/* Cards Grid */}
-            {recommendationsData && recommendationsData.length > 0 ? (
-              <RecommendationsList
-                isStartup={isStartup}
-                startups={
-                  isStartup
-                    ? []
-                    : (recommendationsData as StartupRecommendation[]) || []
-                }
-                investors={
-                  isStartup
-                    ? (recommendationsData as InvestorRecommendation[]) || []
-                    : []
-                }
-              />
-            ) : (
-              <div className="text-center py-12">
-                <div className="bg-card rounded-lg p-8">
-                  <h3 className="text-lg font-semibold text-foreground mb-2">
-                    No recommendations available yet
-                  </h3>
-                  <p className="text-muted-foreground">
-                    {isStartup
-                      ? `We're working on finding the perfect investors for ${startupName}. Please check back soon!`
-                      : "We're working on finding the perfect startups for your investment profile. Please check back soon!"}
-                  </p>
-                </div>
+            {/* Startup Analytics Section */}
+            {isStartup && currentProfileId && (
+              <div className="bg-card rounded-lg p-6">
+                <h2 className="text-xl font-semibold mb-4">
+                  Quick Analytics Overview
+                </h2>
+                <StartupAnalyticsWidget startupId={currentProfileId} />
               </div>
             )}
+
+            {/* Recommendations Section */}
+            <div className="bg-card rounded-lg p-6">
+              <h2 className="text-xl font-semibold mb-4">
+                {isStartup ? "Recommended Investors" : "Recommended Startups"}
+              </h2>
+              {recommendationsData && recommendationsData.length > 0 ? (
+                <RecommendationsList
+                  isStartup={isStartup}
+                  startups={
+                    isStartup
+                      ? []
+                      : (recommendationsData as StartupRecommendation[]) || []
+                  }
+                  investors={
+                    isStartup
+                      ? (recommendationsData as InvestorRecommendation[]) || []
+                      : []
+                  }
+                />
+              ) : (
+                <div className="text-center py-12">
+                  <div className="bg-muted/30 rounded-lg p-8">
+                    <h3 className="text-lg font-semibold text-foreground mb-2">
+                      No recommendations available yet
+                    </h3>
+                    <p className="text-muted-foreground">
+                      {isStartup
+                        ? `We're working on finding the perfect investors for ${startupName}. Please check back soon!`
+                        : "We're working on finding the perfect startups for your investment profile. Please check back soon!"}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         ) : rejectedAt ? (
           <RejectedVerification
