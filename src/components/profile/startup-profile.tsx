@@ -222,7 +222,7 @@ export function StartupProfile({
 
           <Documents documents={selectedStartup.documents} />
 
-          <VideoDisplay startupId={selectedStartup.id} />
+          <VideoDisplay startupId={selectedStartup.id} isOwner={true} />
         </div>
       </div>
     </div>

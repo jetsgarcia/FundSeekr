@@ -146,16 +146,24 @@ export async function getStartupVideos(startupId: string) {
       throw new Error("User not authenticated");
     }
 
-    // Verify the startup belongs to the user
+    // First check if the startup exists
     const startup = await prisma.startups.findFirst({
       where: {
         id: startupId,
-        user_id: user.id,
       },
     });
 
     if (!startup) {
-      throw new Error("Startup not found or access denied");
+      throw new Error("Startup not found");
+    }
+
+    // If user is the startup owner or an investor, they can view videos
+    const userType = user.serverMetadata.userType;
+    const isStartupOwner = startup.user_id === user.id;
+    const isInvestor = userType === "Investor";
+
+    if (!isStartupOwner && !isInvestor) {
+      throw new Error("Access denied");
     }
 
     const videos = await prisma.video_pitches.findMany({

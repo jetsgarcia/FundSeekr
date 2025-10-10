@@ -6,9 +6,13 @@ import { useStartupVideos } from "@/hooks/use-startup-videos";
 
 interface VideoDisplayProps {
   startupId: string;
+  isOwner?: boolean; // New prop to determine if viewing own profile
 }
 
-export function VideoDisplay({ startupId }: VideoDisplayProps) {
+export function VideoDisplay({
+  startupId,
+  isOwner = false,
+}: VideoDisplayProps) {
   const { videos, loading, error } = useStartupVideos(startupId);
 
   const formatDuration = (seconds: number) => {
@@ -89,10 +93,16 @@ export function VideoDisplay({ startupId }: VideoDisplayProps) {
         ) : (
           <div className="text-center py-8 text-muted-foreground">
             <Video className="h-12 w-12 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">No videos uploaded yet</p>
-            <p className="text-xs">
-              Videos can be uploaded from the edit profile page
-            </p>
+            <p className="text-sm">No videos available</p>
+            {isOwner ? (
+              <p className="text-xs">
+                Videos can be uploaded from the edit profile page
+              </p>
+            ) : (
+              <p className="text-xs">
+                This startup hasn&apos;t uploaded any video pitches yet
+              </p>
+            )}
           </div>
         )}
       </CardContent>
