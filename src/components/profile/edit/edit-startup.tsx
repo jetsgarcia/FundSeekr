@@ -22,10 +22,12 @@ import {
   Target,
   TrendingUp,
   Tags,
+  Video,
 } from "lucide-react";
 import type { ExtendedStartupProfile } from "@/components/profile/startup-profile";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { VideoManagement } from "@/components/profile/startup/video-management";
 
 interface TeamMember {
   name: string;
@@ -582,6 +584,19 @@ export function EditStartupProfile({
                 />
               </div>
             ))}
+          </CardContent>
+        </Card>
+
+        {/* Video Pitches */}
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Video className="h-5 w-5" />
+              <span>Video Pitches</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <VideoManagement startupId={startup.id} />
           </CardContent>
         </Card>
 

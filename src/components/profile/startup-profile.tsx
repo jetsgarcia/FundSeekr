@@ -10,6 +10,7 @@ import { Documents } from "./startup/documents";
 import { MarketAndKeywords } from "./startup/market-and-keywords";
 import { DescriptionAndDemo } from "./startup/description-and-demo";
 import { VerificationDocuments } from "./startup/verification-documents";
+import { VideoDisplay } from "./startup/video-display";
 import {
   Select,
   SelectContent,
@@ -220,6 +221,8 @@ export function StartupProfile({
           />
 
           <Documents documents={selectedStartup.documents} />
+
+          <VideoDisplay startupId={selectedStartup.id} />
         </div>
       </div>
     </div>
