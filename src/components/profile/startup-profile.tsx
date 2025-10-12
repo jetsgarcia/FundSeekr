@@ -10,6 +10,8 @@ import { Documents } from "./startup/documents";
 import { MarketAndKeywords } from "./startup/market-and-keywords";
 import { DescriptionAndDemo } from "./startup/description-and-demo";
 import { VerificationDocuments } from "./startup/verification-documents";
+import { VideoDisplay } from "./startup/video-display";
+import { StartupEngagementAnalytics } from "../startup/engagement-analytics";
 import {
   Select,
   SelectContent,
@@ -18,7 +20,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Plus, User, BarChart3 } from "lucide-react";
 import Link from "next/link";
 import { changeCurrentStartupClient } from "@/actions/client-profile";
 import { toast } from "sonner";
@@ -183,45 +186,67 @@ export function StartupProfile({
         />
       </div>
 
-      {/* Main Grid Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column */}
-        <div className="lg:col-span-1 space-y-6">
-          <CompanyInfo
-            name={selectedStartup.name}
-            industry={selectedStartup.industry}
-            city={selectedStartup.city}
-            development_stage={selectedStartup.development_stage}
-            business_structure={selectedStartup.business_structure}
-            date_founded={selectedStartup.date_founded}
-            website_url={selectedStartup.website_url}
-          />
+      {/* Main Content with Tabs */}
+      <Tabs defaultValue="profile" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="profile" className="flex items-center gap-2">
+            <User className="h-4 w-4" />
+            Profile Information
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Engagement Analytics
+          </TabsTrigger>
+        </TabsList>
 
-          <TeamMembers members={selectedStartup.team_members} />
-        </div>
+        <TabsContent value="profile" className="mt-6">
+          {/* Main Grid Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left Column */}
+            <div className="lg:col-span-1 space-y-6">
+              <CompanyInfo
+                name={selectedStartup.name}
+                industry={selectedStartup.industry}
+                city={selectedStartup.city}
+                development_stage={selectedStartup.development_stage}
+                business_structure={selectedStartup.business_structure}
+                date_founded={selectedStartup.date_founded}
+                website_url={selectedStartup.website_url}
+              />
 
-        {/* Middle Column */}
-        <div className="lg:col-span-1 space-y-6">
-          <DescriptionAndDemo
-            description={selectedStartup.description}
-            product_demo_url={selectedStartup.product_demo_url}
-          />
+              <TeamMembers members={selectedStartup.team_members} />
+            </div>
 
-          <Advisors advisors={selectedStartup.advisors} />
+            {/* Middle Column */}
+            <div className="lg:col-span-1 space-y-6">
+              <DescriptionAndDemo
+                description={selectedStartup.description}
+                product_demo_url={selectedStartup.product_demo_url}
+              />
 
-          <KeyMetrics metrics={selectedStartup.key_metrics} />
-        </div>
+              <Advisors advisors={selectedStartup.advisors} />
 
-        {/* Right Column */}
-        <div className="lg:col-span-1 space-y-6">
-          <MarketAndKeywords
-            target_market={selectedStartup.target_market}
-            keywords={selectedStartup.keywords}
-          />
+              <KeyMetrics metrics={selectedStartup.key_metrics} />
+            </div>
 
-          <Documents documents={selectedStartup.documents} />
-        </div>
-      </div>
+            {/* Right Column */}
+            <div className="lg:col-span-1 space-y-6">
+              <MarketAndKeywords
+                target_market={selectedStartup.target_market}
+                keywords={selectedStartup.keywords}
+              />
+
+              <Documents documents={selectedStartup.documents} />
+
+              <VideoDisplay startupId={selectedStartup.id} isOwner={true} />
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="analytics" className="mt-6">
+          <StartupEngagementAnalytics startupId={selectedStartup.id} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

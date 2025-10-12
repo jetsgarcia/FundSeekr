@@ -3,6 +3,7 @@ import { getProfileData } from "@/actions/profile-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { VideoDisplay } from "@/components/profile/startup/video-display";
 import {
   MapPin,
   Building2,
@@ -441,6 +442,9 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                   </CardContent>
                 </Card>
               )}
+
+              {/* Video Pitches */}
+              <VideoDisplay startupId={startup.id} />
             </div>
           </div>
         </div>
