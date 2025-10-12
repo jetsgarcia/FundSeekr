@@ -89,17 +89,25 @@ export async function submitOnboarding(formData: FormData) {
     const selfieUrl = formData.get("selfieUrl") as string;
     const birCorUrl = formData.get("birCorUrl") as string;
 
-    // Validate required file URLs
-    if (!validIdUrl || !proofOfBankUrl) {
-      throw new Error("Valid ID and Proof of Bank files must be uploaded");
+    // Validate required files per user type
+    if (!validIdUrl) {
+      throw new Error("Valid ID must be uploaded");
     }
 
-    if (userType === "investor" && !selfieUrl) {
-      throw new Error("Selfie must be uploaded for investors");
+    if (userType === "investor") {
+      if (!proofOfBankUrl) {
+        throw new Error("Proof of Bank must be uploaded for investors");
+      }
+      if (!selfieUrl) {
+        throw new Error("Selfie must be uploaded for investors");
+      }
     }
 
-    if (userType === "startup" && !birCorUrl) {
-      throw new Error("BIR/COR document must be uploaded for startups");
+    if (userType === "startup") {
+      if (!birCorUrl) {
+        throw new Error("BIR/COR document must be uploaded for startups");
+      }
+      // Note: Proof of Bank is optional for startups
     }
 
     const userId = user.id;
@@ -149,9 +157,9 @@ export async function submitOnboarding(formData: FormData) {
         update: {
           name: name || businessName || null,
           business_structure: businessStructure,
-          // Document URLs
+          // Document URLs (Proof of Bank is optional for startups)
           govt_id_image_url: validIdUrl,
-          proof_of_bank_image_url: proofOfBankUrl,
+          proof_of_bank_image_url: proofOfBankUrl || null,
           bir_cor_image_url: birCorUrl || "",
           documents: [],
         },
@@ -160,9 +168,9 @@ export async function submitOnboarding(formData: FormData) {
           user_id: userId,
           name: name || businessName || null,
           business_structure: businessStructure,
-          // Document URLs
+          // Document URLs (Proof of Bank is optional for startups)
           govt_id_image_url: validIdUrl,
-          proof_of_bank_image_url: proofOfBankUrl,
+          proof_of_bank_image_url: proofOfBankUrl || null,
           bir_cor_image_url: birCorUrl || "",
           documents: [],
         },

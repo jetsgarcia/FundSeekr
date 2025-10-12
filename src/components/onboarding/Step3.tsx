@@ -366,7 +366,7 @@ export function Step3({
               <div className="relative">
                 <input
                   type="file"
-                  accept="image/*"
+                  accept="image/*,.pdf"
                   className="hidden"
                   id="proofOfBank"
                   onChange={handleFileChange("proofOfBank")}
