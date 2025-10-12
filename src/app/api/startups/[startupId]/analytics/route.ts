@@ -4,7 +4,7 @@ import { stackServerApp } from "@/stack";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { startupId: string } }
+  { params }: { params: Promise<{ startupId: string }> }
 ) {
   try {
     const user = await stackServerApp.getUser();
@@ -12,7 +12,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { startupId } = params;
+    const { startupId } = await params;
     const url = new URL(request.url);
     const timeRange = url.searchParams.get("range") || "30d";
 
