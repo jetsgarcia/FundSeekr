@@ -5,7 +5,7 @@ import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { UserOverview } from "@/components/admin/UserOverview";
 import { StartupVerification } from "@/components/admin/StartupVerification";
 import { InvestorVerification } from "@/components/admin/InvestorVerification";
-import { EngagementMetrics } from "@/components/admin/EngagementMetrics";
+import { EngagementMetrics } from "@/components/admin/engagement-metrics";
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
