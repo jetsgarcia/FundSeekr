@@ -120,8 +120,9 @@ export function EditInvestorProfile({
   const [excludedIndustries, setExcludedIndustries] = useState<string>(
     investor.excluded_industries?.join(", ") || ""
   );
-  const [preferredBusinessModels, setPreferredBusinessModels] =
-    useState<string>(investor.preferred_business_models?.join(", ") || "");
+  const [preferredBusinessModels, setPreferredBusinessModels] = useState<
+    string[]
+  >(investor.preferred_business_models || []);
   const [preferredFundingStages, setPreferredFundingStages] = useState<string>(
     investor.preferred_funding_stages?.join(", ") || ""
   );
@@ -180,10 +181,7 @@ export function EditInvestorProfile({
             .split(",")
             .map((item) => item.trim())
             .filter(Boolean),
-          preferred_business_models: preferredBusinessModels
-            .split(",")
-            .map((item) => item.trim())
-            .filter(Boolean),
+          preferred_business_models: preferredBusinessModels,
           preferred_funding_stages: preferredFundingStages
             .split(",")
             .map((item) => item.trim())
@@ -620,17 +618,43 @@ export function EditInvestorProfile({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="preferredBusinessModels">
-                Preferred Business Models
-              </Label>
-              <Input
-                id="preferredBusinessModels"
-                value={preferredBusinessModels}
-                onChange={(e) => setPreferredBusinessModels(e.target.value)}
-                placeholder="Enter preferred business models separated by commas"
-              />
+              <Label>Preferred Business Models</Label>
+              <div className="flex flex-col gap-2">
+                {(["Sole", "Partnership", "Corporation"] as const).map(
+                  (model) => {
+                    const checked = preferredBusinessModels.includes(model);
+                    return (
+                      <label
+                        key={model}
+                        className="inline-flex items-center gap-2"
+                      >
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4"
+                          checked={checked}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setPreferredBusinessModels([
+                                ...preferredBusinessModels,
+                                model,
+                              ]);
+                            } else {
+                              setPreferredBusinessModels(
+                                preferredBusinessModels.filter(
+                                  (m) => m !== model
+                                )
+                              );
+                            }
+                          }}
+                        />
+                        <span>{model}</span>
+                      </label>
+                    );
+                  }
+                )}
+              </div>
               <p className="text-sm text-muted-foreground">
-                E.g., &quot;SaaS, Marketplace, B2B&quot;
+                Select one or more.
               </p>
             </div>
 
