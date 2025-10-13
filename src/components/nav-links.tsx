@@ -17,8 +17,10 @@ export function NavLinks({ userType, legalVerified }: NavLinksProps) {
   const activeLinkStyles =
     "text-blue-500 dark:text-blue-400 font-medium font-semibold";
 
-  const getLinkClassName = (href: string) => {
-    const isActive = pathname === href || pathname.startsWith(href + "/");
+  const getLinkClassName = (href: string, exact: boolean = false) => {
+    const isActive = exact
+      ? pathname === href
+      : pathname === href || pathname.startsWith(href + "/");
     return cn(linkStyles, isActive && activeLinkStyles);
   };
 
@@ -52,7 +54,7 @@ export function NavLinks({ userType, legalVerified }: NavLinksProps) {
       )}
       {userType === "Admin" && (
         <>
-          <Link href="/admin" className={getLinkClassName("/admin")}>
+          <Link href="/admin" className={getLinkClassName("/admin", true)}>
             Home
           </Link>
           <Link
