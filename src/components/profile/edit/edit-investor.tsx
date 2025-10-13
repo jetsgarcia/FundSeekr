@@ -27,6 +27,10 @@ import {
 import type { investors as InvestorProfileType, Prisma } from "@prisma/client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
+
+// server action-import shim via inline "use server" function wrappers in the component scope
+import { replaceInvestorDocument } from "@/actions/profile";
 
 interface NotableExit {
   company: string;
@@ -263,6 +267,157 @@ export function EditInvestorProfile({
 
   return (
     <div className="space-y-6">
+      {/* Verification Documents (separate from main form to avoid nested forms) */}
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Briefcase className="h-5 w-5" />
+            <span>Verification Documents</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Govt ID */}
+            <div className="space-y-3">
+              <div className="aspect-video relative overflow-hidden rounded-md border bg-muted">
+                {investor.govt_id_image_url ? (
+                  <Image
+                    src={investor.govt_id_image_url}
+                    alt="Government ID"
+                    fill
+                    className="object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">
+                    No ID uploaded
+                  </div>
+                )}
+              </div>
+              <form
+                action={async (fd: FormData) => {
+                  const file = fd.get("file") as File | null;
+                  if (!file) {
+                    toast.error("Please choose a file");
+                    return;
+                  }
+                  fd.set("docType", "validId");
+                  const res = await replaceInvestorDocument(fd);
+                  if (res.ok) {
+                    toast.success("ID updated");
+                    router.refresh();
+                  } else {
+                    toast.error(res.error || "Failed to update ID");
+                  }
+                }}
+                className="space-y-2"
+              >
+                <Input
+                  id="investor-id-file"
+                  name="file"
+                  type="file"
+                  accept="image/*"
+                />
+                <Button type="submit" size="sm" variant="outline">
+                  Replace ID
+                </Button>
+              </form>
+            </div>
+
+            {/* Selfie */}
+            <div className="space-y-3">
+              <div className="aspect-video relative overflow-hidden rounded-md border bg-muted">
+                {investor.selfie_image_url ? (
+                  <Image
+                    src={investor.selfie_image_url}
+                    alt="Selfie"
+                    fill
+                    className="object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">
+                    No selfie uploaded
+                  </div>
+                )}
+              </div>
+              <form
+                action={async (fd: FormData) => {
+                  const file = fd.get("file") as File | null;
+                  if (!file) {
+                    toast.error("Please choose a file");
+                    return;
+                  }
+                  fd.set("docType", "selfie");
+                  const res = await replaceInvestorDocument(fd);
+                  if (res.ok) {
+                    toast.success("Selfie updated");
+                    router.refresh();
+                  } else {
+                    toast.error(res.error || "Failed to update selfie");
+                  }
+                }}
+                className="space-y-2"
+              >
+                <Input
+                  id="investor-selfie-file"
+                  name="file"
+                  type="file"
+                  accept="image/*"
+                />
+                <Button type="submit" size="sm" variant="outline">
+                  Replace Selfie
+                </Button>
+              </form>
+            </div>
+
+            {/* Proof of Bank */}
+            <div className="space-y-3">
+              <div className="aspect-video relative overflow-hidden rounded-md border bg-muted">
+                {investor.proof_of_bank_image_url ? (
+                  <Image
+                    src={investor.proof_of_bank_image_url}
+                    alt="Proof of Bank"
+                    fill
+                    className="object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">
+                    No proof of bank uploaded
+                  </div>
+                )}
+              </div>
+              <form
+                action={async (fd: FormData) => {
+                  const file = fd.get("file") as File | null;
+                  if (!file) {
+                    toast.error("Please choose a file");
+                    return;
+                  }
+                  fd.set("docType", "proofOfBank");
+                  const res = await replaceInvestorDocument(fd);
+                  if (res.ok) {
+                    toast.success("Proof of bank updated");
+                    router.refresh();
+                  } else {
+                    toast.error(res.error || "Failed to update proof of bank");
+                  }
+                }}
+                className="space-y-2"
+              >
+                <Input
+                  id="investor-bank-file"
+                  name="file"
+                  type="file"
+                  accept="image/*"
+                />
+                <Button type="submit" size="sm" variant="outline">
+                  Replace Bank Doc
+                </Button>
+              </form>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Information */}
         <Card className="shadow-lg">

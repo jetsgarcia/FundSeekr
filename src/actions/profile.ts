@@ -1,6 +1,10 @@
+"use server";
+
 import { stackServerApp } from "@/stack";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { put } from "@vercel/blob";
+import { randomUUID } from "crypto";
 import {
   triggerMatching,
   isProfileCompleteForMatching,
@@ -87,6 +91,156 @@ export async function readAllStartupProfiles(): Promise<readAllStartupProfilesTy
   } catch (error) {
     console.error("Error fetching startup profiles:", error);
     return { ok: false, error: "Failed to fetch startup profiles" };
+  }
+}
+
+// Server action: replace a verification document for a Startup
+export async function replaceStartupDocument(formData: FormData) {
+  const user = await stackServerApp.getUser();
+  if (!user) {
+    return { ok: false, error: "No user found" } as const;
+  }
+
+  if (user.serverMetadata.userType !== "Startup") {
+    return { ok: false, error: "User is not a startup" } as const;
+  }
+
+  try {
+    const file = formData.get("file") as File | null;
+    const docType = formData.get("docType") as
+      | "validId"
+      | "birCor"
+      | "proofOfBank"
+      | null;
+
+    if (!file) return { ok: false, error: "No file provided" } as const;
+    if (!docType) return { ok: false, error: "Missing document type" } as const;
+
+    // File size limit (4MB per file)
+    const MAX_FILE_SIZE = 4 * 1024 * 1024;
+    if (file.size > MAX_FILE_SIZE) {
+      return {
+        ok: false,
+        error: `File must be smaller than 4MB. Current size: ${(
+          file.size /
+          1024 /
+          1024
+        ).toFixed(2)}MB`,
+      } as const;
+    }
+
+    // Ensure startup profile exists
+    const existingProfile = await prisma.startups.findFirst({
+      where: { user_id: user.id },
+    });
+    if (!existingProfile) {
+      return { ok: false, error: "Startup profile not found" } as const;
+    }
+
+    // Upload to Vercel Blob (ensure content length is known by passing a Blob)
+    const extension = (file.name.split(".").pop() || "").toLowerCase();
+    const safeExt = extension ? `.${extension}` : "";
+    const fileName = `${user.id}/startup-${docType}-${randomUUID()}${safeExt}`;
+    const arrayBuffer = await file.arrayBuffer();
+    const uploaded = await put(fileName, Buffer.from(arrayBuffer), {
+      access: "public",
+      contentType: file.type || "application/octet-stream",
+    });
+
+    // Map docType to column
+    const dataUpdate: Record<string, string | null> = {};
+    if (docType === "validId") dataUpdate["govt_id_image_url"] = uploaded.url;
+    if (docType === "birCor") dataUpdate["bir_cor_image_url"] = uploaded.url;
+    if (docType === "proofOfBank")
+      dataUpdate["proof_of_bank_image_url"] = uploaded.url;
+
+    const updated = await prisma.startups.update({
+      where: { id: existingProfile.id },
+      data: dataUpdate,
+    });
+
+    revalidatePath("/profile");
+    revalidatePath("/profile/edit");
+
+    return { ok: true, url: uploaded.url, profile: updated } as const;
+  } catch (error) {
+    console.error("Error replacing startup document:", error);
+    return { ok: false, error: "Failed to upload/replace document" } as const;
+  }
+}
+
+// Server action: replace a verification document for an Investor
+export async function replaceInvestorDocument(formData: FormData) {
+  const user = await stackServerApp.getUser();
+  if (!user) {
+    return { ok: false, error: "No user found" } as const;
+  }
+
+  if (user.serverMetadata.userType !== "Investor") {
+    return { ok: false, error: "User is not an investor" } as const;
+  }
+
+  try {
+    const file = formData.get("file") as File | null;
+    const docType = formData.get("docType") as
+      | "validId"
+      | "selfie"
+      | "proofOfBank"
+      | null;
+
+    if (!file) return { ok: false, error: "No file provided" } as const;
+    if (!docType) return { ok: false, error: "Missing document type" } as const;
+
+    // File size limit (4MB per file)
+    const MAX_FILE_SIZE = 4 * 1024 * 1024;
+    if (file.size > MAX_FILE_SIZE) {
+      return {
+        ok: false,
+        error: `File must be smaller than 4MB. Current size: ${(
+          file.size /
+          1024 /
+          1024
+        ).toFixed(2)}MB`,
+      } as const;
+    }
+
+    // Ensure investor profile exists
+    const existingProfile = await prisma.investors.findFirst({
+      where: { user_id: user.id },
+    });
+    if (!existingProfile) {
+      return { ok: false, error: "Investor profile not found" } as const;
+    }
+
+    // Upload to Vercel Blob (ensure content length is known by passing a Blob)
+    const extension = (file.name.split(".").pop() || "").toLowerCase();
+    const safeExt = extension ? `.${extension}` : "";
+    const fileName = `${user.id}/investor-${docType}-${randomUUID()}${safeExt}`;
+    const arrayBuffer = await file.arrayBuffer();
+    const uploaded = await put(fileName, Buffer.from(arrayBuffer), {
+      access: "public",
+      contentType: file.type || "application/octet-stream",
+    });
+
+    // Map docType to column
+    const dataUpdate: Record<string, string> = {};
+    if (docType === "validId") dataUpdate["govt_id_image_url"] = uploaded.url;
+    if (docType === "selfie") dataUpdate["selfie_image_url"] = uploaded.url;
+    if (docType === "proofOfBank")
+      dataUpdate["proof_of_bank_image_url"] = uploaded.url;
+
+    const updated = await prisma.investors.update({
+      where: { id: existingProfile.id },
+      data: dataUpdate,
+    });
+
+    revalidatePath("/profile");
+    revalidatePath("/profile/edit");
+
+    return { ok: true, url: uploaded.url, profile: updated } as const;
+  } catch (error) {
+    console.error("Error replacing investor document:", error);
+    return { ok: false, error: "Failed to upload/replace document" } as const;
   }
 }
 

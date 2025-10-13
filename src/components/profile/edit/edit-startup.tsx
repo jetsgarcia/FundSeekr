@@ -28,6 +28,8 @@ import type { ExtendedStartupProfile } from "@/components/profile/startup-profil
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { VideoManagement } from "@/components/profile/startup/video-management";
+import Image from "next/image";
+import { replaceStartupDocument } from "@/actions/profile";
 
 interface TeamMember {
   name: string;
@@ -64,58 +66,121 @@ export function EditStartupProfile({
   const [isCancelling, setIsCancelling] = useState(false);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
-  const [name, setName] = useState(startup.name || "");
-  const [description, setDescription] = useState(startup.description || "");
-  const [industry, setIndustry] = useState(startup.industry || "");
-  const [city, setCity] = useState(startup.city || "");
-  const [website, setWebsite] = useState(startup.website_url || "");
-  const [dateFounded, setDateFounded] = useState(
+
+  const [name, setName] = useState<string>(startup.name || "");
+  const [description, setDescription] = useState<string>(
+    startup.description || ""
+  );
+  const [industry, setIndustry] = useState<string>(startup.industry || "");
+  const [city, setCity] = useState<string>(startup.city || "");
+  const [website, setWebsite] = useState<string>(startup.website_url || "");
+  const [dateFounded, setDateFounded] = useState<string>(
     startup.date_founded
-      ? new Date(startup.date_founded).toISOString().split("T")[0]
+      ? new Date(startup.date_founded).toISOString().slice(0, 10)
       : ""
   );
-  const [productDemoUrl, setProductDemoUrl] = useState(
-    startup.product_demo_url || ""
-  );
-  const [developmentStage, setDevelopmentStage] = useState(
+  const [developmentStage, setDevelopmentStage] = useState<string>(
     startup.development_stage || ""
   );
-
-  // Array fields
+  const [productDemoUrl, setProductDemoUrl] = useState<string>(
+    startup.product_demo_url || ""
+  );
   const [targetMarket, setTargetMarket] = useState<string>(
-    startup.target_market?.join(", ") || ""
+    (startup.target_market || []).join(", ")
   );
   const [keywords, setKeywords] = useState<string>(
-    startup.keywords?.join(", ") || ""
+    (startup.keywords || []).join(", ")
   );
 
-  // Complex JSON fields
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>(
-    startup.team_members?.map((member) => ({
-      name: String(member.name || ""),
-      position: String(member.position || ""),
-      linkedin: String(member.linkedin || ""),
-    })) || []
+    (startup.team_members || []).map((m) => ({
+      name: String(m?.name || ""),
+      position: String(m?.position || ""),
+      linkedin: String(m?.linkedin || ""),
+    }))
   );
 
   const [advisors, setAdvisors] = useState<Advisor[]>(
-    startup.advisors?.map((advisor) => ({
-      name: String(advisor.name || ""),
-      expertise: String(advisor.expertise || ""),
-      company: String(advisor.company || ""),
-      linkedin: String(advisor.linkedin || ""),
-    })) || []
+    (startup.advisors || []).map((a) => ({
+      name: String(a?.name || ""),
+      expertise: String(a?.expertise || ""),
+      company: String(a?.company || ""),
+      linkedin: String(a?.linkedin || ""),
+    }))
   );
 
   const [keyMetrics, setKeyMetrics] = useState<KeyMetric[]>(
-    startup.key_metrics?.map((metric) => ({
-      name: String(metric.name || ""),
-      value: String(metric.value || ""),
-      description: String(metric.description || ""),
-    })) || []
+    (startup.key_metrics || []).map((k) => ({
+      name: String(k?.name || k?.metric_name || ""),
+      value: String(k?.value ?? ""),
+      description: String(k?.description || ""),
+    }))
   );
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  function addTeamMember() {
+    setTeamMembers([...teamMembers, { name: "", position: "", linkedin: "" }]);
+  }
+
+  function removeTeamMember(index: number) {
+    setTeamMembers(teamMembers.filter((_, i) => i !== index));
+  }
+
+  function updateTeamMember(
+    index: number,
+    field: keyof TeamMember,
+    value: string
+  ) {
+    const updated = [...teamMembers];
+    updated[index] = { ...updated[index], [field]: value } as TeamMember;
+    setTeamMembers(updated);
+  }
+
+  function addAdvisor() {
+    setAdvisors([
+      ...advisors,
+      { name: "", expertise: "", company: "", linkedin: "" },
+    ]);
+  }
+
+  function removeAdvisor(index: number) {
+    setAdvisors(advisors.filter((_, i) => i !== index));
+  }
+
+  function updateAdvisor(index: number, field: keyof Advisor, value: string) {
+    const updated = [...advisors];
+    updated[index] = { ...updated[index], [field]: value } as Advisor;
+    setAdvisors(updated);
+  }
+
+  function addKeyMetric() {
+    setKeyMetrics([...keyMetrics, { name: "", value: "", description: "" }]);
+  }
+
+  function removeKeyMetric(index: number) {
+    setKeyMetrics(keyMetrics.filter((_, i) => i !== index));
+  }
+
+  function updateKeyMetric(
+    index: number,
+    field: keyof KeyMetric,
+    value: string
+  ) {
+    const updated = [...keyMetrics];
+    if (field === "value") {
+      const numericValue = value.replace(/[^0-9.]/g, "");
+      const parts = numericValue.split(".");
+      const processed =
+        parts.length > 2
+          ? parts[0] + "." + parts.slice(1).join("")
+          : numericValue;
+      updated[index] = { ...updated[index], [field]: processed } as KeyMetric;
+    } else {
+      updated[index] = { ...updated[index], [field]: value } as KeyMetric;
+    }
+    setKeyMetrics(updated);
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!onSave) {
       toast.error("No save function provided");
@@ -124,7 +189,7 @@ export function EditStartupProfile({
 
     startTransition(async () => {
       try {
-        const formData = {
+        const payload = {
           name,
           description,
           industry,
@@ -135,19 +200,22 @@ export function EditStartupProfile({
           development_stage: developmentStage || null,
           target_market: targetMarket
             .split(",")
-            .map((item) => item.trim())
+            .map((s) => s.trim())
             .filter(Boolean),
           keywords: keywords
             .split(",")
-            .map((item) => item.trim())
+            .map((s) => s.trim())
             .filter(Boolean),
-          team_members: teamMembers.filter((member) => member.name.trim()),
-          advisors: advisors.filter((advisor) => advisor.name.trim()),
-          key_metrics: keyMetrics.filter((metric) => metric.name.trim()),
-        };
+          team_members: teamMembers,
+          advisors,
+          key_metrics: keyMetrics.map((k) => ({
+            metric_name: k.name,
+            value: k.value,
+            description: k.description,
+          })),
+        } as Record<string, unknown>;
 
-        const result = await onSave(formData);
-
+        const result = await onSave(payload);
         if (result.ok) {
           toast.success("Profile updated successfully!");
           router.push("/profile");
@@ -156,88 +224,148 @@ export function EditStartupProfile({
             result.error || "Failed to update profile. Please try again."
           );
         }
-      } catch (error: unknown) {
-        console.error("Error saving startup profile:", error);
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : "Failed to update profile. Please try again.";
-        toast.error(errorMessage);
+      } catch (err) {
+        console.error("Error saving startup profile:", err);
+        toast.error("Failed to update profile. Please try again.");
       }
     });
-  };
+  }
 
-  const addTeamMember = () => {
-    setTeamMembers([...teamMembers, { name: "", position: "", linkedin: "" }]);
-  };
-
-  const removeTeamMember = (index: number) => {
-    setTeamMembers(teamMembers.filter((_, i) => i !== index));
-  };
-
-  const updateTeamMember = (
-    index: number,
-    field: keyof TeamMember,
-    value: string
-  ) => {
-    const updated = [...teamMembers];
-    updated[index] = { ...updated[index], [field]: value };
-    setTeamMembers(updated);
-  };
-
-  const addAdvisor = () => {
-    setAdvisors([
-      ...advisors,
-      { name: "", expertise: "", company: "", linkedin: "" },
-    ]);
-  };
-
-  const removeAdvisor = (index: number) => {
-    setAdvisors(advisors.filter((_, i) => i !== index));
-  };
-
-  const updateAdvisor = (
-    index: number,
-    field: keyof Advisor,
-    value: string
-  ) => {
-    const updated = [...advisors];
-    updated[index] = { ...updated[index], [field]: value };
-    setAdvisors(updated);
-  };
-
-  const addKeyMetric = () => {
-    setKeyMetrics([...keyMetrics, { name: "", value: "", description: "" }]);
-  };
-
-  const removeKeyMetric = (index: number) => {
-    setKeyMetrics(keyMetrics.filter((_, i) => i !== index));
-  };
-
-  const updateKeyMetric = (
-    index: number,
-    field: keyof KeyMetric,
-    value: string
-  ) => {
-    const updated = [...keyMetrics];
-    if (field === "value") {
-      const numericValue = value.replace(/[^0-9.]/g, "");
-      const parts = numericValue.split(".");
-      const processedValue =
-        parts.length > 2
-          ? parts[0] + "." + parts.slice(1).join("")
-          : numericValue;
-      updated[index] = { ...updated[index], [field]: processedValue };
-    } else {
-      updated[index] = { ...updated[index], [field]: value };
+  function VerificationUploads() {
+    async function handleReplace(
+      docType: "validId" | "birCor" | "proofOfBank",
+      fd: FormData
+    ) {
+      const file = fd.get("file") as File | null;
+      if (!file) {
+        toast.error("Please choose a file");
+        return;
+      }
+      fd.set("docType", docType);
+      const res = await replaceStartupDocument(fd);
+      if (res.ok) {
+        toast.success("Document updated");
+        router.refresh();
+      } else {
+        toast.error(res.error || "Failed to update document");
+      }
     }
-    setKeyMetrics(updated);
-  };
+
+    return (
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Building className="h-5 w-5" />
+            <span>Verification Documents</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="space-y-3">
+              <div className="aspect-video relative overflow-hidden rounded-md border bg-muted">
+                {startup.govt_id_image_url ? (
+                  <Image
+                    src={startup.govt_id_image_url}
+                    alt="Government ID"
+                    fill
+                    className="object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">
+                    No ID uploaded
+                  </div>
+                )}
+              </div>
+              <form
+                action={async (fd: FormData) => handleReplace("validId", fd)}
+                className="space-y-2"
+              >
+                <Input
+                  id="startup-id-file"
+                  name="file"
+                  type="file"
+                  accept="image/*"
+                />
+                <Button type="submit" size="sm" variant="outline">
+                  Replace ID
+                </Button>
+              </form>
+            </div>
+
+            <div className="space-y-3">
+              <div className="aspect-video relative overflow-hidden rounded-md border bg-muted">
+                {startup.bir_cor_image_url ? (
+                  <Image
+                    src={startup.bir_cor_image_url}
+                    alt="BIR/COR"
+                    fill
+                    className="object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">
+                    No BIR/COR uploaded
+                  </div>
+                )}
+              </div>
+              <form
+                action={async (fd: FormData) => handleReplace("birCor", fd)}
+                className="space-y-2"
+              >
+                <Input
+                  id="startup-bir-file"
+                  name="file"
+                  type="file"
+                  accept="image/*"
+                />
+                <Button type="submit" size="sm" variant="outline">
+                  Replace BIR/COR
+                </Button>
+              </form>
+            </div>
+
+            <div className="space-y-3">
+              <div className="aspect-video relative overflow-hidden rounded-md border bg-muted">
+                {startup.proof_of_bank_image_url ? (
+                  <Image
+                    src={startup.proof_of_bank_image_url}
+                    alt="Proof of Bank"
+                    fill
+                    className="object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">
+                    No proof of bank uploaded
+                  </div>
+                )}
+              </div>
+              <form
+                action={async (fd: FormData) =>
+                  handleReplace("proofOfBank", fd)
+                }
+                className="space-y-2"
+              >
+                <Input
+                  id="startup-bank-file"
+                  name="file"
+                  type="file"
+                  accept="image/*"
+                />
+                <Button type="submit" size="sm" variant="outline">
+                  Replace Bank Doc
+                </Button>
+              </form>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">
+      <VerificationUploads />
+
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Basic Information */}
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
@@ -344,7 +472,6 @@ export function EditStartupProfile({
           </CardContent>
         </Card>
 
-        {/* Target Market */}
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
@@ -369,7 +496,6 @@ export function EditStartupProfile({
           </CardContent>
         </Card>
 
-        {/* Keywords */}
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
@@ -394,7 +520,6 @@ export function EditStartupProfile({
           </CardContent>
         </Card>
 
-        {/* Team Members */}
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
@@ -455,7 +580,6 @@ export function EditStartupProfile({
           </CardContent>
         </Card>
 
-        {/* Advisors */}
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
@@ -525,7 +649,6 @@ export function EditStartupProfile({
           </CardContent>
         </Card>
 
-        {/* Key Metrics */}
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
@@ -570,8 +693,8 @@ export function EditStartupProfile({
                     placeholder="Value"
                     type="number"
                     value={metric.value}
-                    onChange={(a) =>
-                      updateKeyMetric(index, "value", a.target.value)
+                    onChange={(e) =>
+                      updateKeyMetric(index, "value", e.target.value)
                     }
                   />
                 </div>
@@ -587,7 +710,6 @@ export function EditStartupProfile({
           </CardContent>
         </Card>
 
-        {/* Video Pitches */}
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
@@ -600,7 +722,6 @@ export function EditStartupProfile({
           </CardContent>
         </Card>
 
-        {/* Action Buttons */}
         <div className="flex justify-end space-x-4 pt-6">
           <Button
             type="button"
