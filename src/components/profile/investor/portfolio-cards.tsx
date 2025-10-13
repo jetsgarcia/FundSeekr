@@ -100,7 +100,6 @@ export function PortfolioCards({ investor }: PortfolioCardsProps) {
                     {exit.exit_amount !== undefined &&
                       exit.exit_amount !== null && (
                         <div className="mt-2 text-lg font-bold text-primary">
-                          ₱
                           {formatCurrencyAbbreviation(Number(exit.exit_amount))}
                         </div>
                       )}
