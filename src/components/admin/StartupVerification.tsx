@@ -1,8 +1,37 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle, XCircle, Clock } from "lucide-react";
+import {
+  getStartupVerificationStats,
+  type VerificationStats,
+} from "@/actions/admin-verification";
 
 export function StartupVerification() {
+  const [stats, setStats] = useState<VerificationStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const data = await getStartupVerificationStats();
+        if (mounted) setStats(data);
+      } catch (e) {
+        console.error(e);
+        if (mounted) setError("Failed to load startup verification stats");
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-bold text-balance">Startup Verification</h2>
@@ -15,11 +44,14 @@ export function StartupVerification() {
             <CheckCircle className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-500">642</div>
-            <Progress value={75} className="mt-2" />
+            <div className="text-2xl font-bold text-green-500">
+              {loading ? "…" : (stats?.verified ?? 0).toLocaleString()}
+            </div>
+            <Progress value={stats?.verifiedPct ?? 0} className="mt-2" />
             <p className="text-xs text-muted-foreground mt-1">
-              75% of total startups
+              {loading ? "" : `${stats?.verifiedPct ?? 0}% of total startups`}
             </p>
+            {error && <p className="text-xs text-destructive mt-1">{error}</p>}
           </CardContent>
         </Card>
 
@@ -30,7 +62,9 @@ export function StartupVerification() {
               <XCircle className="h-4 w-4 text-destructive" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-destructive">214</div>
+              <div className="text-2xl font-bold text-destructive">
+                {loading ? "…" : (stats?.rejected ?? 0).toLocaleString()}
+              </div>
             </CardContent>
           </Card>
 
@@ -40,7 +74,9 @@ export function StartupVerification() {
               <Clock className="h-4 w-4 text-orange-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-orange-500">28</div>
+              <div className="text-2xl font-bold text-orange-500">
+                {loading ? "…" : (stats?.pending ?? 0).toLocaleString()}
+              </div>
             </CardContent>
           </Card>
         </div>
