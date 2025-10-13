@@ -682,7 +682,7 @@ export function EditInvestorProfile({
                 placeholder="Enter geographic focus separated by commas"
               />
               <p className="text-sm text-muted-foreground">
-                E.g., &quot;Philippines, Southeast Asia, Global&quot;
+                E.g., &quot;Makati, Cebu, Davao&quot;
               </p>
             </div>
 
