@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { User, Settings, LogOut, Eye } from "lucide-react";
+import { User, Settings, LogOut, Eye, MessageCircle } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,6 +31,17 @@ export function UserButton({ userType }: UserButtonProps) {
 
   const handleAccountSettings = () => {
     router.push("/handler/account-settings");
+    setIsOpen(false);
+  };
+
+  const handleContactUs = () => {
+    // You can replace this with your preferred contact method
+    // Option 1: External email link
+    window.open("mailto:support@fundseekr.com", "_blank");
+
+    // Option 2: Navigate to a contact page (uncomment if you have one)
+    // router.push("/contact");
+
     setIsOpen(false);
   };
 
@@ -101,6 +112,10 @@ export function UserButton({ userType }: UserButtonProps) {
         >
           <Settings className="mr-2 h-4 w-4" />
           <span>Account Settings</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={handleContactUs} className="cursor-pointer">
+          <MessageCircle className="mr-2 h-4 w-4" />
+          <span>Contact Us</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
