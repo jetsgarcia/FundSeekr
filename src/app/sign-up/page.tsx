@@ -119,7 +119,13 @@ export default function SignUpPage() {
             firstTab="password"
             extraInfo={
               <>
-                By signing up, you agree to our <a href="/terms">Terms</a>
+                By signing up, you agree to our{" "}
+                <a
+                  href="/terms"
+                  className="text-blue-600 hover:text-blue-800 underline dark:text-blue-400 dark:hover:text-blue-300"
+                >
+                  Terms of Use and Privacy Policy
+                </a>
               </>
             }
           />
