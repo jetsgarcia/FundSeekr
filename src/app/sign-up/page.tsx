@@ -1,5 +1,5 @@
 import { SignUp } from "@stackframe/stack";
-import { TrendingUp, Zap, Shield, Mail } from "lucide-react";
+import { Zap, Shield, Play, MessageCircle } from "lucide-react";
 
 export default function SignUpPage() {
   return (
@@ -34,12 +34,13 @@ export default function SignUpPage() {
                     Recommendation Engine
                   </h3>
                   <p className="text-blue-100 text-base leading-relaxed">
-                    Smart matchmaking that analyzes profiles to generate highly
-                    relevant investor-startup connections
+                    Smart matchmaking that analyzes verified startup and
+                    investor profiles to create highly relevant connections and
+                    streamline deal discovery.
                   </p>
                   <div className="mt-2 flex items-center text-yellow-200 text-xs font-medium">
                     <span className="w-2 h-2 bg-yellow-400 rounded-full mr-2"></span>
-                    Save 20+ hours per week
+                    Find your best matches faster
                   </div>
                 </div>
               </div>
@@ -48,19 +49,20 @@ export default function SignUpPage() {
             <div className="group hover:bg-white/10 dark:hover:bg-slate-800/50 p-4 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-xl border border-white/10 dark:border-slate-700/50 dark:hover:border-slate-600">
               <div className="flex items-start space-x-4">
                 <div className="bg-gradient-to-br from-green-400 to-emerald-500 dark:from-emerald-500 dark:to-green-600 p-3 rounded-lg shadow group-hover:shadow-lg transition-shadow">
-                  <Mail className="h-6 w-6 text-white" />
+                  <Play className="h-6 w-6 text-white" />
                 </div>
                 <div className="flex-1">
                   <h3 className="font-bold text-lg mb-2 group-hover:text-green-200 transition-colors">
-                    AI-powered Pitch Generation
+                    Video Pitch Showcase
                   </h3>
                   <p className="text-blue-100 text-base leading-relaxed">
-                    Generate personalized pitch emails tailored to each
-                    investor&apos;s profile and preferences
+                    Startups can upload video pitches to present their ideas,
+                    business model, and traction — helping investors quickly
+                    assess potential and connect with confidence.
                   </p>
                   <div className="mt-2 flex items-center text-green-200 text-xs font-medium">
                     <span className="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
-                    Save 10+ hours per week
+                    Pitch with impact, stand out to investors
                   </div>
                 </div>
               </div>
@@ -69,19 +71,20 @@ export default function SignUpPage() {
             <div className="group hover:bg-white/10 dark:hover:bg-slate-800/50 p-4 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-xl border border-white/10 dark:border-slate-700/50 dark:hover:border-slate-600">
               <div className="flex items-start space-x-4">
                 <div className="bg-gradient-to-br from-purple-400 to-pink-500 dark:from-violet-500 dark:to-purple-600 p-3 rounded-lg shadow group-hover:shadow-lg transition-shadow">
-                  <TrendingUp className="h-6 w-6 text-white" />
+                  <MessageCircle className="h-6 w-6 text-white" />
                 </div>
                 <div className="flex-1">
                   <h3 className="font-bold text-lg mb-2 group-hover:text-purple-200 transition-colors">
-                    Analytics Dashboard
+                    Direct Messaging
                   </h3>
                   <p className="text-blue-100 text-base leading-relaxed">
-                    Track match rates, engagement levels, and optimize your
-                    fundraising strategy
+                    Startups and investors can communicate instantly within the
+                    platform, making it easy to follow up, share insights, and
+                    move deals forward securely.
                   </p>
                   <div className="mt-2 flex items-center text-purple-200 text-xs font-medium">
                     <span className="w-2 h-2 bg-purple-400 rounded-full mr-2"></span>
-                    Real-time insights & metrics
+                    Connect instantly, collaborate effortlessly
                   </div>
                 </div>
               </div>
@@ -94,15 +97,17 @@ export default function SignUpPage() {
                 </div>
                 <div className="flex-1">
                   <h3 className="font-bold text-lg mb-2 group-hover:text-red-200 transition-colors">
-                    Enterprise Security
+                    Verified & Secure Network
                   </h3>
                   <p className="text-blue-100 text-base leading-relaxed">
-                    End-to-end encryption and compliance with Philippine Data
-                    Privacy Act
+                    All users go through a strict verification process, ensuring
+                    only legitimate startups and investors can connect — backed
+                    by data privacy compliance under the Philippine Data Privacy
+                    Act.
                   </p>
                   <div className="mt-2 flex items-center text-red-200 text-xs font-medium">
                     <span className="w-2 h-2 bg-red-400 rounded-full mr-2"></span>
-                    Your Data, Fully Protected
+                    Trusted and fully protected environment
                   </div>
                 </div>
               </div>
@@ -119,7 +124,13 @@ export default function SignUpPage() {
             firstTab="password"
             extraInfo={
               <>
-                By signing up, you agree to our <a href="/terms">Terms</a>
+                By signing up, you agree to our{" "}
+                <a
+                  href="/terms"
+                  className="text-blue-600 hover:text-blue-800 underline dark:text-blue-400 dark:hover:text-blue-300"
+                >
+                  Terms of Use and Privacy Policy
+                </a>
               </>
             }
           />

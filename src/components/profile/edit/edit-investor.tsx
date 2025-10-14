@@ -123,9 +123,9 @@ export function EditInvestorProfile({
   const [preferredBusinessModels, setPreferredBusinessModels] = useState<
     string[]
   >(investor.preferred_business_models || []);
-  const [preferredFundingStages, setPreferredFundingStages] = useState<string>(
-    investor.preferred_funding_stages?.join(", ") || ""
-  );
+  const [preferredFundingStages, setPreferredFundingStages] = useState<
+    string[]
+  >(investor.preferred_funding_stages || []);
   const [geographicFocus, setGeographicFocus] = useState<string>(
     investor.geographic_focus?.join(", ") || ""
   );
@@ -182,10 +182,7 @@ export function EditInvestorProfile({
             .map((item) => item.trim())
             .filter(Boolean),
           preferred_business_models: preferredBusinessModels,
-          preferred_funding_stages: preferredFundingStages
-            .split(",")
-            .map((item) => item.trim())
-            .filter(Boolean),
+          preferred_funding_stages: preferredFundingStages,
           geographic_focus: geographicFocus
             .split(",")
             .map((item) => item.trim())
@@ -659,17 +656,47 @@ export function EditInvestorProfile({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="preferredFundingStages">
-                Preferred Funding Stages
-              </Label>
-              <Input
-                id="preferredFundingStages"
-                value={preferredFundingStages}
-                onChange={(e) => setPreferredFundingStages(e.target.value)}
-                placeholder="Enter preferred funding stages separated by commas"
-              />
+              <Label>Preferred Funding Stages</Label>
+              <div className="flex flex-col gap-2">
+                {(
+                  [
+                    "Idea",
+                    "MVP",
+                    "Early Traction",
+                    "Growth",
+                    "Expansion",
+                  ] as const
+                ).map((stage) => {
+                  const checked = preferredFundingStages.includes(stage);
+                  return (
+                    <label
+                      key={stage}
+                      className="inline-flex items-center gap-2"
+                    >
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4"
+                        checked={checked}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setPreferredFundingStages([
+                              ...preferredFundingStages,
+                              stage,
+                            ]);
+                          } else {
+                            setPreferredFundingStages(
+                              preferredFundingStages.filter((s) => s !== stage)
+                            );
+                          }
+                        }}
+                      />
+                      <span>{stage}</span>
+                    </label>
+                  );
+                })}
+              </div>
               <p className="text-sm text-muted-foreground">
-                E.g., &quot;Pre-Seed, Seed, Series A&quot;
+                Select one or more.
               </p>
             </div>
 
@@ -682,7 +709,7 @@ export function EditInvestorProfile({
                 placeholder="Enter geographic focus separated by commas"
               />
               <p className="text-sm text-muted-foreground">
-                E.g., &quot;Philippines, Southeast Asia, Global&quot;
+                E.g., &quot;Makati, Cebu, Davao&quot;
               </p>
             </div>
 
