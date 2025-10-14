@@ -33,10 +33,14 @@ export function Step2({
           <CardHeader className="space-y-6 pt-8 pb-8">
             <div className="text-center space-y-2">
               <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">
-                Basic Information
+                {userType === "investor"
+                  ? "Investor Basic Information"
+                  : "Startup Representative Information"}
               </h1>
               <p className="text-slate-600 dark:text-slate-300 text-lg">
-                Tell us about yourself
+                {userType === "investor"
+                  ? "Tell us more about your investment background."
+                  : "Tell us more about yourself as the representative of your startup."}
               </p>
             </div>
           </CardHeader>
