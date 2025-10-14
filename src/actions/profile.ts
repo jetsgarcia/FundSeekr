@@ -147,6 +147,11 @@ export async function replaceStartupDocument(formData: FormData) {
       contentType: file.type || "application/octet-stream",
     });
 
+    // Check if the user was previously rejected
+    const wasRejected =
+      user.serverMetadata?.legalVerified === false &&
+      user.serverMetadata?.rejectedAt;
+
     // Map docType to column
     const dataUpdate: Record<string, string | null> = {};
     if (docType === "validId") dataUpdate["govt_id_image_url"] = uploaded.url;
@@ -154,13 +159,52 @@ export async function replaceStartupDocument(formData: FormData) {
     if (docType === "proofOfBank")
       dataUpdate["proof_of_bank_image_url"] = uploaded.url;
 
+    // If user was rejected, reset legal_verified to null (pending status)
+    if (wasRejected) {
+      dataUpdate["legal_verified"] = null;
+    }
+
     const updated = await prisma.startups.update({
       where: { id: existingProfile.id },
       data: dataUpdate,
     });
 
+    // If the user was previously rejected, clear rejection status in database and Stack Auth
+    if (wasRejected) {
+      try {
+        // Clear rejection metadata from database
+        await prisma.$executeRaw`
+          UPDATE neon_auth.users_sync 
+          SET raw_json = raw_json 
+            #- '{server_metadata,legalVerified}'
+            #- '{server_metadata,rejectedAt}'
+            #- '{server_metadata,rejectionReason}'
+          WHERE id = ${user.id}
+        `;
+
+        // Clear rejection metadata from Stack Auth user
+        await user.update({
+          serverMetadata: {
+            ...user.serverMetadata,
+            legalVerified: undefined,
+            rejectedAt: undefined,
+            rejectionReason: undefined,
+          },
+        });
+
+        console.log(
+          "Cleared rejection status for startup document upload:",
+          user.id
+        );
+      } catch (clearError) {
+        console.error("Error clearing rejection status:", clearError);
+        // Don't fail the document upload if clearing rejection status fails
+      }
+    }
+
     revalidatePath("/profile");
     revalidatePath("/profile/edit");
+    revalidatePath("/home");
 
     return { ok: true, url: uploaded.url, profile: updated } as const;
   } catch (error) {
@@ -222,6 +266,11 @@ export async function replaceInvestorDocument(formData: FormData) {
       contentType: file.type || "application/octet-stream",
     });
 
+    // Check if the user was previously rejected
+    const wasRejected =
+      user.serverMetadata?.legalVerified === false &&
+      user.serverMetadata?.rejectedAt;
+
     // Map docType to column
     const dataUpdate: Record<string, string> = {};
     if (docType === "validId") dataUpdate["govt_id_image_url"] = uploaded.url;
@@ -234,8 +283,42 @@ export async function replaceInvestorDocument(formData: FormData) {
       data: dataUpdate,
     });
 
+    // If the user was previously rejected, clear rejection status in database and Stack Auth
+    if (wasRejected) {
+      try {
+        // Clear rejection metadata from database
+        await prisma.$executeRaw`
+          UPDATE neon_auth.users_sync 
+          SET raw_json = raw_json 
+            #- '{server_metadata,legalVerified}'
+            #- '{server_metadata,rejectedAt}'
+            #- '{server_metadata,rejectionReason}'
+          WHERE id = ${user.id}
+        `;
+
+        // Clear rejection metadata from Stack Auth user
+        await user.update({
+          serverMetadata: {
+            ...user.serverMetadata,
+            legalVerified: undefined,
+            rejectedAt: undefined,
+            rejectionReason: undefined,
+          },
+        });
+
+        console.log(
+          "Cleared rejection status for investor document upload:",
+          user.id
+        );
+      } catch (clearError) {
+        console.error("Error clearing rejection status:", clearError);
+        // Don't fail the document upload if clearing rejection status fails
+      }
+    }
+
     revalidatePath("/profile");
     revalidatePath("/profile/edit");
+    revalidatePath("/home");
 
     return { ok: true, url: uploaded.url, profile: updated } as const;
   } catch (error) {
@@ -310,6 +393,11 @@ export async function updateStartupProfile(data: {
       return { ok: false, error: "Startup profile not found" };
     }
 
+    // Check if the user was previously rejected
+    const wasRejected =
+      user.serverMetadata?.legalVerified === false &&
+      user.serverMetadata?.rejectedAt;
+
     // Update the startup profile
     const updatedProfile = await prisma.startups.update({
       where: { id: existingProfile.id },
@@ -327,12 +415,45 @@ export async function updateStartupProfile(data: {
         team_members: data.team_members,
         advisors: data.advisors,
         key_metrics: data.key_metrics,
+        // If user was rejected, reset legal_verified to null (pending status)
+        legal_verified: wasRejected ? null : existingProfile.legal_verified,
       },
     });
+
+    // If the user was previously rejected, clear rejection status in database and Stack Auth
+    if (wasRejected) {
+      try {
+        // Clear rejection metadata from database
+        await prisma.$executeRaw`
+          UPDATE neon_auth.users_sync 
+          SET raw_json = raw_json 
+            #- '{server_metadata,legalVerified}'
+            #- '{server_metadata,rejectedAt}'
+            #- '{server_metadata,rejectionReason}'
+          WHERE id = ${user.id}
+        `;
+
+        // Clear rejection metadata from Stack Auth user
+        await user.update({
+          serverMetadata: {
+            ...user.serverMetadata,
+            legalVerified: undefined,
+            rejectedAt: undefined,
+            rejectionReason: undefined,
+          },
+        });
+
+        console.log("Cleared rejection status for startup:", user.id);
+      } catch (clearError) {
+        console.error("Error clearing rejection status:", clearError);
+        // Don't fail the profile update if clearing rejection status fails
+      }
+    }
 
     // Revalidate the profile page to ensure fresh data
     revalidatePath("/profile");
     revalidatePath("/profile/edit");
+    revalidatePath("/home");
 
     // Trigger matching algorithm if profile is complete enough
     try {
@@ -396,6 +517,11 @@ export async function updateInvestorProfile(data: {
       return { ok: false, error: "Investor profile not found" };
     }
 
+    // Check if the user was previously rejected
+    const wasRejected =
+      user.serverMetadata?.legalVerified === false &&
+      user.serverMetadata?.rejectedAt;
+
     // Update the investor profile
     const updatedProfile = await prisma.investors.update({
       where: { id: existingProfile.id },
@@ -422,9 +548,40 @@ export async function updateInvestorProfile(data: {
       },
     });
 
+    // If the user was previously rejected, clear rejection status in database and Stack Auth
+    if (wasRejected) {
+      try {
+        // Clear rejection metadata from database
+        await prisma.$executeRaw`
+          UPDATE neon_auth.users_sync 
+          SET raw_json = raw_json 
+            #- '{server_metadata,legalVerified}'
+            #- '{server_metadata,rejectedAt}'
+            #- '{server_metadata,rejectionReason}'
+          WHERE id = ${user.id}
+        `;
+
+        // Clear rejection metadata from Stack Auth user
+        await user.update({
+          serverMetadata: {
+            ...user.serverMetadata,
+            legalVerified: undefined,
+            rejectedAt: undefined,
+            rejectionReason: undefined,
+          },
+        });
+
+        console.log("Cleared rejection status for investor:", user.id);
+      } catch (clearError) {
+        console.error("Error clearing rejection status:", clearError);
+        // Don't fail the profile update if clearing rejection status fails
+      }
+    }
+
     // Revalidate the profile page to ensure fresh data
     revalidatePath("/profile");
     revalidatePath("/profile/edit");
+    revalidatePath("/home");
 
     // Trigger matching algorithm if profile is complete enough
     try {
