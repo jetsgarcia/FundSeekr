@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@stackframe/stack";
+import packageJson from "../../package.json";
 
 interface UserButtonProps {
   userType?: string;
@@ -125,6 +126,12 @@ export function UserButton({ userType }: UserButtonProps) {
           <LogOut className="mr-2 h-4 w-4" />
           <span>Logout</span>
         </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <div className="px-2 py-1.5">
+          <p className="text-xs text-muted-foreground font-mono text-center">
+            v{packageJson.version}
+          </p>
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );
