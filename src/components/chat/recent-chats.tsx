@@ -10,12 +10,30 @@ interface ChatContact {
   userName?: string;
   lastMessage?: string;
   timestamp?: number;
+  unreadCount?: number;
 }
 
 export default function RecentChats() {
   const user = useUser();
   const [contacts, setContacts] = useState<ChatContact[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [unreadMessages, setUnreadMessages] = useState<Record<string, number>>(
+    {}
+  );
+
+  // Function to clear unread count for a specific contact
+  const clearUnreadCount = (userId: string) => {
+    setUnreadMessages((prev) => ({
+      ...prev,
+      [userId]: 0,
+    }));
+
+    setContacts((prev) =>
+      prev.map((contact) =>
+        contact.userId === userId ? { ...contact, unreadCount: 0 } : contact
+      )
+    );
+  };
 
   // Function to fetch and cache user name
   const fetchUserName = async (userId: string): Promise<string> => {
@@ -45,11 +63,14 @@ export default function RecentChats() {
         const contactsWithNames = await Promise.all(
           storedContacts.map(async (contact) => {
             const userName = await fetchUserName(contact.userId);
+            const unreadCount = unreadMessages[contact.userId];
             return {
               userId: contact.userId,
               userName: userName,
               lastMessage: contact.lastMessage,
               timestamp: contact.timestamp,
+              unreadCount:
+                unreadCount && unreadCount > 0 ? unreadCount : undefined,
             };
           })
         );
@@ -107,23 +128,37 @@ export default function RecentChats() {
         // Fetch user name for the contact
         const userName = await fetchUserName(msg.from);
 
-        // Update or add contact when receiving a message
-        setContacts((prev) => {
-          const existingIndex = prev.findIndex((c) => c.userId === msg.from);
-          const newContact: ChatContact = {
-            userId: msg.from,
-            userName: userName,
-            lastMessage: msg.text,
-            timestamp,
+        // Increment unread count for this contact and update contacts
+        setUnreadMessages((prev) => {
+          const newUnreadCount = (prev[msg.from] || 0) + 1;
+          const updatedUnreadMessages = {
+            ...prev,
+            [msg.from]: newUnreadCount,
           };
 
-          if (existingIndex >= 0) {
-            const updated = [...prev];
-            updated[existingIndex] = newContact;
-            return updated;
-          } else {
-            return [...prev, newContact];
-          }
+          // Update or add contact when receiving a message
+          setContacts((prevContacts) => {
+            const existingIndex = prevContacts.findIndex(
+              (c) => c.userId === msg.from
+            );
+            const newContact: ChatContact = {
+              userId: msg.from,
+              userName: userName,
+              lastMessage: msg.text,
+              timestamp,
+              unreadCount: newUnreadCount,
+            };
+
+            if (existingIndex >= 0) {
+              const updated = [...prevContacts];
+              updated[existingIndex] = newContact;
+              return updated;
+            } else {
+              return [...prevContacts, newContact];
+            }
+          });
+
+          return updatedUnreadMessages;
         });
       }
     });
@@ -202,24 +237,41 @@ export default function RecentChats() {
                 <Link
                   key={contact.userId}
                   href={`/chat/${contact.userId}`}
-                  className="block p-4 border border-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900"
+                  onClick={() => clearUnreadCount(contact.userId)}
+                  className="block p-4 border border-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900 relative"
                 >
                   <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-semibold">
-                        {contact.userName || `User: ${contact.userId}`}
-                      </h3>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold">
+                          {contact.userName || `User: ${contact.userId}`}
+                        </h3>
+                        {contact.unreadCount && contact.unreadCount > 0 && (
+                          <div className="bg-blue-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center min-w-5">
+                            {contact.unreadCount > 99
+                              ? "99+"
+                              : contact.unreadCount}
+                          </div>
+                        )}
+                      </div>
                       {contact.lastMessage && (
                         <p className="text-gray-600 text-sm truncate">
                           {contact.lastMessage}
                         </p>
                       )}
                     </div>
-                    {contact.timestamp && (
-                      <span className="text-xs text-gray-500">
-                        {new Date(contact.timestamp).toLocaleTimeString()}
-                      </span>
-                    )}
+                    <div className="flex flex-col items-end gap-1">
+                      {contact.timestamp && (
+                        <div className="text-xs text-gray-500 text-right">
+                          <div>
+                            {new Date(contact.timestamp).toLocaleDateString()}
+                          </div>
+                          <div>
+                            {new Date(contact.timestamp).toLocaleTimeString()}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </Link>
               ))}
