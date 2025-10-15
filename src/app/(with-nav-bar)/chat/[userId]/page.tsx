@@ -225,9 +225,9 @@ export default function Page({
       </Card>
 
       {/* Messages Container */}
-      <Card className="flex-1 flex flex-col overflow-hidden">
-        <CardContent className="flex-1 p-0">
-          <div className="h-full overflow-y-auto p-6 space-y-4">
+      <Card className="flex-1 flex flex-col min-h-0">
+        <CardContent className="flex-1 p-0 flex flex-col min-h-0">
+          <div className="flex-1 overflow-y-auto p-6 space-y-4 min-h-0">
             {messages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center space-y-4">
                 <MessageCircle className="h-16 w-16 text-muted-foreground" />
