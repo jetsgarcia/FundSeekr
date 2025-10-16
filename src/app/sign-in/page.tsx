@@ -19,8 +19,9 @@ export default function LoginPage() {
               Welcome to FundSeekr!
             </h1>
             <p className="text-lg text-white/90 max-w-3xl mb-6">
-              Connect with founders or investors and grow your startup together with
-              FundSeekr, the matchmaking platform with AI-powered Pitch Generation
+              Connect with founders or investors and grow your startup together
+              with FundSeekr, the matchmaking platform designed to help
+              innovators and backers find the perfect partnership for success.
             </p>
           </div>
         </div>
