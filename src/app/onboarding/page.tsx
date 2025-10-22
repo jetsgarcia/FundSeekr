@@ -1,6 +1,7 @@
 "use client";
 
 import EmailVerification from "@/components/onboarding/email-verification";
+import MultiStepForm from "@/components/onboarding/multi-step-form";
 import { useUser } from "@stackframe/stack";
 import { useEffect, useState } from "react";
 
@@ -19,5 +20,5 @@ export default function OnboardingPage() {
     return <EmailVerification setIsEmailVerified={setIsEmailVerified} />;
   }
 
-  return <div>Hello world!</div>;
+  return <MultiStepForm />;
 }
