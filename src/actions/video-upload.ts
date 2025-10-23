@@ -195,6 +195,102 @@ export async function getStartupVideos(startupId: string) {
   }
 }
 
+export async function uploadVideoUrl(formData: FormData) {
+  try {
+    const user = await stackServerApp.getUser();
+    if (!user) {
+      throw new Error("User not authenticated");
+    }
+
+    // Verify user is a startup
+    if (user.serverMetadata.userType !== "Startup") {
+      throw new Error("Only startups can upload videos");
+    }
+
+    const videoUrl = formData.get("videoUrl") as string;
+    const title = formData.get("title") as string;
+    const description = formData.get("description") as string;
+    const startupId = formData.get("startupId") as string;
+
+    if (!videoUrl || !title || !description || !startupId) {
+      throw new Error("Missing required fields");
+    }
+
+    // Validate title and description length
+    if (title.trim().length < 3) {
+      throw new Error("Title must be at least 3 characters long");
+    }
+
+    if (description.trim().length < 10) {
+      throw new Error("Description must be at least 10 characters long");
+    }
+
+    // Validate URL format
+    try {
+      new URL(videoUrl);
+    } catch {
+      throw new Error("Invalid URL format");
+    }
+
+    // Verify the startup belongs to the user
+    const startup = await prisma.startups.findFirst({
+      where: {
+        id: startupId,
+        user_id: user.id,
+      },
+    });
+
+    if (!startup) {
+      throw new Error("Startup not found or access denied");
+    }
+
+    // Find default investor ID (same logic as file upload)
+    let defaultInvestorId: string;
+
+    const firstInvestor = await prisma.investors.findFirst({
+      select: { id: true },
+    });
+
+    if (firstInvestor) {
+      defaultInvestorId = firstInvestor.id;
+    } else {
+      throw new Error(
+        "Cannot upload video: No investors found in system. Please contact support."
+      );
+    }
+
+    // Save video record to database
+    await prisma.video_pitches.create({
+      data: {
+        title: title.trim(),
+        description: description.trim(),
+        duration_in_seconds: 0, // Unknown duration for URL videos
+        pitch_status: "Sent",
+        video_url: videoUrl.trim(),
+        attachment_links: [],
+        date_sent: new Date(),
+        startup_id: startupId,
+        investor_id: defaultInvestorId,
+      },
+    });
+
+    // Revalidate the profile page
+    revalidatePath("/profile");
+
+    return {
+      success: true,
+      url: videoUrl,
+      message: "Video URL added successfully",
+    };
+  } catch (error) {
+    console.error("Video URL upload error:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to add video URL",
+    };
+  }
+}
+
 export async function deleteVideo(videoId: number) {
   try {
     const user = await stackServerApp.getUser();
