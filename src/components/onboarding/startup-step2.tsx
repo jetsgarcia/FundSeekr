@@ -53,10 +53,17 @@ interface FormErrors {
 
 interface StartupStep2Props {
   setStep: (step: number) => void;
+  formData?: StartupFormData;
+  setFormData?: (data: StartupFormData) => void;
 }
 
-export default function StartupStep2({ setStep }: StartupStep2Props) {
-  const [formData, setFormData] = useState<StartupFormData>({
+export default function StartupStep2({
+  setStep,
+  formData: externalFormData,
+  setFormData: setExternalFormData,
+}: StartupStep2Props) {
+  // Use external state if provided, otherwise use internal state
+  const [internalFormData, setInternalFormData] = useState<StartupFormData>({
     name: "",
     phone_number: "",
     linkedin_url: "",
@@ -67,6 +74,9 @@ export default function StartupStep2({ setStep }: StartupStep2Props) {
     date_founded: undefined,
     business_structure: "",
   });
+
+  const formData = externalFormData || internalFormData;
+  const setFormData = setExternalFormData || setInternalFormData;
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -202,7 +212,8 @@ export default function StartupStep2({ setStep }: StartupStep2Props) {
     field: keyof StartupFormData,
     value: string | Date | undefined
   ) {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    const newData = { ...formData, [field]: value };
+    setFormData(newData);
 
     // Clear error when user starts typing
     if (errors[field]) {

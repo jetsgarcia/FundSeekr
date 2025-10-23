@@ -3,9 +3,77 @@ import Step1 from "./step1";
 import Step2 from "./step2";
 import Step3 from "./step3";
 
+// Define interfaces for form data
+interface StartupStep2FormData {
+  name: string;
+  phone_number: string;
+  linkedin_url: string;
+  business_name: string;
+  business_description: string;
+  web_url: string;
+  city: string;
+  date_founded: Date | undefined;
+  business_structure: string;
+}
+
+interface TeamMember {
+  name: string;
+  linkedin: string;
+  position: string;
+}
+
+interface Advisor {
+  name: string;
+  company: string;
+  linkedin: string;
+  expertise: string;
+}
+
+interface KeyMetric {
+  name: string;
+  value: string;
+}
+
+interface StartupStep3FormData {
+  industry: string;
+  development_stage: string;
+  target_market: string[];
+  keywords: string[];
+  product_demo_url: string;
+  key_metrics: KeyMetric[];
+  team_members: TeamMember[];
+  advisors: Advisor[];
+}
+
 export default function MultiStepForm() {
   const [step, setStep] = useState(1);
   const [role, setRole] = useState<"Investor" | "Startup">();
+
+  // Centralized state for startup onboarding
+  const [startupStep2Data, setStartupStep2Data] =
+    useState<StartupStep2FormData>({
+      name: "",
+      phone_number: "",
+      linkedin_url: "",
+      business_name: "",
+      business_description: "",
+      web_url: "",
+      city: "",
+      date_founded: undefined,
+      business_structure: "",
+    });
+
+  const [startupStep3Data, setStartupStep3Data] =
+    useState<StartupStep3FormData>({
+      industry: "",
+      development_stage: "",
+      target_market: [],
+      keywords: [],
+      product_demo_url: "",
+      key_metrics: [{ name: "", value: "" }],
+      team_members: [{ name: "", linkedin: "", position: "" }],
+      advisors: [{ name: "", company: "", linkedin: "", expertise: "" }],
+    });
 
   const totalSteps = 4;
 
@@ -73,8 +141,22 @@ export default function MultiStepForm() {
           {step === 1 && (
             <Step1 role={role} setStep={setStep} setRole={setRole} />
           )}
-          {step === 2 && <Step2 role={role} setStep={setStep} />}
-          {step === 3 && <Step3 role={role} setStep={setStep} />}
+          {step === 2 && (
+            <Step2
+              role={role}
+              setStep={setStep}
+              startupFormData={startupStep2Data}
+              setStartupFormData={setStartupStep2Data}
+            />
+          )}
+          {step === 3 && (
+            <Step3
+              role={role}
+              setStep={setStep}
+              startupFormData={startupStep3Data}
+              setStartupFormData={setStartupStep3Data}
+            />
+          )}
         </div>
       </div>
     </div>
