@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Step1 from "./step1";
 import Step2 from "./step2";
+import Step3 from "./step3";
 
 export default function MultiStepForm() {
   const [step, setStep] = useState(1);
@@ -73,6 +74,7 @@ export default function MultiStepForm() {
             <Step1 role={role} setStep={setStep} setRole={setRole} />
           )}
           {step === 2 && <Step2 role={role} setStep={setStep} />}
+          {step === 3 && <Step3 role={role} setStep={setStep} />}
         </div>
       </div>
     </div>
