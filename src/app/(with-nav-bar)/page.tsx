@@ -2,10 +2,23 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { useUser } from "@stackframe/stack";
 import { useTheme } from "next-themes";
 import dynamic from "next/dynamic";
 import { useMemo } from "react";
+import {
+  Zap,
+  Users,
+  TrendingUp,
+  MessageSquare,
+  Search,
+  Lock,
+  BarChart3,
+  Github,
+  Linkedin,
+  Mail,
+} from "lucide-react";
 
 const World = dynamic(
   () => import("@/components/ui/globe").then((m) => m.World),
@@ -472,50 +485,305 @@ export default function HomePage() {
   );
 
   return (
-    <div className="sm:h-[calc(100dvh-4.1rem)] flex flex-col">
-      {/* Main (single section) */}
-      <main className="flex-1 flex flex-col-reverse sm:flex-row sm:justify-between sm:h-[calc(100vh-4rem-1px)] sm:overflow-hidden">
-        <div className="flex flex-col justify-center my-10 sm:my-0 max-w-2xl space-y-6 flex-1 px-4 sm:px-6 lg:px-8">
-          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight leading-tight">
-            Matching{" "}
-            <span className="bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-500 bg-clip-text text-transparent">
-              Founders
-            </span>{" "}
-            &{" "}
-            <span className="bg-gradient-to-r from-indigo-500 via-blue-500 to-cyan-500 bg-clip-text text-transparent">
-              Investors
-            </span>{" "}
-            Effortlessly
-          </h1>
-          <p className="text-lg text-muted-foreground">
-            Accelerate fundraising with smart matchmaking that connects the
-            right startups with the right investors.
-          </p>
-          {!user && (
-            <div className="w-full">
-              <Button
-                asChild
-                size="lg"
-                className="w-full sm:w-auto justify-center"
-              >
-                <Link
-                  href="/sign-up"
-                  className="font-semibold w-full sm:w-auto text-center"
+    <>
+      {/* Hero Section */}
+      <div className="sm:h-[calc(100dvh-4.1rem)] flex flex-col">
+        <main className="flex-1 flex flex-col-reverse sm:flex-row sm:justify-between sm:h-[calc(100vh-4rem-1px)] sm:overflow-hidden">
+          <div className="flex flex-col justify-center my-10 sm:my-0 max-w-2xl space-y-6 flex-1 px-4 sm:pl-16 lg:pl-24 sm:pr-6 lg:pr-8">
+            <h1 className="text-4xl sm:text-5xl font-bold tracking-tight leading-tight">
+              Matching{" "}
+              <span className="bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-500 bg-clip-text text-transparent">
+                Founders
+              </span>{" "}
+              &{" "}
+              <span className="bg-gradient-to-r from-indigo-500 via-blue-500 to-cyan-500 bg-clip-text text-transparent">
+                Investors
+              </span>{" "}
+              Effortlessly
+            </h1>
+            <p className="text-lg text-muted-foreground">
+              Accelerate fundraising with smart matchmaking that connects the
+              right startups with the right investors.
+            </p>
+            {!user && (
+              <div className="w-full">
+                <Button
+                  asChild
+                  size="lg"
+                  className="w-full sm:w-auto justify-center"
                 >
-                  Get Started
-                </Link>
-              </Button>
+                  <Link
+                    href="/sign-up"
+                    className="font-semibold w-full sm:w-auto text-center"
+                  >
+                    Get Started
+                  </Link>
+                </Button>
+              </div>
+            )}
+          </div>
+          <div className="sm:relative sm:overflow-hidden sm:w-[47rem]">
+            <div className="sm:absolute inset-0 h-[21rem] sm:h-full w-full">
+              <div className="relative w-full h-full" key={resolvedTheme}>
+                <World data={sampleArcs} globeConfig={globeConfig} />
+              </div>
             </div>
-          )}
+          </div>
+        </main>
+
+        {/* Scroll Button */}
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 hidden sm:block">
+          <a
+            href="#features"
+            className="bg-primary/90 backdrop-blur-sm border border-primary/30 rounded-full px-6 py-3 flex items-center gap-3 shadow-lg hover:shadow-xl transition-shadow cursor-pointer"
+          >
+            <span className="text-sm font-semibold text-primary-foreground">
+              Learn about our features
+            </span>
+            <svg
+              className="w-5 h-5 text-primary-foreground animate-bounce-down"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 14l-7 7m0 0l-7-7m7 7V3"
+              />
+            </svg>
+          </a>
         </div>
-        <div className="sm:relative sm:overflow-hidden sm:w-[47rem]">
-          <div className="sm:absolute inset-0 h-[21rem] sm:h-full w-full">
-            <div className="relative w-full h-full" key={resolvedTheme}>
-              <World data={sampleArcs} globeConfig={globeConfig} />
+      </div>
+
+      {/* Features Section */}
+      <section
+        id="features"
+        className="py-12 md:py-16 bg-muted/30 scroll-mt-16"
+      >
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Powerful Features
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Everything you need to connect with the right partners and
+              accelerate your growth
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              {
+                icon: Zap,
+                title: "Scoring-Based Matching",
+                description:
+                  "Intelligent matching algorithm that scores compatibility between startups and investors based on detailed profile data and investment criteria.",
+              },
+              {
+                icon: Search,
+                title: "Advanced Search",
+                description:
+                  "Explore profiles with powerful filters to find investors or startups that match your specific funding stage, industry, and preferences.",
+              },
+              {
+                icon: MessageSquare,
+                title: "Secure P2P Chat",
+                description:
+                  "Real-time encrypted messaging to discuss opportunities, clarify terms, and build relationships directly with potential partners.",
+              },
+              {
+                icon: TrendingUp,
+                title: "Video Pitches",
+                description:
+                  "Showcase your startup with compelling video pitches that help investors quickly understand your business model and traction.",
+              },
+              {
+                icon: BarChart3,
+                title: "Comprehensive Analytics",
+                description:
+                  "Track engagement metrics, investor interactions, and platform insights to refine your strategy and increase visibility.",
+              },
+              {
+                icon: Lock,
+                title: "Enterprise Security",
+                description:
+                  "End-to-end encryption, secure data storage, verification process, and compliance with data privacy regulations.",
+              },
+            ].map((feature, idx) => (
+              <Card key={idx} className="p-6 hover:shadow-lg transition-shadow">
+                <feature.icon className="h-8 w-8 text-primary mb-4" />
+                <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
+                <p className="text-muted-foreground text-sm">
+                  {feature.description}
+                </p>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section
+        id="how-it-works"
+        className="py-12 md:py-16 scroll-mt-16 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800"
+      >
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              How It Works
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Get started in minutes and begin connecting with potential
+              partners
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-4 gap-8">
+            {[
+              {
+                step: "1",
+                title: "Sign Up",
+                description:
+                  "Create your account and choose your role as a founder or investor.",
+              },
+              {
+                step: "2",
+                title: "Complete Profile",
+                description:
+                  "Fill in your details, preferences, and investment criteria or startup information.",
+              },
+              {
+                step: "3",
+                title: "Get Verified",
+                description:
+                  "Our team reviews your profile to ensure authenticity and credibility.",
+              },
+              {
+                step: "4",
+                title: "Start Connecting",
+                description:
+                  "Receive matches, search for partners, and begin meaningful conversations.",
+              },
+            ].map((item, idx) => (
+              <div key={idx} className="text-center">
+                <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold text-lg mb-4">
+                  {item.step}
+                </div>
+                <h3 className="text-lg font-semibold mb-2">{item.title}</h3>
+                <p className="text-muted-foreground text-sm">
+                  {item.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* About Section */}
+      <section id="about" className="py-12 md:py-16 bg-muted/30 scroll-mt-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-16 text-center">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              About FundSeekr
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+              FundSeekr was built by a passionate student developer with a
+              vision to democratize fundraising and make it easier for founders
+              and investors to connect globally. We believe that great ideas
+              deserve great funding, and the right connections can change
+              everything.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12 max-w-4xl mx-auto">
+            <Card className="p-8 hover:shadow-lg transition-shadow flex flex-col items-center text-center">
+              <div className="flex items-center justify-center h-14 w-14 rounded-lg bg-primary/20 mb-6">
+                <Zap className="h-7 w-7 text-primary" />
+              </div>
+              <h3 className="font-semibold mb-3 text-lg">Student-Built</h3>
+              <p className="text-sm text-muted-foreground">
+                Created by a dedicated student developer learning and building
+                in public.
+              </p>
+            </Card>
+
+            <Card className="p-8 hover:shadow-lg transition-shadow flex flex-col items-center text-center">
+              <div className="flex items-center justify-center h-14 w-14 rounded-lg bg-primary/20 mb-6">
+                <Users className="h-7 w-7 text-primary" />
+              </div>
+              <h3 className="font-semibold mb-3 text-lg">Community Focused</h3>
+              <p className="text-sm text-muted-foreground">
+                Built with founders and investors in mind, for the entire
+                startup ecosystem.
+              </p>
+            </Card>
+
+            <Card className="p-8 hover:shadow-lg transition-shadow flex flex-col items-center text-center">
+              <div className="flex items-center justify-center h-14 w-14 rounded-lg bg-primary/20 mb-6">
+                <TrendingUp className="h-7 w-7 text-primary" />
+              </div>
+              <h3 className="font-semibold mb-3 text-lg">
+                Continuously Improving
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                We&apos;re constantly adding features and improving based on
+                user feedback.
+              </p>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-12 md:py-16 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 text-white">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold mb-6">
+            Ready to Find Your Perfect Match?
+          </h2>
+          <p className="text-lg mb-8 opacity-90">
+            Join thousands of founders and investors already using FundSeekr to
+            accelerate their growth.
+          </p>
+          <div className="flex justify-center">
+            <Button asChild size="lg" variant="secondary">
+              <Link href="/sign-up">Get Started Now</Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-border bg-muted/30 py-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <p className="text-sm text-muted-foreground">
+              © 2025 FundSeekr. All rights reserved.
+            </p>
+            <div className="flex gap-6 mt-4 md:mt-0">
+              <a
+                href="#"
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Github className="h-5 w-5" />
+              </a>
+              <a
+                href="#"
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Linkedin className="h-5 w-5" />
+              </a>
+              <a
+                href="#"
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Mail className="h-5 w-5" />
+              </a>
             </div>
           </div>
         </div>
-      </main>
-    </div>
+      </footer>
+    </>
   );
 }
