@@ -1,4 +1,5 @@
 import InvestorStep2 from "./investor-step2";
+import StartupStep2 from "./startup-step2";
 
 interface Step2Props {
   role?: "Investor" | "Startup";
@@ -9,11 +10,7 @@ export default function Step2({ role, setStep }: Step2Props) {
   return (
     <div>
       {role === "Investor" && <InvestorStep2 setStep={setStep} />}
-      {role === "Startup" && (
-        <div className="text-center p-8">
-          <p>Startup Step 2 coming soon...</p>
-        </div>
-      )}
+      {role === "Startup" && <StartupStep2 setStep={setStep} />}
     </div>
   );
 }
