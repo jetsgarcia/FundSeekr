@@ -24,9 +24,16 @@ export function NavLogo() {
 
   if (isHomePage) {
     return (
-      <div className="flex items-center gap-2 font-semibold text-lg">
+      <a
+        href="#"
+        className="flex items-center gap-2 font-semibold text-lg cursor-pointer"
+        onClick={(e) => {
+          e.preventDefault();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }}
+      >
         {logoContent}
-      </div>
+      </a>
     );
   }
 

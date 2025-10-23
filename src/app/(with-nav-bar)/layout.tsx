@@ -30,13 +30,41 @@ export default async function WithNavLayout({
       {/* Top Navigation */}
       <header className="w-full sticky top-0 z-50 backdrop-blur supports-[backdrop-filter]:bg-background/70 border-b">
         <div className="w-full px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          {/* Left: Logo and navigation links */}
-          <div className="flex items-center gap-10">
+          {/* Left: Logo */}
+          <div className="flex items-center">
             <NavLogo />
-            {userType && (
-              <NavLinks userType={userType} legalVerified={legalVerified} />
-            )}
           </div>
+
+          {/* Center: Navigation links */}
+          {!userType && (
+            <nav className="hidden md:flex items-center gap-8 absolute left-1/2 transform -translate-x-1/2">
+              <a
+                href="#features"
+                className="text-sm font-medium hover:text-primary transition-colors"
+              >
+                Features
+              </a>
+              <a
+                href="#how-it-works"
+                className="text-sm font-medium hover:text-primary transition-colors"
+              >
+                How It Works
+              </a>
+              <a
+                href="#about"
+                className="text-sm font-medium hover:text-primary transition-colors"
+              >
+                About
+              </a>
+            </nav>
+          )}
+
+          {/* Left (when logged in): Logo and navigation links */}
+          {userType && (
+            <div className="flex items-center gap-10 absolute left-4 sm:left-6 lg:left-8">
+              <NavLinks userType={userType} legalVerified={legalVerified} />
+            </div>
+          )}
 
           {/* Right: Controls */}
           <div className="flex items-center gap-2 sm:gap-4">
