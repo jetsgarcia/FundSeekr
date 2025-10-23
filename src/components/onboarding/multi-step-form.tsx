@@ -37,7 +37,7 @@ export default function MultiStepForm() {
     <div className="flex justify-center p-0 sm:p-4">
       <div className="rounded-lg shadow-lg p-4 w-full">
         {/* Progress Steps */}
-        <ol className="flex items-center w-full text-sm font-medium text-center text-gray-500 dark:text-gray-400 sm:text-base mb-10">
+        <ol className="flex items-center w-full text-sm font-medium text-center text-gray-500 dark:text-gray-400 sm:text-base mb-5 sm:mb-10">
           {Array.from({ length: totalSteps }, (_, i) => i + 1).map(
             (stepNumber) => {
               const isCompleted = step > stepNumber;
