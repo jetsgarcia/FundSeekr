@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
+import { saveInvestorStep3Data } from "@/actions/onboarding";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -279,17 +280,25 @@ export default function InvestorStep3({
     setIsSubmitting(true);
 
     try {
-      // TODO: Replace with actual saving of data
-      console.log("Form data:", formData);
+      // Save data using server action
+      await saveInvestorStep3Data({
+        typical_check_size_in_php: formData.typical_check_size_in_php.trim(),
+        preferred_industries: formData.preferred_industries,
+        excluded_industries: formData.excluded_industries,
+        preferred_business_models: formData.preferred_business_models,
+        preferred_funding_stages: formData.preferred_funding_stages,
+        geographic_focus: formData.geographic_focus,
+        value_proposition: formData.value_proposition,
+        involvement_level: formData.involvement_level.trim(),
+        portfolio_companies: formData.portfolio_companies,
+      });
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // TODO: Navigate to next step or completion
-      console.log("Form submitted successfully!");
+      // TODO: Navigate to next step or completion (file upload step)
+      console.log("Investment preferences saved successfully!");
       setStep(4);
     } catch (error) {
       console.error("Error submitting form:", error);
+      // You could show a toast or error message here
     } finally {
       setIsSubmitting(false);
     }

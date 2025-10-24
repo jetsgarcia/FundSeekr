@@ -99,6 +99,94 @@ export async function saveInvestorStep2Data(formData: {
   }
 }
 
+// Save investor step 3 data
+export async function saveInvestorStep3Data(formData: {
+  typical_check_size_in_php: string;
+  preferred_industries: string[];
+  excluded_industries: string[];
+  preferred_business_models: string[];
+  preferred_funding_stages: string[];
+  geographic_focus: string[];
+  value_proposition: string[];
+  involvement_level: string;
+  portfolio_companies: string[];
+  decision_period_in_weeks?: number;
+  notable_exits?: Array<{
+    company: string;
+    exit_type: string;
+    amount?: string;
+  }>;
+}) {
+  try {
+    // Get authenticated user
+    const user = await stackServerApp.getUser();
+    if (!user) {
+      throw new Error("User not authenticated");
+    }
+
+    const userId = user.id;
+
+    // Convert typical check size to BigInt (for PHP currency)
+    const checkSizeNumber = parseInt(formData.typical_check_size_in_php);
+    if (isNaN(checkSizeNumber) || checkSizeNumber <= 0) {
+      throw new Error("Invalid typical check size");
+    }
+
+    // Validate involvement level enum
+    const validInvolvementLevels = [
+      "Hands_off",
+      "Advisor",
+      "Active",
+      "Controlling",
+    ];
+    if (!validInvolvementLevels.includes(formData.involvement_level)) {
+      throw new Error("Invalid involvement level");
+    }
+
+    // Check if investor record exists for this user
+    const existingInvestor = await prisma.investors.findFirst({
+      where: { user_id: userId },
+    });
+
+    if (!existingInvestor) {
+      throw new Error(
+        "Investor record not found. Please complete step 2 first."
+      );
+    }
+
+    // Update existing investor record with step 3 data
+    const investor = await prisma.investors.update({
+      where: { id: existingInvestor.id },
+      data: {
+        typical_check_size_in_php: BigInt(checkSizeNumber),
+        preferred_industries: formData.preferred_industries,
+        excluded_industries: formData.excluded_industries,
+        preferred_business_models: formData.preferred_business_models,
+        preferred_funding_stages: formData.preferred_funding_stages,
+        geographic_focus: formData.geographic_focus,
+        value_proposition: formData.value_proposition,
+        involvement_level: formData.involvement_level as
+          | "Hands_off"
+          | "Advisor"
+          | "Active"
+          | "Controlling",
+        portfolio_companies: formData.portfolio_companies,
+        decision_period_in_weeks: formData.decision_period_in_weeks || null,
+        notable_exits: formData.notable_exits || [],
+      },
+    });
+
+    return { success: true, data: investor };
+  } catch (error) {
+    console.error("Error saving investor step 3 data:", error);
+    throw new Error(
+      error instanceof Error
+        ? error.message
+        : "Failed to save investment preferences"
+    );
+  }
+}
+
 // Individual file upload action
 export async function uploadFile(formData: FormData) {
   try {
