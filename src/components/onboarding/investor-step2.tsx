@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import { saveInvestorStep2Data } from "@/actions/onboarding";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -243,15 +244,26 @@ export default function InvestorStep2({ setStep }: InvestorStep2Props) {
     setIsSubmitting(true);
 
     try {
-      // TODO: Replace with actual saving of data
-      console.log("Form data:", formData);
+      // Save data using server action
+      await saveInvestorStep2Data({
+        name: formData.name.trim(),
+        phone_number: formData.phone_number.trim(),
+        city: formData.city.trim(),
+        organization: formData.organization.trim() || undefined,
+        position: formData.position.trim() || undefined,
+        organization_website: formData.organization_website.trim() || undefined,
+        investor_linkedin: formData.investor_linkedin.trim() || undefined,
+        key_contact_person_name: formData.key_contact_person_name.trim(),
+        key_contact_linkedin: formData.key_contact_linkedin.trim() || undefined,
+        key_contact_number: formData.key_contact_number.trim(),
+        tin: formData.tin.trim(),
+      });
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
+      // Move to step 3 after successful save
       setStep(3);
     } catch (error) {
       console.error("Error submitting form:", error);
+      // You could show a toast or error message here
     } finally {
       setIsSubmitting(false);
     }

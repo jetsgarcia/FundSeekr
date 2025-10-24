@@ -7,6 +7,98 @@ import { redirect } from "next/navigation";
 import { stackServerApp } from "@/stack";
 import { randomUUID } from "crypto";
 
+// Save investor step 2 data
+export async function saveInvestorStep2Data(formData: {
+  name: string;
+  phone_number: string;
+  city: string;
+  organization?: string;
+  position?: string;
+  organization_website?: string;
+  investor_linkedin?: string;
+  key_contact_person_name: string;
+  key_contact_linkedin?: string;
+  key_contact_number: string;
+  tin: string;
+}) {
+  try {
+    // Get authenticated user
+    const user = await stackServerApp.getUser();
+    if (!user) {
+      throw new Error("User not authenticated");
+    }
+
+    const userId = user.id;
+
+    // Convert TIN to number (remove any formatting)
+    const tinNumber = parseInt(formData.tin.replace(/[-\s]/g, ""));
+    if (isNaN(tinNumber)) {
+      throw new Error("Invalid TIN format");
+    }
+
+    // Check if investor record already exists for this user
+    const existingInvestor = await prisma.investors.findFirst({
+      where: { user_id: userId },
+    });
+
+    let investor;
+    if (existingInvestor) {
+      // Update existing record
+      investor = await prisma.investors.update({
+        where: { id: existingInvestor.id },
+        data: {
+          organization: formData.organization || null,
+          position: formData.position || null,
+          city: formData.city,
+          organization_website: formData.organization_website || null,
+          investor_linkedin: formData.investor_linkedin || null,
+          key_contact_person_name: formData.key_contact_person_name,
+          key_contact_linkedin: formData.key_contact_linkedin || null,
+          key_contact_number: formData.key_contact_number,
+          tin: tinNumber,
+          phone_number: formData.phone_number,
+        },
+      });
+    } else {
+      // Create new record
+      investor = await prisma.investors.create({
+        data: {
+          id: randomUUID(),
+          user_id: userId,
+          organization: formData.organization || null,
+          position: formData.position || null,
+          city: formData.city,
+          organization_website: formData.organization_website || null,
+          investor_linkedin: formData.investor_linkedin || null,
+          key_contact_person_name: formData.key_contact_person_name,
+          key_contact_linkedin: formData.key_contact_linkedin || null,
+          key_contact_number: formData.key_contact_number,
+          tin: tinNumber,
+          phone_number: formData.phone_number,
+          // Placeholder values for required fields that will be filled in step 3
+          govt_id_image_url: "",
+          selfie_image_url: "",
+          proof_of_bank_image_url: "",
+        },
+      });
+    }
+
+    // Update user display name if provided
+    if (formData.name.trim()) {
+      await user.update({
+        displayName: formData.name.trim(),
+      });
+    }
+
+    return { success: true, data: investor };
+  } catch (error) {
+    console.error("Error saving investor step 2 data:", error);
+    throw new Error(
+      error instanceof Error ? error.message : "Failed to save investor data"
+    );
+  }
+}
+
 // Individual file upload action
 export async function uploadFile(formData: FormData) {
   try {
