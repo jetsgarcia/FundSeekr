@@ -2,6 +2,7 @@ import { useState } from "react";
 import Step1 from "./step1";
 import Step2 from "./step2";
 import Step3 from "./step3";
+import Step4 from "./step4";
 
 // Define interfaces for form data
 interface StartupStep2FormData {
@@ -46,8 +47,8 @@ interface StartupStep3FormData {
 }
 
 export default function MultiStepForm() {
-  const [step, setStep] = useState(1);
-  const [role, setRole] = useState<"Investor" | "Startup">();
+  const [step, setStep] = useState(4);
+  const [role, setRole] = useState<"Investor" | "Startup">("Startup");
 
   // Centralized state for startup onboarding
   const [startupStep2Data, setStartupStep2Data] =
@@ -157,6 +158,7 @@ export default function MultiStepForm() {
               setStartupFormData={setStartupStep3Data}
             />
           )}
+          {step === 4 && <Step4 role={role} setStep={setStep} />}
         </div>
       </div>
     </div>
