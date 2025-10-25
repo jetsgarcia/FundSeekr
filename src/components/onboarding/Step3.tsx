@@ -1,5 +1,5 @@
-import InvestorStep3 from "./investor-step3";
-import StartupStep3 from "./startup-step3";
+import InvestorStep3 from "@/components/onboarding/investor-step3";
+import StartupStep3 from "@/components/onboarding/startup-step3";
 
 interface TeamMember {
   name: string;

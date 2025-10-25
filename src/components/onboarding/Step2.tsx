@@ -1,5 +1,5 @@
-import InvestorStep2 from "./investor-step2";
-import StartupStep2 from "./startup-step2";
+import InvestorStep2 from "@/components/onboarding/investor-step2";
+import StartupStep2 from "@/components/onboarding/startup-step2";
 
 interface StartupStep2FormData {
   name: string;

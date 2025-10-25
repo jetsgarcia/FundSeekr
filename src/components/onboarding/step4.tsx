@@ -1,5 +1,5 @@
-import InvestorStep4 from "./investor-step4";
-import StartupStep4 from "./startup-step4";
+import InvestorStep4 from "@/components/onboarding/investor-step4";
+import StartupStep4 from "@/components/onboarding/startup-step4";
 
 interface Step4Props {
   role?: "Investor" | "Startup";

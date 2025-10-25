@@ -1,8 +1,8 @@
 import { useState } from "react";
-import Step1 from "./step1";
-import Step2 from "./step2";
-import Step3 from "./step3";
-import Step4 from "./step4";
+import Step1 from "@/components/onboarding/step1";
+import Step2 from "@/components/onboarding/step2";
+import Step3 from "@/components/onboarding/step3";
+import Step4 from "@/components/onboarding/step4";
 
 // Define interfaces for form data
 interface StartupStep2FormData {
