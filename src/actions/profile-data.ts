@@ -52,7 +52,7 @@ export interface InvestorProfile {
   govt_id_image_url: string;
   selfie_image_url: string;
   proof_of_bank_image_url: string;
-  tin: number;
+  tin: string;
   users_sync: {
     name: string | null;
     email: string | null;
