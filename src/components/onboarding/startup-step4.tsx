@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -25,6 +26,8 @@ interface FileUploadState {
 }
 
 export default function StartupStep4({ setStep }: StartupStep4Props) {
+  const router = useRouter();
+
   const [files, setFiles] = useState<DocumentFiles>({
     validId: null,
     birCor: null,
@@ -177,7 +180,8 @@ export default function StartupStep4({ setStep }: StartupStep4Props) {
       // Submit to finalize onboarding
       await finalizeStartupOnboarding(documentUrls);
 
-      // Redirect will happen in the action
+      // Navigate to home/dashboard
+      router.push("/home");
     } catch (error) {
       console.error("Submission error:", error);
       setErrors({
