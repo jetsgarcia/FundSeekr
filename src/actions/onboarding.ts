@@ -30,9 +30,9 @@ export async function saveInvestorStep2Data(formData: {
 
     const userId = user.id;
 
-    // Convert TIN to number (remove any formatting)
-    const tinNumber = parseInt(formData.tin.replace(/[-\s]/g, ""));
-    if (isNaN(tinNumber)) {
+    // Clean TIN (remove any formatting) but keep as string
+    const cleanedTin = formData.tin.replace(/[-\s]/g, "");
+    if (!cleanedTin || !/^\d{9,12}$/.test(cleanedTin)) {
       throw new Error("Invalid TIN format");
     }
 
@@ -55,7 +55,7 @@ export async function saveInvestorStep2Data(formData: {
           key_contact_person_name: formData.key_contact_person_name,
           key_contact_linkedin: formData.key_contact_linkedin || null,
           key_contact_number: formData.key_contact_number,
-          tin: tinNumber,
+          tin: cleanedTin,
           phone_number: formData.phone_number,
         },
       });
@@ -73,7 +73,7 @@ export async function saveInvestorStep2Data(formData: {
           key_contact_person_name: formData.key_contact_person_name,
           key_contact_linkedin: formData.key_contact_linkedin || null,
           key_contact_number: formData.key_contact_number,
-          tin: tinNumber,
+          tin: cleanedTin,
           phone_number: formData.phone_number,
           // Placeholder values for required fields that will be filled in step 3
           govt_id_image_url: "",
@@ -295,6 +295,9 @@ export async function submitOnboarding(formData: FormData) {
 
     // Save to database based on user type
     if (userType === "investor") {
+      // Clean TIN (remove any formatting) but keep as string
+      const cleanedTin = tin ? tin.replace(/[-\s]/g, "") : "";
+
       await prisma.investors.upsert({
         where: { id: userId },
         update: {
@@ -306,7 +309,7 @@ export async function submitOnboarding(formData: FormData) {
           proof_of_bank_image_url: proofOfBankUrl,
           selfie_image_url: selfieUrl || "",
           // TIN is required for investors
-          tin: tin ? parseInt(tin) : 0,
+          tin: cleanedTin || "",
         },
         create: {
           id: profileId,
@@ -319,7 +322,7 @@ export async function submitOnboarding(formData: FormData) {
           proof_of_bank_image_url: proofOfBankUrl,
           selfie_image_url: selfieUrl || "",
           // TIN is required for investors
-          tin: tin ? parseInt(tin) : 0,
+          tin: cleanedTin || "",
         },
       });
 
