@@ -446,3 +446,73 @@ export async function finalizeInvestorOnboarding(documentUrls: {
   revalidatePath("/home");
   redirect("/home");
 }
+
+// Finalize startup onboarding with document uploads
+export async function finalizeStartupOnboarding(documentUrls: {
+  validIdUrl: string;
+  birCorUrl: string;
+  proofOfBankUrl: string | null;
+}) {
+  try {
+    // Get authenticated user
+    const user = await stackServerApp.getUser();
+    if (!user) {
+      throw new Error("User not authenticated");
+    }
+
+    const userId = user.id;
+
+    // Validate required URLs
+    if (!documentUrls.validIdUrl) {
+      throw new Error("Valid ID document is required");
+    }
+    if (!documentUrls.birCorUrl) {
+      throw new Error("BIR/DTI document is required");
+    }
+    // Note: proofOfBankUrl is optional for startups
+
+    // Check if startup record exists for this user
+    const existingStartup = await prisma.startups.findFirst({
+      where: { user_id: userId },
+    });
+
+    if (!existingStartup) {
+      throw new Error(
+        "Startup record not found. Please complete previous steps first."
+      );
+    }
+
+    // Update existing startup record with document URLs
+    await prisma.startups.update({
+      where: { id: existingStartup.id },
+      data: {
+        govt_id_image_url: documentUrls.validIdUrl,
+        bir_cor_image_url: documentUrls.birCorUrl,
+        proof_of_bank_image_url: documentUrls.proofOfBankUrl,
+      },
+    });
+
+    // Set user metadata to mark as onboarded and verified
+    await user.update({
+      serverMetadata: {
+        userType: "Startup",
+        onboarded: true,
+        verified: true,
+        currentProfileId: existingStartup.id,
+      },
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error finalizing startup onboarding:", error);
+    throw new Error(
+      error instanceof Error
+        ? error.message
+        : "Failed to finalize startup onboarding"
+    );
+  }
+
+  // Revalidate and redirect outside of try-catch to avoid catching redirect errors
+  revalidatePath("/home");
+  redirect("/home");
+}

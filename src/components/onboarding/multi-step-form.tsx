@@ -47,8 +47,8 @@ interface StartupStep3FormData {
 }
 
 export default function MultiStepForm() {
-  const [step, setStep] = useState(4);
-  const [role, setRole] = useState<"Investor" | "Startup">("Startup");
+  const [step, setStep] = useState(1);
+  const [role, setRole] = useState<"Investor" | "Startup">();
 
   // Centralized state for startup onboarding
   const [startupStep2Data, setStartupStep2Data] =
