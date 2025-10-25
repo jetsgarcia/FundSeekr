@@ -377,3 +377,72 @@ export async function submitOnboarding(formData: FormData) {
   revalidatePath("/home");
   redirect("/home");
 }
+
+// Finalize investor onboarding with document uploads
+export async function finalizeInvestorOnboarding(documentUrls: {
+  validIdUrl: string;
+  proofOfBankUrl: string;
+  selfieUrl: string;
+}) {
+  try {
+    // Get authenticated user
+    const user = await stackServerApp.getUser();
+    if (!user) {
+      throw new Error("User not authenticated");
+    }
+
+    const userId = user.id;
+
+    // Validate required URLs
+    if (!documentUrls.validIdUrl) {
+      throw new Error("Valid ID document is required");
+    }
+    if (!documentUrls.proofOfBankUrl) {
+      throw new Error("Proof of Bank document is required");
+    }
+    if (!documentUrls.selfieUrl) {
+      throw new Error("Selfie is required");
+    }
+
+    // Check if investor record exists for this user
+    const existingInvestor = await prisma.investors.findFirst({
+      where: { user_id: userId },
+    });
+
+    if (!existingInvestor) {
+      throw new Error(
+        "Investor record not found. Please complete previous steps first."
+      );
+    }
+
+    // Update existing investor record with document URLs
+    await prisma.investors.update({
+      where: { id: existingInvestor.id },
+      data: {
+        govt_id_image_url: documentUrls.validIdUrl,
+        proof_of_bank_image_url: documentUrls.proofOfBankUrl,
+        selfie_image_url: documentUrls.selfieUrl,
+      },
+    });
+
+    // Set user metadata to mark as onboarded and verified
+    await user.update({
+      serverMetadata: {
+        userType: "Investor",
+        onboarded: true,
+        verified: true,
+      },
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error finalizing investor onboarding:", error);
+    throw new Error(
+      error instanceof Error ? error.message : "Failed to finalize onboarding"
+    );
+  }
+
+  // Revalidate and redirect outside of try-catch to avoid catching redirect errors
+  revalidatePath("/home");
+  redirect("/home");
+}
