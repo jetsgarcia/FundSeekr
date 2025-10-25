@@ -42,13 +42,14 @@ model investors {
   notable_exits             Json[]
   key_contact_person_name   String?                 @db.VarChar
   key_contact_linkedin      String?                 @db.VarChar
-  key_contact_number        String?                 @db.VarChar
+  key_contact_number        String?                 @db.VarChar(10)
   user_id                   String?
   id                        String                  @id @unique @db.Uuid
   govt_id_image_url         String                  @db.VarChar(255)
   selfie_image_url          String                  @db.VarChar(255)
   proof_of_bank_image_url   String                  @db.VarChar(255)
-  tin                       Int
+  tin                       String                  @db.VarChar(12)
+  phone_number              String?                 @db.VarChar(10)
   users_sync                users_sync?             @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   profile_matches           profile_matches[]
   video_pitches             video_pitches[]

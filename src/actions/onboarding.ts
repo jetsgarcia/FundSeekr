@@ -7,6 +7,186 @@ import { redirect } from "next/navigation";
 import { stackServerApp } from "@/stack";
 import { randomUUID } from "crypto";
 
+// Save investor step 2 data
+export async function saveInvestorStep2Data(formData: {
+  name: string;
+  phone_number: string;
+  city: string;
+  organization?: string;
+  position?: string;
+  organization_website?: string;
+  investor_linkedin?: string;
+  key_contact_person_name: string;
+  key_contact_linkedin?: string;
+  key_contact_number: string;
+  tin: string;
+}) {
+  try {
+    // Get authenticated user
+    const user = await stackServerApp.getUser();
+    if (!user) {
+      throw new Error("User not authenticated");
+    }
+
+    const userId = user.id;
+
+    // Clean TIN (remove any formatting) but keep as string
+    const cleanedTin = formData.tin.replace(/[-\s]/g, "");
+    if (!cleanedTin || !/^\d{9,12}$/.test(cleanedTin)) {
+      throw new Error("Invalid TIN format");
+    }
+
+    // Check if investor record already exists for this user
+    const existingInvestor = await prisma.investors.findFirst({
+      where: { user_id: userId },
+    });
+
+    let investor;
+    if (existingInvestor) {
+      // Update existing record
+      investor = await prisma.investors.update({
+        where: { id: existingInvestor.id },
+        data: {
+          organization: formData.organization || null,
+          position: formData.position || null,
+          city: formData.city,
+          organization_website: formData.organization_website || null,
+          investor_linkedin: formData.investor_linkedin || null,
+          key_contact_person_name: formData.key_contact_person_name,
+          key_contact_linkedin: formData.key_contact_linkedin || null,
+          key_contact_number: formData.key_contact_number,
+          tin: cleanedTin,
+          phone_number: formData.phone_number,
+        },
+      });
+    } else {
+      // Create new record
+      investor = await prisma.investors.create({
+        data: {
+          id: randomUUID(),
+          user_id: userId,
+          organization: formData.organization || null,
+          position: formData.position || null,
+          city: formData.city,
+          organization_website: formData.organization_website || null,
+          investor_linkedin: formData.investor_linkedin || null,
+          key_contact_person_name: formData.key_contact_person_name,
+          key_contact_linkedin: formData.key_contact_linkedin || null,
+          key_contact_number: formData.key_contact_number,
+          tin: cleanedTin,
+          phone_number: formData.phone_number,
+          // Placeholder values for required fields that will be filled in step 3
+          govt_id_image_url: "",
+          selfie_image_url: "",
+          proof_of_bank_image_url: "",
+        },
+      });
+    }
+
+    // Update user display name if provided
+    if (formData.name.trim()) {
+      await user.update({
+        displayName: formData.name.trim(),
+      });
+    }
+
+    return { success: true, data: investor };
+  } catch (error) {
+    console.error("Error saving investor step 2 data:", error);
+    throw new Error(
+      error instanceof Error ? error.message : "Failed to save investor data"
+    );
+  }
+}
+
+// Save investor step 3 data
+export async function saveInvestorStep3Data(formData: {
+  typical_check_size_in_php: string;
+  preferred_industries: string[];
+  excluded_industries: string[];
+  preferred_business_models: string[];
+  preferred_funding_stages: string[];
+  geographic_focus: string[];
+  value_proposition: string[];
+  involvement_level: string;
+  portfolio_companies: string[];
+  decision_period_in_weeks?: number;
+  notable_exits?: Array<{
+    company: string;
+    exit_type: string;
+    amount?: string;
+  }>;
+}) {
+  try {
+    // Get authenticated user
+    const user = await stackServerApp.getUser();
+    if (!user) {
+      throw new Error("User not authenticated");
+    }
+
+    const userId = user.id;
+
+    // Convert typical check size to BigInt (for PHP currency)
+    const checkSizeNumber = parseInt(formData.typical_check_size_in_php);
+    if (isNaN(checkSizeNumber) || checkSizeNumber <= 0) {
+      throw new Error("Invalid typical check size");
+    }
+
+    // Validate involvement level enum
+    const validInvolvementLevels = [
+      "Hands_off",
+      "Advisor",
+      "Active",
+      "Controlling",
+    ];
+    if (!validInvolvementLevels.includes(formData.involvement_level)) {
+      throw new Error("Invalid involvement level");
+    }
+
+    // Check if investor record exists for this user
+    const existingInvestor = await prisma.investors.findFirst({
+      where: { user_id: userId },
+    });
+
+    if (!existingInvestor) {
+      throw new Error(
+        "Investor record not found. Please complete step 2 first."
+      );
+    }
+
+    // Update existing investor record with step 3 data
+    const investor = await prisma.investors.update({
+      where: { id: existingInvestor.id },
+      data: {
+        typical_check_size_in_php: BigInt(checkSizeNumber),
+        preferred_industries: formData.preferred_industries,
+        excluded_industries: formData.excluded_industries,
+        preferred_business_models: formData.preferred_business_models,
+        preferred_funding_stages: formData.preferred_funding_stages,
+        geographic_focus: formData.geographic_focus,
+        value_proposition: formData.value_proposition,
+        involvement_level: formData.involvement_level as
+          | "Hands_off"
+          | "Advisor"
+          | "Active"
+          | "Controlling",
+        portfolio_companies: formData.portfolio_companies,
+        decision_period_in_weeks: formData.decision_period_in_weeks || null,
+        notable_exits: formData.notable_exits || [],
+      },
+    });
+
+    return { success: true, data: investor };
+  } catch (error) {
+    console.error("Error saving investor step 3 data:", error);
+    throw new Error(
+      error instanceof Error
+        ? error.message
+        : "Failed to save investment preferences"
+    );
+  }
+}
+
 // Individual file upload action
 export async function uploadFile(formData: FormData) {
   try {
@@ -115,6 +295,9 @@ export async function submitOnboarding(formData: FormData) {
 
     // Save to database based on user type
     if (userType === "investor") {
+      // Clean TIN (remove any formatting) but keep as string
+      const cleanedTin = tin ? tin.replace(/[-\s]/g, "") : "";
+
       await prisma.investors.upsert({
         where: { id: userId },
         update: {
@@ -126,7 +309,7 @@ export async function submitOnboarding(formData: FormData) {
           proof_of_bank_image_url: proofOfBankUrl,
           selfie_image_url: selfieUrl || "",
           // TIN is required for investors
-          tin: tin ? parseInt(tin) : 0,
+          tin: cleanedTin || "",
         },
         create: {
           id: profileId,
@@ -139,7 +322,7 @@ export async function submitOnboarding(formData: FormData) {
           proof_of_bank_image_url: proofOfBankUrl,
           selfie_image_url: selfieUrl || "",
           // TIN is required for investors
-          tin: tin ? parseInt(tin) : 0,
+          tin: cleanedTin || "",
         },
       });
 
@@ -190,6 +373,145 @@ export async function submitOnboarding(formData: FormData) {
     console.error("Onboarding submission error:", error);
     throw new Error(
       error instanceof Error ? error.message : "Failed to submit onboarding"
+    );
+  }
+
+  // Revalidate and redirect outside of try-catch to avoid catching redirect errors
+  revalidatePath("/home");
+  redirect("/home");
+}
+
+// Finalize investor onboarding with document uploads
+export async function finalizeInvestorOnboarding(documentUrls: {
+  validIdUrl: string;
+  proofOfBankUrl: string;
+  selfieUrl: string;
+}) {
+  try {
+    // Get authenticated user
+    const user = await stackServerApp.getUser();
+    if (!user) {
+      throw new Error("User not authenticated");
+    }
+
+    const userId = user.id;
+
+    // Validate required URLs
+    if (!documentUrls.validIdUrl) {
+      throw new Error("Valid ID document is required");
+    }
+    if (!documentUrls.proofOfBankUrl) {
+      throw new Error("Proof of Bank document is required");
+    }
+    if (!documentUrls.selfieUrl) {
+      throw new Error("Selfie is required");
+    }
+
+    // Check if investor record exists for this user
+    const existingInvestor = await prisma.investors.findFirst({
+      where: { user_id: userId },
+    });
+
+    if (!existingInvestor) {
+      throw new Error(
+        "Investor record not found. Please complete previous steps first."
+      );
+    }
+
+    // Update existing investor record with document URLs
+    await prisma.investors.update({
+      where: { id: existingInvestor.id },
+      data: {
+        govt_id_image_url: documentUrls.validIdUrl,
+        proof_of_bank_image_url: documentUrls.proofOfBankUrl,
+        selfie_image_url: documentUrls.selfieUrl,
+      },
+    });
+
+    // Set user metadata to mark as onboarded and verified
+    await user.update({
+      serverMetadata: {
+        userType: "Investor",
+        onboarded: true,
+        verified: true,
+      },
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error finalizing investor onboarding:", error);
+    throw new Error(
+      error instanceof Error ? error.message : "Failed to finalize onboarding"
+    );
+  }
+
+  // Revalidate and redirect outside of try-catch to avoid catching redirect errors
+  revalidatePath("/home");
+  redirect("/home");
+}
+
+// Finalize startup onboarding with document uploads
+export async function finalizeStartupOnboarding(documentUrls: {
+  validIdUrl: string;
+  birCorUrl: string;
+  proofOfBankUrl: string | null;
+}) {
+  try {
+    // Get authenticated user
+    const user = await stackServerApp.getUser();
+    if (!user) {
+      throw new Error("User not authenticated");
+    }
+
+    const userId = user.id;
+
+    // Validate required URLs
+    if (!documentUrls.validIdUrl) {
+      throw new Error("Valid ID document is required");
+    }
+    if (!documentUrls.birCorUrl) {
+      throw new Error("BIR/DTI document is required");
+    }
+    // Note: proofOfBankUrl is optional for startups
+
+    // Check if startup record exists for this user
+    const existingStartup = await prisma.startups.findFirst({
+      where: { user_id: userId },
+    });
+
+    if (!existingStartup) {
+      throw new Error(
+        "Startup record not found. Please complete previous steps first."
+      );
+    }
+
+    // Update existing startup record with document URLs
+    await prisma.startups.update({
+      where: { id: existingStartup.id },
+      data: {
+        govt_id_image_url: documentUrls.validIdUrl,
+        bir_cor_image_url: documentUrls.birCorUrl,
+        proof_of_bank_image_url: documentUrls.proofOfBankUrl,
+      },
+    });
+
+    // Set user metadata to mark as onboarded and verified
+    await user.update({
+      serverMetadata: {
+        userType: "Startup",
+        onboarded: true,
+        verified: true,
+        currentProfileId: existingStartup.id,
+      },
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error finalizing startup onboarding:", error);
+    throw new Error(
+      error instanceof Error
+        ? error.message
+        : "Failed to finalize startup onboarding"
     );
   }
 
