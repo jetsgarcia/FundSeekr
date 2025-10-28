@@ -13,15 +13,21 @@ interface MatchResult {
     industryMatch: number;
     stageMatch: number;
     geographicMatch: number;
-    checkSizeMatch: number;
-    involvementMatch: number;
-    valuePropositionMatch: number;
+    businessModelMatch: number;
     penalty: number;
   };
 }
 
 /**
  * Calculate matching score between an investor and startup
+ *
+ * This algorithm focuses on realistic matching criteria based on available data:
+ * - Industry alignment (40%) - Most critical factor
+ * - Development stage compatibility (30%) - Very important for investment timing
+ * - Geographic proximity (20%) - Important for local connections and support
+ * - Business model alignment (10%) - Secondary consideration
+ *
+ * The algorithm applies penalties for excluded industries to prevent bad matches.
  */
 export function calculateMatchScore(
   investor: InvestorProfile,
@@ -33,34 +39,41 @@ export function calculateMatchScore(
     industryMatch: 0,
     stageMatch: 0,
     geographicMatch: 0,
-    checkSizeMatch: 0,
-    involvementMatch: 0,
-    valuePropositionMatch: 0,
+    businessModelMatch: 0,
     penalty: 0,
   };
 
-  // 1. Industry matching (Weight: 25%)
-  const industryWeight = 25;
+  // 1. Industry matching (Weight: 40%) - Most important factor
+  const industryWeight = 40;
   if (startup.industry) {
+    // Immediate disqualification for excluded industries
+    if (investor.excluded_industries?.includes(startup.industry)) {
+      return {
+        startupId: startup.id,
+        investorId: investor.id,
+        matchPercentage: 0,
+        matchFactors: {
+          industryMatch: 0,
+          stageMatch: 0,
+          geographicMatch: 0,
+          businessModelMatch: 0,
+          penalty: industryWeight * 1.2, // Track the exclusion reason
+        },
+      };
+    }
+
     if (investor.preferred_industries?.includes(startup.industry)) {
       matchFactors.industryMatch = industryWeight;
       totalScore += industryWeight;
     }
-
-    // Penalty for excluded industries
-    if (investor.excluded_industries?.includes(startup.industry)) {
-      const penalty = industryWeight * 0.8; // Heavy penalty
-      matchFactors.penalty += penalty;
-      totalScore -= penalty;
-    }
   }
   maxPossibleScore += industryWeight;
 
-  // 2. Development stage matching (Weight: 20%)
-  const stageWeight = 20;
+  // 2. Development stage matching (Weight: 30%) - Very important
+  const stageWeight = 30;
   if (startup.development_stage) {
     const stageMapping: Record<development_stage_enum, string[]> = {
-      [development_stage_enum.Idea]: ["Idea", "Seed"],
+      [development_stage_enum.Idea]: ["Idea", "Pre-seed", "Seed"],
       [development_stage_enum.MVP]: ["MVP", "Pre-seed", "Seed"],
       [development_stage_enum.Early_traction]: [
         "Early traction",
@@ -72,6 +85,7 @@ export function calculateMatchScore(
         "Expansion",
         "Series B",
         "Series C+",
+        "Late stage",
       ],
     };
 
@@ -90,13 +104,15 @@ export function calculateMatchScore(
   }
   maxPossibleScore += stageWeight;
 
-  // 3. Geographic matching (Weight: 15%)
-  const geoWeight = 15;
+  // 3. Geographic matching (Weight: 20%) - Important for local connections
+  const geoWeight = 20;
   if (startup.city && investor.geographic_focus?.length) {
     const cityMatch = investor.geographic_focus.some(
       (focus) =>
         focus.toLowerCase().includes(startup.city!.toLowerCase()) ||
-        startup.city!.toLowerCase().includes(focus.toLowerCase())
+        startup.city!.toLowerCase().includes(focus.toLowerCase()) ||
+        focus.toLowerCase() === "global" ||
+        focus.toLowerCase() === "worldwide"
     );
 
     if (cityMatch) {
@@ -106,54 +122,24 @@ export function calculateMatchScore(
   }
   maxPossibleScore += geoWeight;
 
-  // 4. Check size matching (Weight: 15%)
-  // Note: This requires adding estimated_funding_needed to startup schema
-  const checkSizeWeight = 15;
-  // For now, we'll skip this until the field is added
-  // if (startup.estimatedFundingNeeded && investor.typical_check_size_in_php) {
-  //   const fundingNeeded = BigInt(startup.estimatedFundingNeeded);
-  //   const checkSize = investor.typical_check_size_in_php;
-  //
-  //   // Check if investor's typical check size is within reasonable range
-  //   if (checkSize >= fundingNeeded * BigInt(50) / BigInt(100) &&
-  //       checkSize <= fundingNeeded * BigInt(200) / BigInt(100)) {
-  //     matchFactors.checkSizeMatch = checkSizeWeight;
-  //     totalScore += checkSizeWeight;
-  //   }
-  // }
-  maxPossibleScore += checkSizeWeight;
-
-  // 5. Involvement level matching (Weight: 10%)
-  const involvementWeight = 10;
-  // This would need startup's preferred involvement level
-  // For now, we'll assume any involvement is acceptable
-  if (investor.involvement_level) {
-    matchFactors.involvementMatch = involvementWeight * 0.5; // Partial score
-    totalScore += involvementWeight * 0.5;
-  }
-  maxPossibleScore += involvementWeight;
-
-  // 6. Value proposition matching (Weight: 15%)
-  const valueWeight = 15;
-  if (investor.value_proposition?.length && startup.keywords?.length) {
-    const commonKeywords = investor.value_proposition.filter((prop: string) =>
-      startup.keywords.some(
-        (keyword: string) =>
-          keyword.toLowerCase().includes(prop.toLowerCase()) ||
-          prop.toLowerCase().includes(keyword.toLowerCase())
-      )
+  // 4. Business model matching (Weight: 10%)
+  const businessModelWeight = 10;
+  if (
+    startup.business_structure &&
+    investor.preferred_business_models?.length
+  ) {
+    // Check if startup's business structure matches investor's preferred business models
+    const modelMatch = investor.preferred_business_models.some(
+      (model: string) =>
+        model.toLowerCase() === startup.business_structure!.toLowerCase()
     );
 
-    if (commonKeywords.length > 0) {
-      const scoreRatio = Math.min(
-        commonKeywords.length / investor.value_proposition.length,
-        1
-      );
-      matchFactors.valuePropositionMatch = valueWeight * scoreRatio;
-      totalScore += valueWeight * scoreRatio;
+    if (modelMatch) {
+      matchFactors.businessModelMatch = businessModelWeight;
+      totalScore += businessModelWeight;
     }
   }
-  maxPossibleScore += valueWeight;
+  maxPossibleScore += businessModelWeight;
 
   // Calculate final percentage
   const matchPercentage =
@@ -188,14 +174,21 @@ export async function findMatchesForStartup(
       throw new Error("Startup not found");
     }
 
-    // Get all investor profiles
+    // Get all investor profiles with meaningful data for matching
     const investors = await prisma.investors.findMany({
       where: {
-        // Only include investors with at least some matching criteria filled
+        // Only include investors with at least industry or funding stage preferences
         OR: [
-          { preferred_industries: { isEmpty: false } },
-          { preferred_funding_stages: { isEmpty: false } },
-          { geographic_focus: { isEmpty: false } },
+          {
+            preferred_industries: {
+              isEmpty: false,
+            },
+          },
+          {
+            preferred_funding_stages: {
+              isEmpty: false,
+            },
+          },
         ],
       },
     });
@@ -205,8 +198,8 @@ export async function findMatchesForStartup(
     for (const investor of investors) {
       const matchResult = calculateMatchScore(investor, startup);
 
-      // Only store matches above a certain threshold (e.g., 20%)
-      if (matchResult.matchPercentage >= 20) {
+      // Only store matches above a meaningful threshold (30%)
+      if (matchResult.matchPercentage >= 30) {
         matches.push(matchResult);
       }
     }
@@ -240,7 +233,7 @@ export async function findMatchesForInvestor(
       throw new Error("Investor not found");
     }
 
-    // Get all startup profiles
+    // Get all startup profiles with essential information for matching
     const startups = await prisma.startups.findMany({
       where: {
         // Only include startups with basic information filled
@@ -256,8 +249,8 @@ export async function findMatchesForInvestor(
     for (const startup of startups) {
       const matchResult = calculateMatchScore(investor, startup);
 
-      // Only store matches above a certain threshold (e.g., 20%)
-      if (matchResult.matchPercentage >= 20) {
+      // Only store matches above a meaningful threshold (30%)
+      if (matchResult.matchPercentage >= 30) {
         matches.push(matchResult);
       }
     }
@@ -313,14 +306,17 @@ export function isProfileCompleteForMatching(
 ): boolean {
   if (userType === "Investor") {
     const investor = profile as InvestorProfile;
+    // Investor needs at least industry preferences OR funding stage preferences
     return !!(
-      investor.preferred_industries?.length ||
-      investor.preferred_funding_stages?.length ||
-      investor.geographic_focus?.length
+      (investor.preferred_industries?.length &&
+        investor.preferred_industries.length > 0) ||
+      (investor.preferred_funding_stages?.length &&
+        investor.preferred_funding_stages.length > 0)
     );
   } else {
     const startup = profile as StartupProfileType;
-    return !!(startup.industry && startup.development_stage && startup.city);
+    // Startup needs at least industry AND development stage for meaningful matching
+    return !!(startup.industry && startup.development_stage);
   }
 }
 
