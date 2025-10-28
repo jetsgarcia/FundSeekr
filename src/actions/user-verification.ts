@@ -1,6 +1,10 @@
 "use server";
 
 import prisma from "@/lib/prisma";
+import {
+  triggerMatching,
+  isProfileCompleteForMatching,
+} from "@/lib/matching-algorithm";
 
 interface VerificationResult {
   success: boolean;
@@ -12,6 +16,12 @@ export async function approveUser(userId: string): Promise<VerificationResult> {
   try {
     // First, determine if this is a startup by checking the startups table
     const startup = await prisma.startups.findFirst({
+      where: { user_id: userId },
+      select: { id: true },
+    });
+
+    // Check if this is an investor by checking the investors table
+    const investor = await prisma.investors.findFirst({
       where: { user_id: userId },
       select: { id: true },
     });
@@ -37,6 +47,56 @@ export async function approveUser(userId: string): Promise<VerificationResult> {
         where: { user_id: userId },
         data: { legal_verified: true },
       });
+
+      // Trigger matching algorithm for startup if profile is complete enough
+      try {
+        const startupProfile = await prisma.startups.findFirst({
+          where: { user_id: userId },
+        });
+
+        if (
+          startupProfile &&
+          isProfileCompleteForMatching(startupProfile, "Startup")
+        ) {
+          await triggerMatching(startupProfile.id, "Startup");
+          console.log(
+            "Matching algorithm triggered for approved startup:",
+            startupProfile.id
+          );
+        }
+      } catch (matchingError) {
+        console.error(
+          "Error triggering matching algorithm for startup:",
+          matchingError
+        );
+        // Don't fail the approval if matching fails
+      }
+    }
+
+    // If it's an investor, trigger matching algorithm
+    if (investor) {
+      try {
+        const investorProfile = await prisma.investors.findFirst({
+          where: { user_id: userId },
+        });
+
+        if (
+          investorProfile &&
+          isProfileCompleteForMatching(investorProfile, "Investor")
+        ) {
+          await triggerMatching(investorProfile.id, "Investor");
+          console.log(
+            "Matching algorithm triggered for approved investor:",
+            investorProfile.id
+          );
+        }
+      } catch (matchingError) {
+        console.error(
+          "Error triggering matching algorithm for investor:",
+          matchingError
+        );
+        // Don't fail the approval if matching fails
+      }
     }
 
     // Note: For investors, we only use the users_sync metadata approach
