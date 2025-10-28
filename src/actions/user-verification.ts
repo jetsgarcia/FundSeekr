@@ -27,11 +27,21 @@ export async function approveUser(userId: string): Promise<VerificationResult> {
     });
 
     // Update the raw_json in the database using raw SQL to add legalVerified: true
+    // First ensure server_metadata exists, then set the nested properties
+
+    // Step 1: Create server_metadata object if it doesn't exist
+    await prisma.$executeRaw`
+      UPDATE neon_auth.users_sync 
+      SET raw_json = jsonb_set(raw_json, '{server_metadata}', '{}')
+      WHERE id = ${userId} AND (raw_json->'server_metadata' IS NULL OR raw_json->'server_metadata' = 'null'::jsonb)
+    `;
+
+    // Step 2: Set the verification fields
     await prisma.$executeRaw`
       UPDATE neon_auth.users_sync 
       SET raw_json = jsonb_set(
         jsonb_set(
-          raw_json, 
+          raw_json,
           '{server_metadata,legalVerified}', 
           'true'::jsonb
         ),
@@ -59,10 +69,6 @@ export async function approveUser(userId: string): Promise<VerificationResult> {
           isProfileCompleteForMatching(startupProfile, "Startup")
         ) {
           await triggerMatching(startupProfile.id, "Startup");
-          console.log(
-            "Matching algorithm triggered for approved startup:",
-            startupProfile.id
-          );
         }
       } catch (matchingError) {
         console.error(
@@ -85,10 +91,6 @@ export async function approveUser(userId: string): Promise<VerificationResult> {
           isProfileCompleteForMatching(investorProfile, "Investor")
         ) {
           await triggerMatching(investorProfile.id, "Investor");
-          console.log(
-            "Matching algorithm triggered for approved investor:",
-            investorProfile.id
-          );
         }
       } catch (matchingError) {
         console.error(
@@ -128,12 +130,22 @@ export async function rejectUser(
     });
 
     // Update the raw_json in the database using raw SQL to add legalVerified: false
+    // First ensure server_metadata exists, then set the nested properties
+
+    // Step 1: Create server_metadata object if it doesn't exist
+    await prisma.$executeRaw`
+      UPDATE neon_auth.users_sync 
+      SET raw_json = jsonb_set(raw_json, '{server_metadata}', '{}')
+      WHERE id = ${userId} AND (raw_json->'server_metadata' IS NULL OR raw_json->'server_metadata' = 'null'::jsonb)
+    `;
+
+    // Step 2: Set the rejection fields
     await prisma.$executeRaw`
       UPDATE neon_auth.users_sync 
       SET raw_json = jsonb_set(
         jsonb_set(
           jsonb_set(
-            raw_json, 
+            raw_json,
             '{server_metadata,legalVerified}', 
             'false'::jsonb
           ),
