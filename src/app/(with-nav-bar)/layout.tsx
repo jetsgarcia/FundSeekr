@@ -28,14 +28,14 @@ export default async function WithNavLayout({
   return (
     <div>
       {/* Top Navigation */}
-      <header className="w-full sticky top-0 z-50 backdrop-blur supports-[backdrop-filter]:bg-background/70 border-b">
+      <header className="w-full sticky top-0 z-50 backdrop-blur supports-backdrop-filter:bg-background/70 border-b">
         <div className="w-full px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           {/* Left: Logo */}
           <div className="flex items-center">
             <NavLogo />
           </div>
 
-          {/* Center: Navigation links */}
+          {/* Center: Navigation links (when not logged in) */}
           {!userType && (
             <nav className="hidden md:flex items-center gap-8 absolute left-1/2 transform -translate-x-1/2">
               <a
@@ -59,9 +59,9 @@ export default async function WithNavLayout({
             </nav>
           )}
 
-          {/* Left (when logged in): Logo and navigation links */}
+          {/* Center-Left: User navigation (when logged in and not on home page) */}
           {userType && (
-            <div className="flex items-center gap-10 absolute left-4 sm:left-6 lg:left-8">
+            <div className="hidden md:flex items-center gap-8 absolute left-56">
               <NavLinks userType={userType} legalVerified={legalVerified} />
             </div>
           )}
